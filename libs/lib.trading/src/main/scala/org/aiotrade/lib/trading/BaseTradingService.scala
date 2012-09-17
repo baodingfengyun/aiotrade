@@ -30,8 +30,8 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
 
   protected val signalIndicators = new mutable.HashSet[SignalIndicator]()
   protected val triggers = new mutable.HashSet[Trigger]()
-  protected val openingOrders = new mutable.HashMap[Account, List[Order]]() // orders to open position
-  protected val closingOrders = new mutable.HashMap[Account, List[Order]]() // orders to close position
+  protected val openingOrders = new mutable.HashMap[TradableAccount, List[Order]]() // orders to open position
+  protected val closingOrders = new mutable.HashMap[TradableAccount, List[Order]]() // orders to close position
   protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
   /** current closed refer idx */
@@ -185,7 +185,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
       order.status match {
         case (OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial) => 
           log.info("Unfinished order (will retry): " + order)
-          val retry = new OrderCompose(order.sec, order.side, closeReferIdx) quantity (order.remainQuantity) after (1) using(order.account)
+          val retry = new OrderCompose(order.sec, order.side, closeReferIdx) quantity (order.remainQuantity) after (1) using(account)
           println("Retry order due to %s: %s".format(order.status, retry))
           addPendingOrder(retry)
         case _ =>
@@ -206,9 +206,13 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
         param.publish(ReportData(account.description, 0, closeTime, account.equity / initialEquity))
       }
 
-      log.info("%1$tY.%1$tm.%1$td: %2$s, opening=%3$s, closing=%4$s，pending=%5$s".format(
-          new Date(closeTime), account, openingOrders.getOrElse(account, Nil).size, closingOrders.getOrElse(account, Nil).size, pendingOrders.filter(_.account eq account).size)
-      )
+      account match {
+        case tAccount: TradableAccount =>
+          log.info("%1$tY.%1$tm.%1$td: %2$s, opening=%3$s, closing=%4$s，pending=%5$s".format(
+              new Date(closeTime), tAccount, openingOrders.getOrElse(tAccount, Nil).size, closingOrders.getOrElse(tAccount, Nil).size, pendingOrders.filter(_.account eq tAccount).size)
+          )
+        case _ =>
+      }
     }
   }
   
