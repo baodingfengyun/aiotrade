@@ -2,7 +2,6 @@ package org.aiotrade.lib.trading
 
 import java.util.Date
 import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
@@ -19,11 +18,14 @@ class Order(account: TradableAccount, val sec: Sec, var quantity: Double, var pr
   private var _reference: String = _
   
   // --- executing related
-  private var _status: OrderStatus = OrderStatus.New
+  private var _fillingQuantity: Double = _
+  private var _fillingPrice: Double =_
+  
   private var _filledQuantity: Double = _
   private var _averagePrice: Double = _
+
+  private var _status: OrderStatus = OrderStatus.New
   private var _message: String = _
-  private var _transactions = new ArrayList[SecurityTransaction]()
   
   def id = _id
   def id_=(id: Long) {
@@ -87,38 +89,39 @@ class Order(account: TradableAccount, val sec: Sec, var quantity: Double, var pr
       publish(OrderEvent.AveragePriceChanged(this, oldValue, averagePrice))
     }
   }
+  
+  def fillingPrice = _fillingPrice
+  def fillingQuantity = _fillingQuantity
 
   def message = _message
   def message_=(message: String) {
     _message = message
   }
   
-  def transactions = _transactions.toArray
-  
+  /**
+   * Fill order by price and size, this will also process binding account.
+   * Usually this method is used only in paper worker
+   */
   def fill(time: Long, price: Double, size: Double) {
-    val executedQuantity = math.min(size, remainQuantity)
-    if (executedQuantity > 0) {
+    _fillingPrice = price
+    _fillingQuantity = math.min(size, remainQuantity)
+    
+    if (_fillingQuantity > 0) {
       var oldTotalAmount = _filledQuantity * _averagePrice
-      _filledQuantity += executedQuantity
-      _averagePrice = (oldTotalAmount + executedQuantity * price) / _filledQuantity
+      _filledQuantity += _fillingQuantity
+      _averagePrice = (oldTotalAmount + _fillingQuantity * price) / _filledQuantity
 
-      side match {
-        case OrderSide.Buy | OrderSide.BuyCover =>
-          _transactions += SecurityTransaction(time, sec,  executedQuantity, price * account.tradingRule.multiplier * account.tradingRule.marginRate)
-        case OrderSide.Sell | OrderSide.SellShort =>
-          _transactions += SecurityTransaction(time, sec, -executedQuantity, price * account.tradingRule.multiplier * account.tradingRule.marginRate)
-        case _ =>
-      }
+      status = if (remainQuantity == 0) 
+        OrderStatus.Filled
+      else
+        OrderStatus.Partial
 
-      if (remainQuantity == 0) {
-        status = OrderStatus.Filled
-      } else { 
-        status = OrderStatus.Partial
-      }
+      log.info("Order Filling: %s".format(this))
 
-      log.info("Order Filled: %s".format(this))
-
-      account.processFillingOrder(time, this)
+      val tradeTransaction = account.calcTransaction(time, this)
+      account.processTransaction(tradeTransaction)
+    } else {
+      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, size, remainQuantity))
     }
   }
   
@@ -135,12 +138,17 @@ trait OrderRoute {
   def name: String
 }
 
-sealed abstract class OrderSide(val name: String)
+/**
+ * @param name
+ * @param +/- quantity
+ * @param is to open or close a position
+ */
+sealed abstract class OrderSide(val name: String, val signum: Int, val isOpening: Boolean)
 object OrderSide {
-  final case object Buy extends OrderSide("Buy")
-  final case object Sell extends OrderSide("Sell")
-  final case object SellShort extends OrderSide("SellShort")
-  final case object BuyCover extends OrderSide("BuyCover")
+  final case object Buy       extends OrderSide("Buy",        1, true)
+  final case object BuyCover  extends OrderSide("BuyCover",   1, false)
+  final case object Sell      extends OrderSide("Sell",      -1, false)  
+  final case object SellShort extends OrderSide("SellShort", -1, true)
 }
 
 sealed abstract class OrderType(val name: String)

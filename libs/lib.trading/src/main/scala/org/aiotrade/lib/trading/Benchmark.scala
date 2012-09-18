@@ -272,10 +272,10 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     val expTransactions = new ArrayList[ExpensesTransaction]()
     for {
       account <- tradingService.accounts
-      TradeTransaction(time, order, chunk, expenses) <- account.transactions
+      TradeTransaction(time, secTransaction, expensesTransaction, order) <- account.transactions
     } {
-      secTransactions ++= chunk
-      expTransactions += expenses
+      secTransactions ++= secTransaction
+      expTransactions += expensesTransaction
     }
     (secTransactions.toArray, expTransactions.toArray)
   }

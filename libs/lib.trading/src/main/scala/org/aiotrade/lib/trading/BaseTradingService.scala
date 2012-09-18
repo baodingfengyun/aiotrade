@@ -345,7 +345,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
   
   protected def calcTotalFundsToOpen(account: TradableAccount, orders: List[Order]) = {
-    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.quantity, x.price)}
+    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.price, x.quantity)}
   }
    
 
@@ -401,45 +401,47 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     def referIndex = referIdxAtDecision + _afterIdx
 
     def toOrder: Option[Order] = {
-      val time = timestamps(referIndex)
-      ser.valueOf(time) match {
-        case Some(quote) =>
-          side match {
-            case OrderSide.Buy | OrderSide.SellShort =>
-              if (_price.isNaN) {
-                _price = _account.tradingRule.buyPriceRule(quote)
-              }
-              if (_quantity.isNaN) {
-                _quantity = _account.tradingRule.buyQuantityRule(quote, _price, _funds)
-              }
-            case OrderSide.Sell | OrderSide.BuyCover =>
-              if (_price.isNaN) {
-                _price = _account.tradingRule.sellPriceRule(quote)
-              }
-              if (_quantity.isNaN) {
-                _quantity = positionOf(sec) match {
-                  case Some(position) => 
-                    // @Note quantity of position may be negative because of sellShort etc.
-                    _account.tradingRule.sellQuantityRule(quote, _price, math.abs(position.quantity))
-                  case None => 0
+      if (_account.availableFunds > 0) {
+        val time = timestamps(referIndex)
+        ser.valueOf(time) match {
+          case Some(quote) =>
+            side match {
+              case OrderSide.Buy | OrderSide.SellShort =>
+                if (_price.isNaN) {
+                  _price = _account.tradingRule.buyPriceRule(quote)
                 }
-              }
-            case _ =>
-          }
+                if (_quantity.isNaN) {
+                  _quantity = _account.tradingRule.buyQuantityRule(quote, _price, _funds)
+                }
+              case OrderSide.Sell | OrderSide.BuyCover =>
+                if (_price.isNaN) {
+                  _price = _account.tradingRule.sellPriceRule(quote)
+                }
+                if (_quantity.isNaN) {
+                  _quantity = positionOf(sec) match {
+                    case Some(position) => 
+                      // @Note quantity of position may be negative because of sellShort etc.
+                      _account.tradingRule.sellQuantityRule(quote, _price, math.abs(position.quantity))
+                    case None => 0
+                  }
+                }
+              case _ =>
+            }
           
-          _quantity = math.abs(_quantity)
-          if (_quantity > 0) {
-            val order = new Order(_account, sec, _quantity, _price, side)
-            order.time = time
-            println("Some order: %s".format(this))
-            Some(order)
-          } else {
-            println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(this, quote.volume, quote.average, quote.average * _account.tradingRule.multiplier * _account.tradingRule.marginRate))
-            None
-          }
+            _quantity = math.abs(_quantity)
+            if (_quantity > 0) {
+              val order = new Order(_account, sec, _quantity, _price, side)
+              order.time = time
+              println("Some order: %s".format(this))
+              Some(order)
+            } else {
+              println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(this, quote.volume, quote.average, quote.average * _account.tradingRule.multiplier * _account.tradingRule.marginRate))
+              None
+            }
           
-        case None => None
-      }
+          case None => None
+        }
+      } else None
     }
     
     override 

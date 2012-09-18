@@ -20,7 +20,7 @@ trait Transaction {
   def order: Order
 }
 
-final case class ExpensesTransaction(val time: Long, val amount: Double) extends Transaction {
+final case class ExpensesTransaction(time: Long, amount: Double) extends Transaction {
   def this(amount: Double) = this(System.currentTimeMillis, amount)
 
   val id = UUID.randomUUID.getMostSignificantBits
@@ -29,23 +29,24 @@ final case class ExpensesTransaction(val time: Long, val amount: Double) extends
   val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-final case class SecurityTransaction(val time: Long, val sec: Sec, quantity: Double, price: Double) extends Transaction {
+/**
+ * @Note quantity and amount should consider signum according to the side
+ */
+final case class SecurityTransaction(time: Long, sec: Sec, price: Double, quantity: Double, amount: Double, side: OrderSide) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
-  val description = "%s %s at %s".format(sec.uniSymbol, quantity, price)
-  val amount = quantity * price
+  val description = "%s %s at %s, amount %s".format(sec.uniSymbol, price, quantity, amount)
   val order: Order = null
   val subTransactions: Array[Transaction] = Array[Transaction]()
 }
 
-final case class TradeTransaction(val time: Long, val order: Order, chunks: Array[SecurityTransaction], expenses: ExpensesTransaction) extends Transaction {
+final case class TradeTransaction(time: Long, securityTransactions: Array[SecurityTransaction], expensesTransaction: ExpensesTransaction, order: Order) extends Transaction {
   val id = UUID.randomUUID.getMostSignificantBits
-  val description = "Order %s".format(order)
+  val description = "%s".format(securityTransactions)
 
   val subTransactions = {
-    val xs = new ArrayList[Transaction]() ++= chunks
-    if (expenses != null) {
-      xs += expenses
-    }
+    val xs = new ArrayList[Transaction]() ++= securityTransactions
+    xs += expensesTransaction
+    
     xs.toArray
   }
 

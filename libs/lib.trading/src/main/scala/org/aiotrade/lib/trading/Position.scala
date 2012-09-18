@@ -3,7 +3,7 @@ package org.aiotrade.lib.trading
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 
-class Position private (var _account: TradableAccount, private var _time: Long, private var _sec: Sec, private var _quantity: Double, private var _price: Double) {
+class Position private (var _account: TradableAccount, private var _time: Long, private var _sec: Sec, private var _price: Double, private var _quantity: Double) {
   def this() = this(null, Long.MinValue, null, Double.NaN, Double.NaN) /* for serializable */  
 
   private var _subPositions: ArrayList[Position] = null
@@ -49,7 +49,7 @@ class Position private (var _account: TradableAccount, private var _time: Long, 
     }
   }
   
-  def add(time: Long, quantity: Double, price: Double) {
+  def add(time: Long, price: Double, quantity: Double) {
     _subPositions = if (_subPositions == null) new ArrayList[Position]() else _subPositions
     _subPositions += new Position(_account, time, sec, quantity, price)
     
@@ -65,7 +65,7 @@ class Position private (var _account: TradableAccount, private var _time: Long, 
     }
   }
   
-  def isLong: Boolean = _quantity > 0
+  def isLong:  Boolean = _quantity > 0
   def isShort: Boolean = _quantity < 0
   
   def gainLoss = (_currentPrice - _price) * quantity 
@@ -88,7 +88,7 @@ class Position private (var _account: TradableAccount, private var _time: Long, 
 }
 
 object Position {
-  def apply(account: TradableAccount, time: Long, sec: Sec, quantity: Double, price: Double) = new Position(account, time, sec, quantity, price)
+  def apply(account: TradableAccount, time: Long, sec: Sec, price: Double, quantity: Double) = new Position(account, time, sec, price, quantity)
   def apply() = new Position(null, Long.MinValue, null, Double.NaN, Double.NaN)
 }
 
@@ -96,6 +96,6 @@ sealed trait PositionEvent {
   def account: TradableAccount
   def position: Position
 }
-final case class PositionOpened(val account: TradableAccount, val position: Position) extends PositionEvent
-final case class PositionClosed(val account: TradableAccount, val position: Position) extends PositionEvent
+final case class PositionOpened (val account: TradableAccount, val position: Position) extends PositionEvent
+final case class PositionClosed (val account: TradableAccount, val position: Position) extends PositionEvent
 final case class PositionChanged(val account: TradableAccount, val position: Position) extends PositionEvent
