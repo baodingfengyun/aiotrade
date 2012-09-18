@@ -6,7 +6,7 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
 
-class Order(account: TradableAccount, val sec: Sec, var quantity: Double, var price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
+class Order(val account: TradableAccount, val sec: Sec, var quantity: Double, var price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _id: Long = _
@@ -18,8 +18,6 @@ class Order(account: TradableAccount, val sec: Sec, var quantity: Double, var pr
   private var _reference: String = _
   
   // --- executing related
-  private var _fillingQuantity: Double = _
-  private var _fillingPrice: Double =_
   
   private var _filledQuantity: Double = _
   private var _averagePrice: Double = _
@@ -90,26 +88,19 @@ class Order(account: TradableAccount, val sec: Sec, var quantity: Double, var pr
     }
   }
   
-  def fillingPrice = _fillingPrice
-  def fillingQuantity = _fillingQuantity
-
   def message = _message
   def message_=(message: String) {
     _message = message
   }
   
   /**
-   * Fill order by price and size, this will also process binding account.
-   * Usually this method is used only in paper worker
+   * Fill order by price and quantity
    */
-  def fill(time: Long, price: Double, size: Double) {
-    _fillingPrice = price
-    _fillingQuantity = math.min(size, remainQuantity)
-    
-    if (_fillingQuantity > 0) {
+  def fill(price: Double, quantity: Double) {
+    if (quantity > 0) {
       var oldTotalAmount = _filledQuantity * _averagePrice
-      _filledQuantity += _fillingQuantity
-      _averagePrice = (oldTotalAmount + _fillingQuantity * price) / _filledQuantity
+      _filledQuantity += quantity
+      _averagePrice = (oldTotalAmount + price * quantity) / _filledQuantity
 
       status = if (remainQuantity == 0) 
         OrderStatus.Filled
@@ -117,11 +108,8 @@ class Order(account: TradableAccount, val sec: Sec, var quantity: Double, var pr
         OrderStatus.Partial
 
       log.info("Order Filling: %s".format(this))
-
-      val tradeTransaction = account.calcTransaction(time, this)
-      account.processTransaction(tradeTransaction)
     } else {
-      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, size, remainQuantity))
+      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, quantity, remainQuantity))
     }
   }
   

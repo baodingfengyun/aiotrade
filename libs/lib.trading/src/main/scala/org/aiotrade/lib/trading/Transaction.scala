@@ -2,6 +2,7 @@ package org.aiotrade.lib.trading
 
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
+import java.util.Date
 import java.util.UUID
 
 trait Transaction {
@@ -50,13 +51,24 @@ final case class TradeTransaction(time: Long, securityTransactions: Array[Securi
     xs.toArray
   }
 
-  val amount = {
+  val securityAmount = {
     var sum = 0.0
     var i = 0
-    while (i < subTransactions.length) {
-      sum += subTransactions(i).amount
+    while (i < securityTransactions.length) {
+      sum += securityTransactions(i).amount
       i += 1
     }
     sum
+  }
+  
+  val expensesAmount = expensesTransaction.amount
+  
+  val amount = securityAmount + expensesAmount
+  
+  override
+  def toString = {
+    "Transaction: time=%1$tY.%1$tm.%1$td, sec=%2s, side=%3s, secAmount=%4$ 10.2f, expenses=%5$ 10.2f, amount=%6$ 10.2f".format(
+      new Date(time), order.sec.uniSymbol, order.side, securityAmount, expensesAmount, amount
+    )
   }
 }

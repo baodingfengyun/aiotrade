@@ -17,6 +17,7 @@ import org.aiotrade.lib.trading.OrderSide
 import org.aiotrade.lib.trading.OrderStatus
 import org.aiotrade.lib.trading.OrderType
 import org.aiotrade.lib.trading.OrderValidity
+import org.aiotrade.lib.trading.PaperExecution
 import scala.collection.mutable
 
 class PaperBroker(val name: String) extends Broker {
@@ -114,8 +115,7 @@ class PaperBroker(val name: String) extends Broker {
   /**
    * call me to execute the orders
    */
-  override 
-  def processTrade(sec: Sec, time: Long, price: Double, quantity: Double) {
+  def processTrade(sec: Sec, time: Long, price: Double, quantity: Double, amount: Double, expenses: Double) {
     var deltas = List[OrderDelta]()
 
     val executingOrders = pendingSecToExecutingOrders synchronized {pendingSecToExecutingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
@@ -127,17 +127,17 @@ class PaperBroker(val name: String) extends Broker {
           order.tpe match {
             case OrderType.Market =>
               deltas ::= OrderDelta.Updated(order)
-              order.fill(time, price, quantity)
+              fill(order, time, price, quantity)
                 
             case OrderType.Limit =>
               order.side match {
                 case (OrderSide.Buy | OrderSide.SellShort) if price <= order.price =>
                   deltas ::= OrderDelta.Updated(order)
-                  order.fill(time, price, quantity)
+                  fill(order, time, price, quantity)
                     
                 case (OrderSide.Sell | OrderSide.BuyCover) if price >= order.price => 
                   deltas ::= new OrderDelta.Updated(order)
-                  order.fill(time, price, quantity)
+                  fill(order, time, price, quantity)
 
                 case _ =>
               }
@@ -166,6 +166,21 @@ class PaperBroker(val name: String) extends Broker {
 
     if (deltas.nonEmpty) {
       publish(OrderDeltasEvent(this, deltas))
+    }
+  }
+  
+  /**
+   * Fill order by price and size, this will also process binding account.
+   * Usually this method is used only in paper worker
+   */
+  def fill(order: Order, time: Long, price: Double, quantity: Double) {
+    val fillingQuantity = math.min(quantity, order.remainQuantity)
+    
+    if (fillingQuantity > 0) {
+      val execution = PaperExecution(order, time, price, fillingQuantity)
+      order.account.processTransaction(order, execution)
+    } else {
+      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, quantity, order.remainQuantity))
     }
   }
 

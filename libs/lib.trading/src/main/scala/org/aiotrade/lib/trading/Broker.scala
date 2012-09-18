@@ -39,9 +39,10 @@ trait Broker extends Publisher {
   def executingOrders: collection.Map[Sec, collection.Iterable[Order]]
 
   /**
-   * Used only for paper work
+   * For paper work, this method can receive ticker data to drive orders being executed gradually;
+   * For real trading, thie method can receive execution report one by one.
    */
-  def processTrade(sec: Sec, time: Long, price: Double, quantity: Double) {}
+  def processTrade(sec: Sec, time: Long, price: Double, quantity: Double, amount: Double = Double.NaN, expenses: Double = Double.NaN)
 }
 
 

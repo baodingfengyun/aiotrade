@@ -1,5 +1,6 @@
 package org.aiotrade.lib.trading
 
+import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
@@ -30,6 +31,8 @@ abstract class Account(val description: String, protected var _balance: Double,
 abstract class TradableAccount($description: String, $balance: Double, 
                                $currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Account($description, $balance, $currency) {
+  private val log = Logger.getLogger(this.getClass.getName)
+  
   protected val _secToPosition = new mutable.HashMap[Sec, Position]()
 
   def tradingRule: TradingRule
@@ -42,30 +45,45 @@ abstract class TradableAccount($description: String, $balance: Double,
   /**
    * @return  amount with signum
    */
-  protected def calcSecTransactionAmount(order: Order): Double
+  protected def calcSecTransactionAmount(order: Order, execution: Execution): Double
   /**
    * For lots of brokers, will directly return transaction, in that case, we can just call processTransaction
    */
-  def calcTransaction(time: Long, order: Order): TradeTransaction = {
-    val fillingAmount = calcSecTransactionAmount(order)
-    val fillingQuantity = order.side.signum * order.fillingQuantity
-    // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position add/remove.
-    val secTransaction = SecurityTransaction(time, order.sec, order.fillingPrice, fillingQuantity, fillingAmount, order.side)
+  private def processExecution(order: Order, execution: Execution): TradeTransaction = {
+    val tradeTransaction = execution match {
+      case PaperExecution(order, time, price, quantity) =>
+        val fillingAmount = calcSecTransactionAmount(order, execution: Execution)
+        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position increase/decrease.
+        val secTransaction = SecurityTransaction(time, order.sec, price, order.side.signum * quantity, fillingAmount, order.side)
       
-    val expenses = if (order.side.isOpening)  
-      tradingRule.expenseScheme.getOpeningExpenses(order.fillingPrice, order.fillingQuantity)
-    else
-      tradingRule.expenseScheme.getClosingExpenses(order.fillingPrice, order.fillingQuantity)
-    val expensesTransaction = ExpensesTransaction(time, expenses)
+        val expenses = if (order.side.isOpening)  
+          tradingRule.expenseScheme.getOpeningExpenses(price, quantity)
+        else
+          tradingRule.expenseScheme.getClosingExpenses(price, quantity)
+        val expensesTransaction = ExpensesTransaction(time, -expenses)
     
-    val tradeTransaction = TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
+        TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
+        
+      case FullExecution(order, time, price, quantity, amount, expenses) =>
+        val fillingAmount = -order.side.signum * amount
+        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position add/remove.
+        val secTransaction = SecurityTransaction(time, order.sec, price, order.side.signum * quantity, fillingAmount, order.side)
+        
+        TradeTransaction(time, Array(secTransaction), ExpensesTransaction(time, -expenses), order)
+    }
     _transactions += tradeTransaction
 
     tradeTransaction
   }
   
-  def processTransaction(transaction: TradeTransaction) {
-    _balance -= transaction.amount
+  def processTransaction(order: Order, execution: Execution) {
+    order.fill(execution.price, execution.quantity)
+    
+    val transaction = processExecution(order, execution)
+    
+    log.info(transaction.toString)
+    
+    _balance += transaction.amount
 
     for (SecurityTransaction(time, sec, price, quantity, amount, side) <- transaction.securityTransactions) {
       _secToPosition.get(sec) match {
@@ -101,8 +119,8 @@ class StockAccount($description: String, $balance: Double, val tradingRule: Trad
     quantity * price + tradingRule.expenseScheme.getOpeningExpenses(price, quantity)
   }
   
-  protected def calcSecTransactionAmount(order: Order): Double = {
-    order.side.signum * (order.fillingPrice * tradingRule.multiplier * tradingRule.marginRate) * order.fillingQuantity
+  protected def calcSecTransactionAmount(order: Order, execution: Execution): Double = {
+    -order.side.signum * (execution.price * tradingRule.multiplier * tradingRule.marginRate) * execution.quantity
   }
 
   override 
@@ -129,7 +147,7 @@ class FutureAccount($description: String, $balance: Double, val tradingRule: Tra
     tradingRule.expenseScheme.getOpeningExpenses(price * tradingRule.multiplier, quantity)
   }
   
-  protected def calcSecTransactionAmount(order: Order): Double = {
+  protected def calcSecTransactionAmount(order: Order, execution: Execution): Double = {
     if (order.side.isOpening) {
       // we won't minus the margin from balance, since the margin was actually not taken from balance, instead, availableFunds will minus mragin.
       0.0 
@@ -137,8 +155,7 @@ class FutureAccount($description: String, $balance: Double, val tradingRule: Tra
       _secToPosition.get(order.sec) match {
         case Some(position) =>
           // calculate offset gain loss of closed position right now
-          val offsetGainLoss = order.side.signum * (order.fillingPrice - position.price) * order.filledQuantity * tradingRule.multiplier
-          -offsetGainLoss
+          order.side.signum * (execution.price - position.price) * execution.quantity * tradingRule.multiplier
         case _ => 0.0 // This should not happen!
       }
     }
