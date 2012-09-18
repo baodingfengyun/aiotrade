@@ -53,9 +53,9 @@ abstract class TradableAccount($description: String, $balance: Double,
     val secTransaction = SecurityTransaction(time, order.sec, order.fillingPrice, fillingQuantity, fillingAmount, order.side)
       
     val expenses = if (order.side.isOpening)  
-      tradingRule.expenseScheme.getOpeningExpenses(order.fillingQuantity, order.fillingPrice)
+      tradingRule.expenseScheme.getOpeningExpenses(order.fillingPrice, order.fillingQuantity)
     else
-      tradingRule.expenseScheme.getClosingExpenses(order.fillingQuantity, order.fillingPrice)
+      tradingRule.expenseScheme.getClosingExpenses(order.fillingPrice, order.fillingQuantity)
     val expensesTransaction = ExpensesTransaction(time, expenses)
     
     val tradeTransaction = TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
@@ -98,7 +98,7 @@ class StockAccount($description: String, $balance: Double, val tradingRule: Trad
   def availableFunds = _balance
   
   def calcFundsToOpen(price: Double, quantity: Double) = {
-    quantity * price + tradingRule.expenseScheme.getOpeningExpenses(quantity, price)
+    quantity * price + tradingRule.expenseScheme.getOpeningExpenses(price, quantity)
   }
   
   protected def calcSecTransactionAmount(order: Order): Double = {
@@ -126,7 +126,7 @@ class FutureAccount($description: String, $balance: Double, val tradingRule: Tra
   
   def calcFundsToOpen(price: Double, quantity: Double) = {
     quantity * price * tradingRule.multiplier * tradingRule.marginRate + 
-    tradingRule.expenseScheme.getOpeningExpenses(quantity, price * tradingRule.multiplier)
+    tradingRule.expenseScheme.getOpeningExpenses(price * tradingRule.multiplier, quantity)
   }
   
   protected def calcSecTransactionAmount(order: Order): Double = {
