@@ -133,8 +133,10 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     }
 
     // today's orders processed, now begin to check new conditions and 
-    // prepare new orders according to today's close status.
-      
+    // prepare new orders according to current closed status.
+    
+    accounts foreach broker.updateAccount
+    
     secPicking.go(closeTime)
     checkStopCondition
     
@@ -154,14 +156,10 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     // sell first?. If so, how about the returning funds?
     allOpeningOrders foreach {order => 
       broker.submit(order)
-      //@Todo this should be re-considered for real trading, i.e. trigged by returning order executed event 
-      broker.processTrade(order.sec, closeTime, order.price, order.quantity)
     }
 
     allClosingOrders foreach {order => 
       broker.submit(order)
-      //@Todo this should be re-considered for real trading, i.e. trigged by returning order executed event 
-      broker.processTrade(order.sec, closeTime, order.price, order.quantity)
     }    
   }
   

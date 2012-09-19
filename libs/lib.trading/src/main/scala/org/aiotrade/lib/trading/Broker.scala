@@ -43,6 +43,11 @@ trait Broker extends Publisher {
    * For real trading, thie method can receive execution report one by one.
    */
   def processTrade(sec: Sec, time: Long, price: Double, quantity: Double, amount: Double = Double.NaN, expenses: Double = Double.NaN)
+  
+  /**
+   * Update account's funds, positions etc to newest status
+   */
+  def updateAccount(account: Account) {}
 }
 
 

@@ -89,6 +89,10 @@ class PaperBroker(val name: String) extends Broker {
     log.info("Order Submitted: %s".format(order))
 
     publish(OrderDeltasEvent(this, Array(OrderDelta.Updated(order))))
+    
+    // for paper work, we assume all orders can be executed sucessfully.
+    // for real trading, this should be trigged by returning order executed event 
+    processTrade(order.sec, order.time, order.price, order.quantity)
   }  
 
   def isAllowOrderModify = false
