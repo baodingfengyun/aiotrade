@@ -339,9 +339,8 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
   
   protected def calcTotalFundsToOpen(account: TradableAccount, orders: List[Order]) = {
-    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.price, x.quantity, x.sec)}
+    orders.foldLeft(0.0){(s, x) => s + {if (x.funds.isNaN) account.calcFundsToOpen(x.price, x.quantity, x.sec) else x.funds}}
   }
-   
 
   protected def scanTriggers(fromIdx: Int, toIdx: Int = -1): mutable.HashSet[Trigger] = {
     val toIdx1 = if (toIdx == -1) fromIdx else toIdx

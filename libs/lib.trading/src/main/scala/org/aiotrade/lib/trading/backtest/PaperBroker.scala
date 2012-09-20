@@ -12,7 +12,6 @@ import org.aiotrade.lib.trading.BrokerException
 import org.aiotrade.lib.trading.Order
 import org.aiotrade.lib.trading.OrderDelta
 import org.aiotrade.lib.trading.OrderDeltasEvent
-import org.aiotrade.lib.trading.OrderRoute
 import org.aiotrade.lib.trading.OrderSide
 import org.aiotrade.lib.trading.OrderStatus
 import org.aiotrade.lib.trading.OrderType
@@ -39,8 +38,6 @@ class PaperBroker(val name: String) extends Broker {
   val allowedValidity = List(
     OrderValidity.Day
   )
-
-  val allowedRoutes = List[OrderRoute]()
 
   @throws(classOf[BrokerException])
   def connect {
@@ -114,51 +111,56 @@ class PaperBroker(val name: String) extends Broker {
 
   def toOrder(oc: OrderCompose): Option[Order] = {
     import oc._
-    if (account.availableFunds > 0) {
-      val time = timestamps(referIndex)
-      ser.valueOf(time) match {
-        case Some(quote) =>
-          side match {
-            case OrderSide.Buy | OrderSide.SellShort =>
-              if (price.notSet) {
-                price(account.tradingRule.buyPriceRule(quote))
-              }
-              if (quantity.notSet) {
-                quantity(account.tradingRule.buyQuantityRule(quote, price, funds))
-              }
-            case OrderSide.Sell | OrderSide.BuyCover =>
-              if (price.notSet) {
-                price(account.tradingRule.sellPriceRule(quote))
-              }
-              if (quantity.notSet) {
-                quantity(
-                  positionOf(sec) match {
-                    case Some(position) => 
-                      // @Note quantity of position may be negative because of sellShort etc.
-                      account.tradingRule.sellQuantityRule(quote, price, math.abs(position.quantity))
-                    case None => 0
-                  }
-                )
-              }
-            case _ =>
-          }
+    
+    val time = timestamps(referIndex)
+    ser.valueOf(time) match {
+      case Some(quote) =>
+        if (side.isOpening) {
           
-          quantity(math.abs(quantity))
-          if (quantity > 0) {
-            val order = new Order(account, sec, quantity, price, side)
-            order.time = time
-            println("Some order: %s".format(this))
-            Some(order)
+          if (account.availableFunds > 0) {
+            if (price.notSet) {
+              price(account.tradingRule.buyPriceRule(quote))
+            }
+            if (quantity.notSet) {
+              quantity(account.tradingRule.buyQuantityRule(quote, price, funds))
+            }
           } else {
-            println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(
-                this, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
-            )
-            None
+            quantity(0.0)
           }
+        } else { // closing
+            
+          if (price.notSet) {
+            price(account.tradingRule.sellPriceRule(quote))
+          }
+          if (quantity.notSet) {
+            quantity(
+              positionOf(sec) match {
+                case Some(position) => 
+                  // @Note quantity of position may be negative because of sellShort etc.
+                  account.tradingRule.sellQuantityRule(quote, price, math.abs(position.quantity))
+                case None => 0
+              }
+            )
+          }
+            
+        }
           
-        case None => None
-      }
-    } else None
+        quantity(math.abs(quantity))
+        if (quantity > 0) {
+          val order = Order(account, sec, price, quantity, side)
+          order.time = time
+          println("Some order: %s".format(this))
+          Some(order)
+        } else {
+          println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(
+              this, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
+          )
+          None
+        }
+          
+      case None => None
+    }
+    
   }
   
   /**

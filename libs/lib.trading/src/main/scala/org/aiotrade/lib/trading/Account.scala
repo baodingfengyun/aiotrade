@@ -41,6 +41,18 @@ abstract class TradableAccount($description: String, $balance: Double,
   def positionGainLoss: Double
   def positionEquity: Double
   def calcFundsToOpen(price: Double, quantity: Double, sec: Sec = null): Double
+  
+  /**
+   * Considered both expenses and quantityPerLot
+   */
+  def calcQuantityToOpen(price: Double, funds: Double, sec: Sec) = {
+    var quantity = (funds / price).toInt / tradingRule.quantityPerLot * tradingRule.quantityPerLot
+    while (calcFundsToOpen(price, funds, sec) > funds) {
+      quantity -= tradingRule.quantityPerLot
+    }
+    
+    quantity
+  }
 
   /**
    * @return  amount with signum

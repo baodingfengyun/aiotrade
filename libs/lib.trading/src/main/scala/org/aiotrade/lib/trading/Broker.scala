@@ -36,7 +36,6 @@ trait Broker extends Publisher {
   def allowedTypes: List[OrderType]
   def allowedSides: List[OrderSide]
   def allowedValidity: List[OrderValidity]
-  def allowedRoutes: List[OrderRoute]
   def canTrade(sec: Sec): Boolean
   def getSecurityBySymbol(symbol: String): Sec
   def getSymbolBySecurity(sec: Sec)
@@ -125,48 +124,75 @@ trait Broker extends Publisher {
 abstract class TradeBroker extends Broker {
   private val log = Logger.getLogger(getClass.getName)
   
+  /**
+   * For opening order:
+   *     If price is set, the funds will be ignored finally, but:
+   *           If quantity is set, everything is ok 
+   *           If quantity is not set, your should calcQuantityToOpen by funds and set it, and then don't set funds
+   *     If price is not set
+   *           If quantity is set, that makes no sense, you should set funds
+   *           If quantity is not set, you should set funds, then, the price/quantity will be decided by Algorithmic Trading Strategy.
+   * For closing order: 
+   *     1. You should set quantity always, the funds makes no sense and will be ignored.
+   *     2. If price is set, everything is ok
+   *        If price is not set, the price will be decided by Algorithmic Trading Strategy.
+   */  
   def toOrder(oc: OrderCompose): Option[Order] = {
     import oc._
+    
     val time = timestamps(referIndex)
-    if (account.availableFunds > 0) {
-      val order = side match {
-        case OrderSide.Buy | OrderSide.SellShort =>
-          if (funds.isSet) {
-            if (price.notSet) {
-              // funds set but without price, just ignore quantity, it's dangerous to get a terrible price
-              Some(new Order(account, sec, quantity, price, side, OrderType.Market))
-            } else {
-              // ignore quantity, since funds is set, it's dangerous to get a terrible price
-              Some(new Order(account, sec, quantity, price, side, OrderType.Market))
-            }
-          } else { // funds is not set
-            if (price.isSet && quantity.isSet) {
-              Some(new Order(account, sec, quantity, price, side, OrderType.Limit))
-            } else {
-              None
-            }
-          }
-        case OrderSide.Sell | OrderSide.BuyCover =>
-          // @Note quantity of position may be negative because of sellShort etc.
-          val theQuantity = if (quantity.isSet) {
-            math.abs(quantity)
-          } else {
-            positionOf(sec) match {
-              case Some(position) => math.abs(position.quantity)
-              case None => 0
-            }  
-          }
+    val order = 
+      if (side.isOpening) {
+        
+        if (account.availableFunds > 0) {
           if (price.isSet) {
-            Some(new Order(account, sec, quantity, price, side, OrderType.Limit))
-          } else {
-            Some(new Order(account, sec, quantity, price, side, OrderType.Market))
+            if (quantity.isSet) {
+              Some(Order(account, sec, price, quantity, side, OrderType.Market))
+            } else {
+              if (funds.isSet) {
+                val quantityToOpen = account.calcQuantityToOpen(price, funds, sec)
+                Some(Order(account, sec, price, quantityToOpen, side, OrderType.Market))
+              } else {
+                println("You should set either quantity or funds " + oc)
+                None
+              }
+            }
+          } else { // price is not set
+            if (quantity.isSet) {
+              println("You should also set price when quantity is set, since even funds is set, this opening stratery is suspicious " + oc)
+              None
+            } else {
+              if (funds.isSet) {
+                Some(Order(account, sec, price, quantity, side, OrderType.Market, funds))
+              } else {
+                println("You should set funds when both price and quantity are not set " + oc)
+                None
+              }
+            }
           }
-        case _ => None
+        
+        } else { // no availableFunds
+          None
+        }
+          
+      } else { // closing
+          
+        // @Note quantity of position may be negative because of sellShort etc.
+        val quantityToClose = if (quantity.isSet) {
+          math.abs(quantity)
+        } else {
+          positionOf(sec) match {
+            case Some(position) => math.abs(position.quantity)
+            case None => 0
+          }  
+        }
+        
+        Some(Order(account, sec, price, quantityToClose, side, OrderType.Market))
+          
       }
        
-      println("Some order: %s".format(order))
-      order map {x => x.time = time; x}
-    } else None
+    println("To order: %s".format(order))
+    order map {x => x.time = time; x}
   }
   
   /**

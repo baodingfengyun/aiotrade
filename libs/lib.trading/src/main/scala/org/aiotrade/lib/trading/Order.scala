@@ -5,8 +5,7 @@ import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
-
-class Order(val account: TradableAccount, val sec: Sec, var quantity: Double, var price: Double, val side: OrderSide, val tpe: OrderType = OrderType.Market, var route: OrderRoute = null) extends Publisher {
+final case class Order(account: TradableAccount, sec: Sec, price: Double, var quantity: Double, side: OrderSide, tpe: OrderType = OrderType.Market, funds: Double = Double.NaN) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _id: Long = _
@@ -119,11 +118,6 @@ class Order(val account: TradableAccount, val sec: Sec, var quantity: Double, va
       new Date(time), sec.uniSymbol, tpe, side, quantity.toInt, _filledQuantity.toInt, price, status, stopPrice, validity, expireTime, reference
     )
   }
-}
-
-trait OrderRoute {
-  def id: String
-  def name: String
 }
 
 /**
