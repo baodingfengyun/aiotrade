@@ -9,7 +9,7 @@ import org.aiotrade.lib.securities.model.Quote
 class TradingRule {
   val quantityPerLot = 100
   val tradableProportionOfVolume = 0.1
-  val expenseScheme: ExpenseScheme = ShenzhenExpenseScheme(0.0008)
+  val expenseScheme: ExpenseScheme = ChinaStocksExpenseScheme(0.0008)
   
   // -- usally for futures
   val marginRate: Double = 1.0

@@ -40,7 +40,7 @@ abstract class TradableAccount($description: String, $balance: Double,
   def positions = _secToPosition
   def positionGainLoss: Double
   def positionEquity: Double
-  def calcFundsToOpen(price: Double, quantity: Double): Double
+  def calcFundsToOpen(price: Double, quantity: Double, sec: Sec = null): Double
 
   /**
    * @return  amount with signum
@@ -57,9 +57,9 @@ abstract class TradableAccount($description: String, $balance: Double,
         val secTransaction = SecurityTransaction(time, order.sec, price, order.side.signum * quantity, fillingAmount, order.side)
       
         val expenses = if (order.side.isOpening)  
-          tradingRule.expenseScheme.getOpeningExpenses(price, quantity)
+          tradingRule.expenseScheme.getOpeningExpenses(price, quantity, order.sec)
         else
-          tradingRule.expenseScheme.getClosingExpenses(price, quantity)
+          tradingRule.expenseScheme.getClosingExpenses(price, quantity, order.sec)
         val expensesTransaction = ExpensesTransaction(time, -expenses)
     
         TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
@@ -115,8 +115,8 @@ class StockAccount($description: String, $balance: Double, val tradingRule: Trad
   def equity = _balance + positionEquity
   def availableFunds = _balance
   
-  def calcFundsToOpen(price: Double, quantity: Double) = {
-    quantity * price + tradingRule.expenseScheme.getOpeningExpenses(price, quantity)
+  def calcFundsToOpen(price: Double, quantity: Double, sec: Sec) = {
+    quantity * price + tradingRule.expenseScheme.getOpeningExpenses(price, quantity, sec)
   }
   
   protected def calcSecTransactionAmount(order: Order, execution: Execution): Double = {
@@ -142,9 +142,9 @@ class FutureAccount($description: String, $balance: Double, val tradingRule: Tra
   def equity = _balance + positionGainLoss
   def availableFunds = equity - positionMargin
   
-  def calcFundsToOpen(price: Double, quantity: Double) = {
+  def calcFundsToOpen(price: Double, quantity: Double, sec: Sec) = {
     quantity * price * tradingRule.multiplier * tradingRule.marginRate + 
-    tradingRule.expenseScheme.getOpeningExpenses(price * tradingRule.multiplier, quantity)
+    tradingRule.expenseScheme.getOpeningExpenses(price * tradingRule.multiplier, quantity, sec)
   }
   
   protected def calcSecTransactionAmount(order: Order, execution: Execution): Double = {

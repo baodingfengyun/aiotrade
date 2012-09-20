@@ -326,7 +326,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   
   /** 
    * Adjust orders for expenses etc, by reducing quantities (or number of orders @todo)
-   * @Note Iterable has no method of sortBy, that why use List here instead of Set etc
+   * @Note Iterable has no method of sortBy, that's why use List here instead of Set
    */
   protected def adjustOpeningOrders(account: TradableAccount, openingOrders: List[Order]) {
     var orders = openingOrders.sortBy(_.price) 
@@ -337,13 +337,13 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
           order.quantity -= account.tradingRule.quantityPerLot
           orders = tail
         case Nil => 
-          orders = openingOrders // cycle again
+          orders = openingOrders // loop again
       }
     }
   }
   
   protected def calcTotalFundsToOpen(account: TradableAccount, orders: List[Order]) = {
-    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.price, x.quantity)}
+    orders.foldLeft(0.0){(s, x) => s + account.calcFundsToOpen(x.price, x.quantity, x.sec)}
   }
    
 
