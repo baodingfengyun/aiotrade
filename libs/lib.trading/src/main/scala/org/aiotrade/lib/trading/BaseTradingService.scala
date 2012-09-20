@@ -181,7 +181,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
       order <- orders
     } {
       order.status match {
-        case (OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial) => 
+        case OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial => 
           log.info("Unfinished order (will retry): " + order)
           val retry = new OrderCompose(order.sec, order.side, closeReferIdx) quantity (order.remainQuantity) after (1) using(account)
           println("Retry order due to %s: %s".format(order.status, retry))
@@ -296,12 +296,12 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
           // opening
           val (noFunds, withFunds) = openingx partition (_.funds.isNaN)
           val assignedFunds = withFunds.foldLeft(0.0){(s, x) => s + x.funds}
-          val estimateFundsPerSec = (account.availableFunds - assignedFunds) / noFunds.size
-          val openingOrdersx = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})) flatMap (_.toOrder)
+          val estimateFundsPerSec = if (noFunds.size != 0) (account.availableFunds - assignedFunds) / noFunds.size else 0.0
+          val openingOrdersx = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})) flatMap broker.toOrder
           adjustOpeningOrders(account, openingOrdersx)
 
           // closing
-          val closingOrdersx = closingx flatMap {_ toOrder}
+          val closingOrdersx = closingx flatMap broker.toOrder
         
           // pending to remove
           pendingOrdersToRemove ++= expired 
@@ -358,94 +358,10 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     }
   }
   
-  class OrderCompose(val sec: Sec, val side: OrderSide, referIdxAtDecision: Int) {
+  final class OrderCompose(val sec: Sec, val side: OrderSide, protected val referIdxAtDecision: Int) extends broker.OrderCompose {
+    val timestamps = BaseTradingService.this.timestamps
     val ser = sec.serOf(freq).get
-    private var _account = tradableAccounts.head // default account
-    private var _price = Double.NaN
-    private var _funds = Double.NaN
-    private var _quantity = Double.NaN
-    private var _afterIdx = 0
-
-    def account = _account
-    def using(account: TradableAccount) = {
-      _account = account
-      this
-    }
-    
-    def price = _price
-    def price(price: Double) = {
-      _price = price
-      this
-    }
-
-    def funds = _funds
-    def funds(funds: Double) = {
-      _funds = funds
-      this
-    }
-    
-    def quantity = _quantity
-    def quantity(quantity: Double) = {
-      _quantity = quantity
-      this
-    }
-        
-    /** on t + idx */
-    def after(i: Int) = {
-      _afterIdx += i
-      this
-    }
-    
-    def referIndex = referIdxAtDecision + _afterIdx
-
-    def toOrder: Option[Order] = {
-      if (_account.availableFunds > 0) {
-        val time = timestamps(referIndex)
-        ser.valueOf(time) match {
-          case Some(quote) =>
-            side match {
-              case OrderSide.Buy | OrderSide.SellShort =>
-                if (_price.isNaN) {
-                  _price = _account.tradingRule.buyPriceRule(quote)
-                }
-                if (_quantity.isNaN) {
-                  _quantity = _account.tradingRule.buyQuantityRule(quote, _price, _funds)
-                }
-              case OrderSide.Sell | OrderSide.BuyCover =>
-                if (_price.isNaN) {
-                  _price = _account.tradingRule.sellPriceRule(quote)
-                }
-                if (_quantity.isNaN) {
-                  _quantity = positionOf(sec) match {
-                    case Some(position) => 
-                      // @Note quantity of position may be negative because of sellShort etc.
-                      _account.tradingRule.sellQuantityRule(quote, _price, math.abs(position.quantity))
-                    case None => 0
-                  }
-                }
-              case _ =>
-            }
-          
-            _quantity = math.abs(_quantity)
-            if (_quantity > 0) {
-              val order = new Order(_account, sec, _quantity, _price, side)
-              order.time = time
-              println("Some order: %s".format(this))
-              Some(order)
-            } else {
-              println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(this, quote.volume, quote.average, quote.average * _account.tradingRule.multiplier * _account.tradingRule.marginRate))
-              None
-            }
-          
-          case None => None
-        }
-      } else None
-    }
-    
-    override 
-    def toString = {
-      "OrderCompose(%1$s, %2$tY.%2$tm.%2$td, %3$s, %4$s, %5$10.2f, %6$d, %7$5.2f)".format(_account.description, new Date(timestamps(referIndex)), sec.uniSymbol, side, _funds, _quantity.toInt, _price)
-    }
+    using(tradableAccounts.head) // default account
   }
 
 }

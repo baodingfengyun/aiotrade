@@ -116,6 +116,52 @@ class PaperBroker(val name: String) extends Broker {
 
   def executingOrders = pendingSecToExecutingOrders
   
+  def toOrder(oc: OrderCompose): Option[Order] = {
+    if (oc.account.availableFunds > 0) {
+      val time = oc.timestamps(oc.referIndex)
+      oc.ser.valueOf(time) match {
+        case Some(quote) =>
+          oc.side match {
+            case OrderSide.Buy | OrderSide.SellShort =>
+              if (oc.price.isNaN) {
+                oc.price(oc.account.tradingRule.buyPriceRule(quote))
+              }
+              if (oc.quantity.isNaN) {
+                oc.quantity(oc.account.tradingRule.buyQuantityRule(quote, oc.price, oc.funds))
+              }
+            case OrderSide.Sell | OrderSide.BuyCover =>
+              if (oc.price.isNaN) {
+                oc.price(oc.account.tradingRule.sellPriceRule(quote))
+              }
+              if (oc.quantity.isNaN) {
+                oc.quantity(oc.positionOf(oc.sec) match {
+                    case Some(position) => 
+                      // @Note quantity of position may be negative because of sellShort etc.
+                      oc.account.tradingRule.sellQuantityRule(quote, oc.price, math.abs(position.quantity))
+                    case None => 0
+                  })
+              }
+            case _ =>
+          }
+          
+          oc.quantity(math.abs(oc.quantity))
+          if (oc.quantity > 0) {
+            val order = new Order(oc.account, oc.sec, oc.quantity, oc.price, oc.side)
+            order.time = time
+            println("Some order: %s".format(this))
+            Some(order)
+          } else {
+            println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(
+                this, quote.volume, quote.average, quote.average * oc.account.tradingRule.multiplier * oc.account.tradingRule.marginRate)
+            )
+            None
+          }
+          
+        case None => None
+      }
+    } else None
+  }
+  
   /**
    * call me to execute the orders
    */
