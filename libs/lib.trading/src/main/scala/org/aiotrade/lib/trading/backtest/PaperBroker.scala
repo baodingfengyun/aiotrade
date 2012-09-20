@@ -26,8 +26,6 @@ class PaperBroker(val name: String) extends Broker {
   
   val id: Long = UUID.randomUUID.getMostSignificantBits
   
-  private val pendingSecToExecutingOrders = new mutable.HashMap[Sec, mutable.HashSet[Order]]()
-
   val allowedSides = List(
     OrderSide.Buy, 
     OrderSide.Sell
@@ -57,13 +55,13 @@ class PaperBroker(val name: String) extends Broker {
   @throws(classOf[BrokerException])
   override 
   def cancel(order: Order) {
-    pendingSecToExecutingOrders synchronized {
-      val executingOrders = pendingSecToExecutingOrders.getOrElse(order.sec, new mutable.HashSet[Order]())
-      executingOrders -= order
-      if (executingOrders.isEmpty) {
-        pendingSecToExecutingOrders -= order.sec
+    executingOrders synchronized {
+      val secOrders = executingOrders.getOrElse(order.sec, new mutable.HashSet[Order]())
+      secOrders -= order
+      if (secOrders.isEmpty) {
+        executingOrders -= order.sec
       } else {
-        pendingSecToExecutingOrders(order.sec) = executingOrders
+        executingOrders(order.sec) = secOrders
       }
     }
 
@@ -77,10 +75,10 @@ class PaperBroker(val name: String) extends Broker {
   @throws(classOf[BrokerException])
   override
   def submit(order: Order) {
-    pendingSecToExecutingOrders synchronized {
-      val executingOrders = pendingSecToExecutingOrders.getOrElse(order.sec, new mutable.HashSet[Order]())
-      executingOrders += order
-      pendingSecToExecutingOrders(order.sec) = executingOrders
+    executingOrders synchronized {
+      val secOrders = executingOrders.getOrElse(order.sec, new mutable.HashSet[Order]())
+      secOrders += order
+      executingOrders(order.sec) = secOrders
     }
 
     order.id = orderIdFormatter.format(new Date()).toLong
@@ -114,45 +112,46 @@ class PaperBroker(val name: String) extends Broker {
     sec.uniSymbol
   }
 
-  def executingOrders = pendingSecToExecutingOrders
-  
   def toOrder(oc: OrderCompose): Option[Order] = {
-    if (oc.account.availableFunds > 0) {
-      val time = oc.timestamps(oc.referIndex)
-      oc.ser.valueOf(time) match {
+    import oc._
+    if (account.availableFunds > 0) {
+      val time = timestamps(referIndex)
+      ser.valueOf(time) match {
         case Some(quote) =>
-          oc.side match {
+          side match {
             case OrderSide.Buy | OrderSide.SellShort =>
-              if (oc.price.isNaN) {
-                oc.price(oc.account.tradingRule.buyPriceRule(quote))
+              if (price.notSet) {
+                price(account.tradingRule.buyPriceRule(quote))
               }
-              if (oc.quantity.isNaN) {
-                oc.quantity(oc.account.tradingRule.buyQuantityRule(quote, oc.price, oc.funds))
+              if (quantity.notSet) {
+                quantity(account.tradingRule.buyQuantityRule(quote, price, funds))
               }
             case OrderSide.Sell | OrderSide.BuyCover =>
-              if (oc.price.isNaN) {
-                oc.price(oc.account.tradingRule.sellPriceRule(quote))
+              if (price.notSet) {
+                price(account.tradingRule.sellPriceRule(quote))
               }
-              if (oc.quantity.isNaN) {
-                oc.quantity(oc.positionOf(oc.sec) match {
+              if (quantity.notSet) {
+                quantity(
+                  positionOf(sec) match {
                     case Some(position) => 
                       // @Note quantity of position may be negative because of sellShort etc.
-                      oc.account.tradingRule.sellQuantityRule(quote, oc.price, math.abs(position.quantity))
+                      account.tradingRule.sellQuantityRule(quote, price, math.abs(position.quantity))
                     case None => 0
-                  })
+                  }
+                )
               }
             case _ =>
           }
           
-          oc.quantity(math.abs(oc.quantity))
-          if (oc.quantity > 0) {
-            val order = new Order(oc.account, oc.sec, oc.quantity, oc.price, oc.side)
+          quantity(math.abs(quantity))
+          if (quantity > 0) {
+            val order = new Order(account, sec, quantity, price, side)
             order.time = time
             println("Some order: %s".format(this))
             Some(order)
           } else {
             println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(
-                this, quote.volume, quote.average, quote.average * oc.account.tradingRule.multiplier * oc.account.tradingRule.marginRate)
+                this, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
             )
             None
           }
@@ -168,7 +167,7 @@ class PaperBroker(val name: String) extends Broker {
   def processTicker(sec: Sec, time: Long, price: Double, quantity: Double) {
     var deltas = List[OrderDelta]()
 
-    val secOrders = pendingSecToExecutingOrders synchronized {pendingSecToExecutingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
+    val secOrders = executingOrders synchronized {executingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
     
     var toRemove = List[Order]()
     for (order <- secOrders) {
@@ -204,12 +203,12 @@ class PaperBroker(val name: String) extends Broker {
     }
     
     if (toRemove.nonEmpty) {
-      pendingSecToExecutingOrders synchronized {
+      executingOrders synchronized {
         secOrders --= toRemove
         if (secOrders.isEmpty) {
-          pendingSecToExecutingOrders -= sec
+          executingOrders -= sec
         } else {
-          pendingSecToExecutingOrders(sec) = secOrders
+          executingOrders(sec) = secOrders
         }
       }
     }

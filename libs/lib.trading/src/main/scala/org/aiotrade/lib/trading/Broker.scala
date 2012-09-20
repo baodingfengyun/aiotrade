@@ -2,10 +2,12 @@ package org.aiotrade.lib.trading
 
 
 import java.util.Date
+import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TStamps
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
+import scala.collection.mutable
 
 /**
  * Brokers that managed accounts and receive trade to fill orders
@@ -39,7 +41,8 @@ trait Broker extends Publisher {
   def getSecurityBySymbol(symbol: String): Sec
   def getSymbolBySecurity(sec: Sec)
   def accounts: Array[Account]
-  def executingOrders: collection.Map[Sec, collection.Iterable[Order]]
+  
+  val executingOrders = new mutable.HashMap[Sec, mutable.HashSet[Order]]()
 
   /**
    * Update account's funds, positions etc to newest status
@@ -47,6 +50,11 @@ trait Broker extends Publisher {
   def updateAccount(account: Account) {}
   
   def toOrder(orderCompose: OrderCompose): Option[Order]
+  
+  final class SetDouble(v: Double) {   
+    def isSet() = !v.isNaN
+    def notSet() = v.isNaN
+  } 
   
   trait OrderCompose {
     def sec: Sec
@@ -69,6 +77,8 @@ trait Broker extends Publisher {
     private var _quantity = Double.NaN
     private var _afterIdx = 0
 
+    implicit def ToSetDouble(v: Double) = new SetDouble(v)
+    
     def account: TradableAccount = _account
     def using(account: TradableAccount): this.type = {
       _account = account
@@ -110,6 +120,128 @@ trait Broker extends Publisher {
       account.positions.get(sec)
     }
   }
+}
+
+abstract class TradeBroker extends Broker {
+  private val log = Logger.getLogger(getClass.getName)
+  
+  def toOrder(oc: OrderCompose): Option[Order] = {
+    import oc._
+    val time = timestamps(referIndex)
+    if (account.availableFunds > 0) {
+      val order = side match {
+        case OrderSide.Buy | OrderSide.SellShort =>
+          if (funds.isSet) {
+            if (price.notSet) {
+              // funds set but without price, just ignore quantity, it's dangerous to get a terrible price
+              Some(new Order(account, sec, quantity, price, side, OrderType.Market))
+            } else {
+              // ignore quantity, since funds is set, it's dangerous to get a terrible price
+              Some(new Order(account, sec, quantity, price, side, OrderType.Market))
+            }
+          } else { // funds is not set
+            if (price.isSet && quantity.isSet) {
+              Some(new Order(account, sec, quantity, price, side, OrderType.Limit))
+            } else {
+              None
+            }
+          }
+        case OrderSide.Sell | OrderSide.BuyCover =>
+          // @Note quantity of position may be negative because of sellShort etc.
+          val theQuantity = if (quantity.isSet) {
+            math.abs(quantity)
+          } else {
+            positionOf(sec) match {
+              case Some(position) => math.abs(position.quantity)
+              case None => 0
+            }  
+          }
+          if (price.isSet) {
+            Some(new Order(account, sec, quantity, price, side, OrderType.Limit))
+          } else {
+            Some(new Order(account, sec, quantity, price, side, OrderType.Market))
+          }
+        case _ => None
+      }
+       
+      println("Some order: %s".format(order))
+      order map {x => x.time = time; x}
+    } else None
+  }
+  
+  /**
+   * For real trading, thie method can receive execution report one by one.
+   */
+  @throws(classOf[BrokerException])
+  def processTrade(order: Order, time: Long, price: Double, quantity: Double, amount: Double, expenses: Double) {
+    var deltas = List[OrderDelta]()
+
+    val sec = order.sec
+    log.info("Process trade: " + order.sec.uniSymbol + ", time=" + new java.util.Date(time) + ", price = " + price + ", quantity=" + quantity)
+    val secOrders = executingOrders synchronized {executingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
+
+    var toRemove = List[Order]()
+    order.status match {
+      case OrderStatus.PendingNew | OrderStatus.Partial =>
+        order.tpe match {
+          case OrderType.Market =>
+            deltas ::= OrderDelta.Updated(order)
+            fill(order, time, price, quantity, amount, expenses)
+
+          case OrderType.Limit =>
+            order.side match {
+              case (OrderSide.Buy | OrderSide.SellShort) if price <= order.price =>
+                deltas ::= OrderDelta.Updated(order)
+                fill(order, time, price, quantity, amount, expenses)
+
+              case (OrderSide.Sell | OrderSide.BuyCover) if price >= order.price =>
+                deltas ::= new OrderDelta.Updated(order)
+                fill(order, time, price, quantity, amount, expenses)
+
+              case _ =>
+            }
+
+          case _ =>
+        }
+
+      case _ =>
+    }
+
+    if (order.status == OrderStatus.Filled) {
+      toRemove ::= order
+    }
+
+    if (toRemove.nonEmpty) {
+      executingOrders synchronized {
+        secOrders --= toRemove
+        if (secOrders.isEmpty) {
+          executingOrders -= sec
+        } else {
+          executingOrders(sec) = secOrders
+        }
+      }
+    }
+
+    if (deltas.nonEmpty) {
+      publish(OrderDeltasEvent(this, deltas))
+    }
+  }
+  
+  /**
+   * Fill order by price and size, this will also process binding account.
+   * Usually this method is used only in paper worker
+   */
+  def fill(order: Order, time: Long, price: Double, quantity: Double, amount: Double, expenses: Double) {
+    val fillingQuantity = math.min(quantity, order.remainQuantity)
+    
+    if (fillingQuantity > 0) {
+      val execution = FullExecution(order, time, price, fillingQuantity, amount, expenses)
+      order.account.processTransaction(order, execution)
+    } else {
+      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, quantity, order.remainQuantity))
+    }
+  }
+
 }
 
 

@@ -154,13 +154,9 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     }
     
     // sell first?. If so, how about the returning funds?
-    allOpeningOrders foreach {order => 
-      broker.submit(order)
-    }
+    allOpeningOrders foreach broker.submit
 
-    allClosingOrders foreach {order => 
-      broker.submit(order)
-    }    
+    allClosingOrders foreach broker.submit
   }
   
   protected def updatePositionsPrice {
