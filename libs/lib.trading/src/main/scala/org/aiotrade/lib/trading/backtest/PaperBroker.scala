@@ -92,7 +92,7 @@ class PaperBroker(val name: String) extends Broker {
     
     // for paper work, we assume all orders can be executed sucessfully.
     // for real trading, this should be trigged by returning order executed event 
-    processTrade(order.sec, order.time, order.price, order.quantity)
+    processTicker(order.sec, order.time, order.price, order.quantity)
   }  
 
   def isAllowOrderModify = false
@@ -163,15 +163,15 @@ class PaperBroker(val name: String) extends Broker {
   }
   
   /**
-   * call me to execute the orders
+   * For paper work, use this method to receive ticker data to drive orders being executed gradually
    */
-  def processTrade(sec: Sec, time: Long, price: Double, quantity: Double, amount: Double, expenses: Double) {
+  def processTicker(sec: Sec, time: Long, price: Double, quantity: Double) {
     var deltas = List[OrderDelta]()
 
-    val executingOrders = pendingSecToExecutingOrders synchronized {pendingSecToExecutingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
+    val secOrders = pendingSecToExecutingOrders synchronized {pendingSecToExecutingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
     
     var toRemove = List[Order]()
-    for (order <- executingOrders) {
+    for (order <- secOrders) {
       order.status match {
         case OrderStatus.PendingNew | OrderStatus.Partial =>
           order.tpe match {
@@ -205,11 +205,11 @@ class PaperBroker(val name: String) extends Broker {
     
     if (toRemove.nonEmpty) {
       pendingSecToExecutingOrders synchronized {
-        executingOrders --= toRemove
-        if (executingOrders.isEmpty) {
+        secOrders --= toRemove
+        if (secOrders.isEmpty) {
           pendingSecToExecutingOrders -= sec
         } else {
-          pendingSecToExecutingOrders(sec) = executingOrders
+          pendingSecToExecutingOrders(sec) = secOrders
         }
       }
     }
