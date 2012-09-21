@@ -149,7 +149,7 @@ class PaperBroker(val name: String) extends Broker {
         if (quantity > 0) {
           val order = Order(account, sec, price, quantity, side)
           order.time = time
-          println("Some order: %s".format(this))
+          println("Some order: %s".format(order))
           Some(order)
         } else {
           println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(

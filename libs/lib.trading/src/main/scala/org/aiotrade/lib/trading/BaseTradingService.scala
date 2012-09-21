@@ -35,9 +35,9 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
   /** current closed refer idx */
-  protected var closeReferIdx = 0
+  protected var currentReferIdx = 0
   /** current closed refer time */
-  protected def closeTime = timestamps(closeReferIdx)
+  protected def currentTime = timestamps(currentReferIdx)
 
   protected var tradeStartIdx: Int = -1
   protected def isTradeStarted: Boolean = tradeStartIdx >= 0
@@ -96,19 +96,19 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
   
   protected def buy(sec: Sec): OrderCompose = {
-    addPendingOrder(new OrderCompose(sec, OrderSide.Buy, closeReferIdx))
+    addPendingOrder(new OrderCompose(sec, OrderSide.Buy, currentReferIdx))
   }
 
   protected def sell(sec: Sec): OrderCompose = {
-    addPendingOrder(new OrderCompose(sec, OrderSide.Sell, closeReferIdx))
+    addPendingOrder(new OrderCompose(sec, OrderSide.Sell, currentReferIdx))
   }
   
   protected def sellShort(sec: Sec): OrderCompose = {
-    addPendingOrder(new OrderCompose(sec, OrderSide.SellShort, closeReferIdx))
+    addPendingOrder(new OrderCompose(sec, OrderSide.SellShort, currentReferIdx))
   }
 
   protected def buyCover(sec: Sec): OrderCompose = {
-    addPendingOrder(new OrderCompose(sec, OrderSide.BuyCover, closeReferIdx))
+    addPendingOrder(new OrderCompose(sec, OrderSide.BuyCover, currentReferIdx))
   }
   
   private def addPendingOrder(order: OrderCompose) = {
@@ -117,13 +117,25 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
 
   /**
-   * The actions at referIdx time. Main entrance of trading server
-   * It could be trigged by a closed/opened event
-   * @Todo more details and conditions for real trading. 
+   * Main entrance of trading server at period referIdx when it's opening.
+   * It could be trigged by an opened event
+   * @Todo we can also define actions atPreOpen, atOpening etc...
    */
-  protected def go(referIdx: Int) {
-    closeReferIdx = referIdx
-    executeOrders
+  def doOpen(referIdx: Int) {
+    currentReferIdx = referIdx
+
+    atOpen(referIdx)
+    
+    executeOrdersOf(referIdx)
+  }
+  
+  /**
+   * Main entrance of trading server at period referIdx when it's closed.
+   * It could be trigged by a closed event
+   */
+  def doClose(referIdx: Int) {
+    currentReferIdx = referIdx
+
     updatePositionsPrice
       
     checkOrderStatus
@@ -137,99 +149,28 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
     
     accounts foreach broker.updateAccount
     
-    secPicking.go(closeTime)
+    secPicking.go(currentTime)
     checkStopCondition
     
-    at(referIdx)
+    atClose(referIdx)
     
     processPendingOrders
   }
-  
-  protected def executeOrders {
-    val allOpeningOrders = openingOrders flatMap (_._2)
-    val allClosingOrders = closingOrders flatMap (_._2)
-    
-    if (!isTradeStarted && (allOpeningOrders.nonEmpty || allClosingOrders.nonEmpty)) {
-      tradeStartIdx = closeReferIdx
-    }
-    
-    // sell first?. If so, how about the returning funds?
-    allOpeningOrders foreach broker.submit
 
-    allClosingOrders foreach broker.submit
-  }
-  
-  protected def updatePositionsPrice {
-    for {
-      account <- tradableAccounts
-      (sec, position) <- account.positions
-      ser <- sec.serOf(freq)
-      idx = ser.indexOfOccurredTime(closeTime) if idx >= 0
-    } {
-      position.update(ser.close(idx))
-    }
-  }
-
-  protected def checkOrderStatus {
-    for {
-      accountToOrders <- List(openingOrders, closingOrders)
-      (account, orders) <- accountToOrders
-      order <- orders
-    } {
-      order.status match {
-        case OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial => 
-          log.info("Unfinished order (will retry): " + order)
-          val retry = new OrderCompose(order.sec, order.side, closeReferIdx) quantity (order.remainQuantity) after (1) using(account)
-          println("Retry order due to %s: %s".format(order.status, retry))
-          addPendingOrder(retry)
-        case _ =>
-      }
-    }
-  }
-  
-  protected def report(idx: Int) {
-    val numAccounts = accounts.size
-    val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
-    param.publish(ReportData("Total", 0, closeTime, equity / initialEquity))
-    param.publish(ReportData("Refer", 0, closeTime, referSer.close(idx) / referSer.open(tradeStartIdx) - 1))
-    
-    benchmark.at(closeTime, equity, referSer.close(idx))
-
-    accounts foreach {account =>
-      if (numAccounts > 1) {
-        param.publish(ReportData(account.description, 0, closeTime, account.equity / initialEquity))
-      }
-
-      account match {
-        case tAccount: TradableAccount =>
-          log.info("%1$tY.%1$tm.%1$td: %2$s, opening=%3$s, closing=%4$s，pending=%5$s".format(
-              new Date(closeTime), tAccount, openingOrders.getOrElse(tAccount, Nil).size, closingOrders.getOrElse(tAccount, Nil).size, pendingOrders.filter(_.account eq tAccount).size)
-          )
-        case _ =>
-      }
-    }
-  }
-  
-  protected def checkStopCondition {
-    for {
-      account <- tradableAccounts
-      (sec, position) <- account.positions
-    } {
-      if (account.tradingRule.cutLossRule(position)) {
-        triggers += Trigger(sec, position, closeTime, Side.CutLoss)
-      }
-      if (account.tradingRule.takeProfitRule(position)) {
-        triggers += Trigger(sec, position, closeTime, Side.TakeProfit)
-      }
-    }
+  /**
+   * At open of period idx, define the trading actions for this period, just before executing orders of this period
+   * Override this method for your action.
+   * @param idx: index of opened/opening period, this period was just opened/opening.
+   */
+  protected def atOpen(idx: Int) {
   }
   
   /**
    * At close of period idx, define the trading action for next period. 
-   * @Note Override this method for your action.
+   * Override this method for your action.
    * @param idx: index of closed/passed period, this period was just closed/passed.
    */
-  protected def at(idx: Int) {
+  protected def atClose(idx: Int) {
     val triggers = scanTriggers(idx)
     for (Trigger(sec, position, triggerTime, side) <- triggers) {
       side match {
@@ -246,10 +187,93 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
         case _ =>
       }
     }
+  }  
+  
+  protected def executeOrdersOf(referIdx: Int) {
+    val allOpeningOrders = openingOrders flatMap (_._2)
+    val allClosingOrders = closingOrders flatMap (_._2)
+    
+    if (!isTradeStarted && (allOpeningOrders.nonEmpty || allClosingOrders.nonEmpty)) {
+      tradeStartIdx = referIdx
+    }
+    
+    // sell first?. If so, how about the returning funds?
+    allOpeningOrders foreach broker.submit
+
+    allClosingOrders foreach broker.submit
   }
   
+  protected def updatePositionsPrice {
+    for {
+      account <- tradableAccounts
+      (sec, position) <- account.positions
+      ser <- sec.serOf(freq)
+      idx = ser.indexOfOccurredTime(currentTime) if idx >= 0
+    } {
+      position.update(ser.close(idx))
+    }
+  }
+
+  protected def checkOrderStatus {
+    for {
+      accountToOrders <- List(openingOrders, closingOrders)
+      (account, orders) <- accountToOrders
+      order <- orders
+    } {
+      order.status match {
+        case OrderStatus.New | OrderStatus.PendingNew | OrderStatus.Partial => 
+          log.info("Unfinished order (will retry): " + order)
+          val retry = new OrderCompose(order.sec, order.side, currentReferIdx) quantity (order.remainQuantity) after (1) using(account)
+          println("Retry order due to %s: %s".format(order.status, retry))
+          addPendingOrder(retry)
+        case _ =>
+      }
+    }
+  }
+  
+  protected def report(idx: Int) {
+    val numAccounts = accounts.size
+    val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
+    param.publish(ReportData("Total", 0, currentTime, equity / initialEquity))
+    param.publish(ReportData("Refer", 0, currentTime, referSer.close(idx) / referSer.open(tradeStartIdx) - 1))
+    
+    benchmark.at(currentTime, equity, referSer.close(idx))
+
+    accounts foreach {account =>
+      if (numAccounts > 1) {
+        param.publish(ReportData(account.description, 0, currentTime, account.equity / initialEquity))
+      }
+
+      account match {
+        case tAccount: TradableAccount =>
+          log.info("%1$tY.%1$tm.%1$td: %2$s, opening=%3$s, closing=%4$s，pending=%5$s".format(
+              new Date(currentTime), tAccount, openingOrders.getOrElse(tAccount, Nil).size, closingOrders.getOrElse(tAccount, Nil).size, pendingOrders.filter(_.account eq tAccount).size)
+          )
+        case _ =>
+      }
+    }
+  }
+  
+  protected def checkStopCondition {
+    for {
+      account <- tradableAccounts
+      (sec, position) <- account.positions
+    } {
+      if (account.tradingRule.cutLossRule(position)) {
+        triggers += Trigger(sec, position, currentTime, Side.CutLoss)
+      }
+      if (account.tradingRule.takeProfitRule(position)) {
+        triggers += Trigger(sec, position, currentTime, Side.TakeProfit)
+      }
+    }
+  }
+  
+  /**
+   * Check order of next trading day etc.
+   */
   protected def processPendingOrders {
-    val orderSubmitReferIdx = closeReferIdx + 1 // next trading day
+    // check order of next trading day
+    val orderSubmitReferIdx = currentReferIdx + 1 
     if (orderSubmitReferIdx < timestamps.length) {
       val orderSubmitReferTime = timestamps(orderSubmitReferIdx)
 

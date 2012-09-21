@@ -65,7 +65,9 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
     
     var i = fromIdx
     while (i <= toIdx) {
-      go(i)
+      doOpen(i)
+      doClose(i)
+      
       i += 1
     }
   }
@@ -132,7 +134,7 @@ object TradingService {
     
       val tradingService = new TradingService(broker, List(account), param, referSer, secPicking, indTemplate) {
         override 
-        def at(idx: Int) {
+        def atClose(idx: Int) {
           val triggers = scanTriggers(idx)
           for (Trigger(sec, position, triggerTime, side) <- triggers) {
             side match {
