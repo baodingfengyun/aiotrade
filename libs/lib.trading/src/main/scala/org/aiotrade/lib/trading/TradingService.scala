@@ -1,4 +1,4 @@
-package org.aiotrade.lib.trading.backtest
+package org.aiotrade.lib.trading
 
 import java.io.File
 import java.text.SimpleDateFormat
@@ -8,21 +8,16 @@ import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities
+import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
-import org.aiotrade.lib.trading.Account
-import org.aiotrade.lib.trading.BaseTradingService
-import org.aiotrade.lib.trading.Broker
-import org.aiotrade.lib.trading.Param
-import org.aiotrade.lib.trading.SecPicking
-import org.aiotrade.lib.trading.StockAccount
-import org.aiotrade.lib.trading.TradingRule
-import org.aiotrade.lib.trading.Trigger
+import org.aiotrade.lib.trading.backtest.ChartReport
+import org.aiotrade.lib.trading.backtest.PaperBroker
 import org.aiotrade.lib.util.ValidTime
 import scala.collection.mutable
 import scala.concurrent.SyncVar
 
 class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
-                     _referSer: securities.QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*
+                     _referSer: QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*
 ) extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _signalIndTemplates: _*) {
 
   private case class Go(fromTime: Long, toTime: Long)
@@ -51,7 +46,7 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
    * @Note we use publish(Go) to make sure doGo(...) happens only after all signals 
    *       were published (during initSignalIndicators).
    */ 
-  def go(fromTime: Long, toTime: Long) {
+  def backtest(fromTime: Long, toTime: Long) {
     initSignalIndicators
     publish(Go(fromTime, toTime))
     // We should make this calling synchronized, so block here untill done
@@ -157,7 +152,7 @@ object TradingService {
       }
     
       chartReport.roundStarted(List(param))
-      tradingService.go(fromTime, toTime)
+      tradingService.backtest(fromTime, toTime)
       tradingService.release
       chartReport.roundFinished
       System.gc

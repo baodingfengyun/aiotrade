@@ -68,11 +68,14 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   
   listenTo(secPicking)
 
+  /**
+   * Call it only when indicators were not inited.
+   */
   protected def initSignalIndicators {
     val t0 = System.currentTimeMillis
     
     if (signalIndTemplates.nonEmpty) {
-      listenTo(Signal)
+      listenTo(Signal) // @todo move me from initSignalIndicators so as to get inited signals can be got.
     
       for {
         indTemplate <- signalIndTemplates
