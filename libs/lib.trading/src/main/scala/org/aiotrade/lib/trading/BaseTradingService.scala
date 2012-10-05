@@ -63,6 +63,8 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
       
     case _ =>
   }
+  
+  listenTo(secPicking)
 
   protected def initSignalIndicators {
     val t0 = System.currentTimeMillis
