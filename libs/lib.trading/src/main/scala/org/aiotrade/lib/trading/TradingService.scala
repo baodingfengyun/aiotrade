@@ -20,14 +20,41 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
                      _referSer: QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*
 ) extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _signalIndTemplates: _*) {
 
-  private case class Go(fromTime: Long, toTime: Long)
-  private val done = new SyncVar[Boolean]()
+  private case class GoBacktest(fromTime: Long, toTime: Long)
+  private val backtestDone = new SyncVar[Boolean]()
   
   reactions += {
-    case Go(fromTime, toTime) => 
-      doGo(fromTime, toTime)
+    case GoBacktest(fromTime, toTime) => 
+      goBacktest(fromTime, toTime)
       
-      done.set(true)
+      backtestDone.set(true)
+  }
+
+  /**
+   * Main entrance for outside caller.
+   * 
+   * @Note we use publish(Go) to make sure doGo(...) happens only after all signals 
+   *       were published (during initSignalIndicators).
+   */ 
+  def backtest(fromTime: Long, toTime: Long) {
+    initSignalIndicators
+    publish(GoBacktest(fromTime, toTime))
+    // We should make this calling synchronized, so block here untill done
+    backtestDone.get
+  }
+  
+  private def goBacktest(fromTime: Long, toTime: Long) {
+    val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+    val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+    println("Backtest from %s to %s, referIdx: from %s to %s, total referPeriods: %s".format(new Date(timestamps(fromIdx)), new Date(timestamps(toIdx)), fromIdx, toIdx, timestamps.length))
+    
+    var i = fromIdx
+    while (i <= toIdx) {
+      doOpen(i)
+      doClose(i)
+      
+      i += 1
+    }
   }
 
   /** 
@@ -42,34 +69,7 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
     org.aiotrade.lib.math.indicator.Function.releaseAll
   }
   
-  /**
-   * Main entrance for outside caller.
-   * 
-   * @Note we use publish(Go) to make sure doGo(...) happens only after all signals 
-   *       were published (during initSignalIndicators).
-   */ 
-  def backtest(fromTime: Long, toTime: Long) {
-    initSignalIndicators
-    publish(Go(fromTime, toTime))
-    // We should make this calling synchronized, so block here untill done
-    done.get
-  }
-  
-  private def doGo(fromTime: Long, toTime: Long) {
-    val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-    val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
-    println("Backtest from %s to %s, referIdx: from %s to %s, total referPeriods: %s".format(new Date(timestamps(fromIdx)), new Date(timestamps(toIdx)), fromIdx, toIdx, timestamps.length))
-    
-    var i = fromIdx
-    while (i <= toIdx) {
-      doOpen(i)
-      doClose(i)
-      
-      i += 1
-    }
-  }
 }
-
 
 /**
  * An example of backtest trading service
