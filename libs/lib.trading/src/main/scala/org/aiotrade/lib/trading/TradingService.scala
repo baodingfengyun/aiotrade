@@ -7,6 +7,7 @@ import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.signal.Signal
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
@@ -20,26 +21,54 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
                      _referSer: QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*
 ) extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _signalIndTemplates: _*) {
 
+  private case object GoTrading
+  private val tradingDone = new SyncVar[Boolean]()
+  
   private case class GoBacktest(fromTime: Long, toTime: Long)
   private val backtestDone = new SyncVar[Boolean]()
   
   reactions += {
+    case GoTrading =>
+      listenTo(referSer)
+      
+    case TSerEvent.Updated(ser, symbol, fromTime, toTime, _, _) =>
+      val idx = timestamps.indexOfOccurredTime(toTime)
+      if (idx >= currentReferIdx) {
+        for (quote <- ser.asInstanceOf[QuoteSer].valueOf(toTime)) {
+          if (quote.justOpen_?) {
+            doOpen(idx)
+          }
+          
+          if (!quote.closed_?) {
+            doOpen(idx)
+          }
+
+          if (quote.closed_? && idx > closedReferIdx) {
+            doClose(idx)
+          }
+        }
+      }
+      
     case GoBacktest(fromTime, toTime) => 
       goBacktest(fromTime, toTime)
       
       backtestDone.set(true)
   }
 
+  def trade() {
+    publish(GoTrading)
+  }
+  
   /**
-   * Main entrance for outside caller.
+   * Main backtest entrance for outside caller.
    * 
-   * @Note we use publish(Go) to make sure doGo(...) happens only after all signals 
+   * @Note we use publish(Go) to make sure goBacktest(...) happens only after all signals 
    *       were published (during initSignalIndicators).
    */ 
   def backtest(fromTime: Long, toTime: Long) {
     initSignalIndicators
     publish(GoBacktest(fromTime, toTime))
-    // We should make this calling synchronized, so block here untill done
+    // We should make this method calling synchronized, so block here untill done
     backtestDone.get
   }
   

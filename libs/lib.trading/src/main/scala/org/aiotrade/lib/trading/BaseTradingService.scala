@@ -40,6 +40,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   protected var currentReferIdx = 0
   /** current refer time */
   protected def currentTime = timestamps(currentReferIdx)
+  protected var closedReferIdx = -1
 
   protected var tradeStartIdx: Int = -1
   protected def isTradeStarted: Boolean = tradeStartIdx >= 0
@@ -142,6 +143,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
    */
   def doClose(referIdx: Int) {
     currentReferIdx = referIdx
+    closedReferIdx = referIdx
 
     updatePositionsPrice
       
