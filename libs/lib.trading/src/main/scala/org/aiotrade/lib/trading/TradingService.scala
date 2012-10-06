@@ -37,6 +37,8 @@ class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
    */
   def release {
     deafTo(Signal)
+    deafTo(referSer)
+    deafTo(secPicking)
     org.aiotrade.lib.math.indicator.Function.releaseAll
   }
   

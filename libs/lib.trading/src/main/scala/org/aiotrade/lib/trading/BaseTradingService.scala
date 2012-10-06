@@ -36,9 +36,9 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   protected val closingOrders = new mutable.HashMap[TradableAccount, List[Order]]() // orders to close position
   protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
-  /** current closed refer idx */
+  /** current refer idx */
   protected var currentReferIdx = 0
-  /** current closed refer time */
+  /** current refer time */
   protected def currentTime = timestamps(currentReferIdx)
 
   protected var tradeStartIdx: Int = -1
