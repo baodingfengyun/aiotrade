@@ -83,7 +83,7 @@
                         <!-- mvn scala:run -Dlauncher=backtest -->
                         <launcher>
                             <id>backtest</id>
-                            <mainClass>org.aiotrade.lib.trading.backtest.TradingService</mainClass>
+                            <mainClass>org.aiotrade.lib.trading.TradingService</mainClass>
                             <jvmArgs>
                                 <jvmArg>-Xmx2048m</jvmArg>
                             </jvmArgs>

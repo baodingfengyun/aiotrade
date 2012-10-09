@@ -1,28 +1,194 @@
 package org.aiotrade.lib.trading
 
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import org.aiotrade.lib.math.indicator.SignalIndicator
 import org.aiotrade.lib.math.signal.Side
-import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.actors.Publisher
+import org.aiotrade.lib.math.signal.Signal
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.securities
+import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.trading.backtest.ChartReport
+import org.aiotrade.lib.trading.backtest.PaperBroker
+import org.aiotrade.lib.util.ValidTime
+import scala.collection.mutable
+import scala.concurrent.SyncVar
 
-trait TradingService extends Publisher {
-  def broker: Broker
-  def accounts: List[Account]
-  def benchmark: Benchmark
-  def param: Param
-}
+class TradingService(_broker: Broker, _accounts: List[Account], _param: Param,
+                     _referSer: QuoteSer, _secPicking: SecPicking, _signalIndTemplates: SignalIndicator*
+) extends BaseTradingService(_broker, _accounts, _param, _referSer, _secPicking, _signalIndTemplates: _*) {
 
-trait Param extends Publisher {
-  /** Used in the image title */
-  def titleDescription: String = toString
-  /** Used in the image file name */
-  def shortDescription: String = toString
-}
+  private case object GoTrading
+  private val tradingDone = new SyncVar[Boolean]()
   
-object NoParam extends Param {
-  override val shortDescription = ""
-  override def toString = "P()"
+  private case class GoBacktest(fromTime: Long, toTime: Long)
+  private val backtestDone = new SyncVar[Boolean]()
+  
+  reactions += {
+    case GoTrading =>
+      listenTo(referSer)
+      
+    case TSerEvent.Updated(ser, symbol, fromTime, toTime, _, _) =>
+      val idx = timestamps.indexOfOccurredTime(toTime)
+      if (idx >= currentReferIdx) {
+        for (quote <- ser.asInstanceOf[QuoteSer].valueOf(toTime)) {
+          if (quote.justOpen_?) {
+            doOpen(idx)
+          }
+          
+          if (!quote.closed_?) {
+            doOpen(idx)
+          }
+
+          if (quote.closed_? && idx > closedReferIdx) {
+            doClose(idx)
+          }
+        }
+      }
+      
+    case GoBacktest(fromTime, toTime) => 
+      goBacktest(fromTime, toTime)
+      
+      backtestDone.set(true)
+  }
+
+  def trade() {
+    publish(GoTrading)
+  }
+  
+  /**
+   * Main backtest entrance for outside caller.
+   * 
+   * @Note we use publish(Go) to make sure goBacktest(...) happens only after all signals 
+   *       were published (during initSignalIndicators).
+   */ 
+  def backtest(fromTime: Long, toTime: Long) {
+    initSignalIndicators
+    publish(GoBacktest(fromTime, toTime))
+    // We should make this method calling synchronized, so block here untill done
+    backtestDone.get
+  }
+  
+  private def goBacktest(fromTime: Long, toTime: Long) {
+    val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+    val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+    println("Backtest from %s to %s, referIdx: from %s to %s, total referPeriods: %s".format(new Date(timestamps(fromIdx)), new Date(timestamps(toIdx)), fromIdx, toIdx, timestamps.length))
+    
+    var i = fromIdx
+    while (i <= toIdx) {
+      doOpen(i)
+      doClose(i)
+      
+      i += 1
+    }
+  }
+
+  /** 
+   * Release resources. Call only when necessary
+   * 
+   * @Todo any better way? We cannot guarrantee that only backtesing is using Function.idToFunctions
+   */
+  def release {
+    deafTo(Signal)
+    deafTo(referSer)
+    deafTo(secPicking)
+    org.aiotrade.lib.math.indicator.Function.releaseAll
+  }
+  
 }
 
-final case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
-final case class ReportData(name: String, id: Int, time: Long, value: Double)
+/**
+ * An example of backtest trading service
+ * 
+ * @author Caoyuan Deng
+ */
+object TradingService {
+  
+  def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
+    val ind = signalClass.newInstance.asInstanceOf[T]
+    ind.factorValues = factors
+    ind
+  }
+  
+  private def init = {
+    val category = "008011"
+    val CSI300Code = "399300.SZ"
+    val secs = securities.getSecsOfSector(category, CSI300Code)
+    val referSec = Exchange.secOf("000001.SS").get
+    val referSer = securities.loadSers(secs, referSec, TFreq.DAILY)
+    val goodSecs = secs filter {_.serOf(TFreq.DAILY).get.size > 0}
+    println("Number of good secs: " + goodSecs.length)
+    (goodSecs, referSer)
+  }
 
+  /**
+   * Simple test
+   */
+  def main(args: Array[String]) {
+    import org.aiotrade.lib.indicator.basic.signal._
+
+    case class TestParam(faster: Int, slow: Int, signal: Int) extends Param {
+      override def shortDescription = List(faster, slow, signal).mkString("_")
+    }
+    
+    val df = new SimpleDateFormat("yyyy.MM.dd")
+    val fromTime = df.parse("2011.04.03").getTime
+    val toTime = df.parse("2012.04.03").getTime
+    
+    val imageFileDir = System.getProperty("user.home") + File.separator + "backtest"
+    val chartReport = new ChartReport(imageFileDir)
+    
+    val (secs, referSer) = init
+    
+    val secPicking = new SecPicking()
+    secPicking ++= secs map (ValidTime(_, 0, 0))
+    
+    for {
+      fasterPeriod <- List(5, 8, 12)
+      slowPeriod <- List(26, 30, 55) if slowPeriod > fasterPeriod
+      signalPeriod <- List(5, 9)
+      param = TestParam(fasterPeriod, slowPeriod, signalPeriod)
+    } {
+      val broker = new PaperBroker("Backtest")
+      val tradingRule = new TradingRule()
+      val account = new StockAccount("Backtest", 10000000.0, tradingRule)
+    
+      val indTemplate = createIndicator(classOf[MACDSignal], Array(fasterPeriod, slowPeriod, signalPeriod))
+    
+      val tradingService = new TradingService(broker, List(account), param, referSer, secPicking, indTemplate) {
+        override 
+        def atClose(idx: Int) {
+          val triggers = scanTriggers(idx)
+          for (Trigger(sec, position, triggerTime, side) <- triggers) {
+            side match {
+              case Side.EnterLong =>
+                buy (sec) after (1)
+              
+              case Side.ExitLong =>
+                sell (sec) after (1)
+              
+              case Side.CutLoss => 
+                sell (sec) quantity (position.quantity) after (1)
+              
+              case Side.TakeProfit =>
+                sell (sec) quantity (position.quantity) after (1)
+              
+              case _ =>
+            }
+          }
+        }
+      }
+    
+      chartReport.roundStarted(List(param))
+      tradingService.backtest(fromTime, toTime)
+      tradingService.release
+      chartReport.roundFinished
+      System.gc
+    }
+    
+    println("Done!")
+  }
+}

@@ -10,6 +10,8 @@ import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Sec
 import scala.collection.mutable
+import org.aiotrade.lib.util.actors.Publisher
+
 
 /**
  * 
@@ -17,7 +19,7 @@ import scala.collection.mutable
  */
 class BaseTradingService(val broker: Broker, val accounts: List[Account], val param: Param,
                          protected val referSer: QuoteSer, protected val secPicking: SecPicking, protected val signalIndTemplates: SignalIndicator*
-) extends TradingService {
+) extends Publisher {
   protected val log = Logger.getLogger(this.getClass.getName)
   
   val tradableAccounts = (accounts filter (_.isInstanceOf[TradableAccount])).asInstanceOf[List[TradableAccount]]
@@ -34,10 +36,11 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   protected val closingOrders = new mutable.HashMap[TradableAccount, List[Order]]() // orders to close position
   protected val pendingOrders = new mutable.HashSet[OrderCompose]()
   
-  /** current closed refer idx */
+  /** current refer idx */
   protected var currentReferIdx = 0
-  /** current closed refer time */
+  /** current refer time */
   protected def currentTime = timestamps(currentReferIdx)
+  protected var closedReferIdx = -1
 
   protected var tradeStartIdx: Int = -1
   protected def isTradeStarted: Boolean = tradeStartIdx >= 0
@@ -63,12 +66,17 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
       
     case _ =>
   }
+  
+  listenTo(secPicking)
 
+  /**
+   * Call it only when indicators were not inited.
+   */
   protected def initSignalIndicators {
     val t0 = System.currentTimeMillis
     
     if (signalIndTemplates.nonEmpty) {
-      listenTo(Signal)
+      listenTo(Signal) // @todo move me from initSignalIndicators so as to get inited signals can be got.
     
       for {
         indTemplate <- signalIndTemplates
@@ -135,6 +143,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
    */
   def doClose(referIdx: Int) {
     currentReferIdx = referIdx
+    closedReferIdx = referIdx
 
     updatePositionsPrice
       
@@ -384,3 +393,20 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
   }
 
 }
+
+
+trait Param extends Publisher {
+  /** Used in the image title */
+  def titleDescription: String = toString
+  /** Used in the image file name */
+  def shortDescription: String = toString
+}
+  
+object NoParam extends Param {
+  override val shortDescription = ""
+  override def toString = "P()"
+}
+
+final case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
+final case class ReportData(name: String, id: Int, time: Long, value: Double)
+
