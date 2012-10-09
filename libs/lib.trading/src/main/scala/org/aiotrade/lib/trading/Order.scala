@@ -101,7 +101,7 @@ final case class Order(account: TradableAccount, sec: Sec, price: Double, var qu
       _filledQuantity += quantity
       _averagePrice = (oldTotalAmount + price * quantity) / _filledQuantity
 
-      status = if (remainQuantity == 0) 
+      status = if (remainQuantity <= 0) 
         OrderStatus.Filled
       else
         OrderStatus.Partial
