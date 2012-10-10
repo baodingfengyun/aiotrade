@@ -2,8 +2,22 @@ package org.aiotrade.lib
 
 
 import java.util.logging.Logger
+import java.util.concurrent.TimeUnit
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.indicator.ComputeFrom
+import org.aiotrade.lib.math.indicator.Indicator
+import org.aiotrade.lib.math.indicator.IndicatorDescriptor
+import org.aiotrade.lib.math.indicator.SpotIndicator
+import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.descriptor.Content
+import org.aiotrade.lib.securities.dataserver.QuoteContract
+import org.aiotrade.lib.securities.dataserver.RichInfoContract
+import org.aiotrade.lib.securities.dataserver.RichInfoHisContract
+import org.aiotrade.lib.securities.dataserver.TickerContract
+import org.aiotrade.lib.securities.dataserver.NewsContract
+import org.aiotrade.lib.securities.dataserver.FilingContract
+import org.aiotrade.lib.securities.dataserver.AnalysisReportContract
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Sec
@@ -13,6 +27,7 @@ import org.aiotrade.lib.securities.model.SectorSecs
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Quotes1d
 import org.aiotrade.lib.securities.model.Quotes1m
+
 import ru.circumflex.orm._
 
 /**
@@ -20,9 +35,12 @@ import ru.circumflex.orm._
  * @author Caoyuan Deng
  */
 package object securities {
-  private val log = Logger.getLogger(this.getClass.getName)
-  private val config = org.aiotrade.lib.util.config.Config()
-  private val isServer = !config.getBool("dataserver.client", false)
+  /**
+   * @Note private[this] to avoid this private log to be static imported by others, it seems a scala's compiler bug? 
+   */
+  private[this] val log = Logger.getLogger(this.getClass.getName)
+  private[this] val config = org.aiotrade.lib.util.config.Config()
+  private[this] val isServer = !config.getBool("dataserver.client", false)
 
   def getSecsOfSector(category: String, code: String) = {
     val sectors = if (isServer) {
@@ -168,4 +186,220 @@ package object securities {
     case TFreq.ONE_MIN => Some(Quotes1m)
     case _ => None
   }  
+  
+  
+  def createQuoteContract(symbol: String, category: String , sname: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): QuoteContract = {
+    val dataContract = new QuoteContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = isRefreshable
+    dataContract.refreshInterval = 5
+
+    dataContract
+  }
+
+  def createTickerContract(symbol: String, category: String, sname: String, freq: TFreq, serverClassName: String): TickerContract = {
+    val dataContract = new TickerContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = true
+    dataContract.refreshInterval = 5
+
+    dataContract
+  }
+
+  def createNewsContract(symbol: String, category: String , sname: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): NewsContract = {
+    val dataContract = new NewsContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = isRefreshable
+    dataContract.refreshInterval = 5000 //ms
+
+    dataContract
+  }
+
+  def createFilingContract(symbol: String, category: String , sname: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): FilingContract = {
+    val dataContract = new FilingContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = isRefreshable
+    dataContract.refreshInterval = 5000 //ms
+
+    dataContract
+  }
+
+  def createAnalysisReportContract(symbol: String, category: String , sname: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): AnalysisReportContract = {
+    val dataContract = new AnalysisReportContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = isRefreshable
+    dataContract.refreshInterval = 5000 //ms
+
+    dataContract
+  }
+
+  def createRichInfoContract(symbol: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): RichInfoContract = {
+    val dataContract = new RichInfoContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = isRefreshable
+    dataContract.refreshInterval = 5
+
+    dataContract
+  }
+
+  def createRichInfoHisContract(symbol: String, freq: TFreq, isRefreshable: Boolean, serverClassName: String): RichInfoHisContract = {
+    val dataContract = new RichInfoHisContract
+
+    dataContract.active = true
+    dataContract.serviceClassName = serverClassName
+
+    dataContract.srcSymbol = symbol
+
+    dataContract.freq = freq
+    dataContract.isRefreshable = isRefreshable
+    dataContract.refreshInterval = 5
+
+    dataContract
+  }
+
+  def createIndicatorDescriptor[T <: Indicator](clazz: Class[T], freq: TFreq): IndicatorDescriptor = {
+    val descriptor = new IndicatorDescriptor
+    descriptor.active = true
+    descriptor.serviceClassName = clazz.getName
+    descriptor.freq = freq
+    descriptor
+  }
+
+
+  def loadSer(sec: Sec, freq: TFreq): Unit = {
+    var mayNeedsReload = false
+    if (sec == null) {
+      return
+    } else {
+      mayNeedsReload = true
+    }
+
+    if (mayNeedsReload) {
+      sec.resetSers
+    }
+    val ser = sec.serOf(freq).get
+
+    if (!ser.isLoaded && !ser.isInLoading) {
+      sec.loadSer(ser)
+    }
+  }
+
+  def initIndicators(content: Content, baseSer: BaseTSer): Seq[_ <: Indicator] = {
+    var indicators: List[Indicator] = Nil
+    for (descriptor <- content.lookupDescriptors(classOf[IndicatorDescriptor])
+         if descriptor.active && descriptor.freq.equals(baseSer.freq)
+    ) yield {
+      descriptor.serviceInstance(baseSer) match {
+        case Some(indicator) => indicators ::= indicator
+        case _ => log.warning("In test: can not init instance of: " + descriptor.serviceClassName)
+      }
+    }
+    indicators
+  }
+
+  def computeSync(indicator: Indicator) {
+    indicator match {
+      case _: SpotIndicator => // don't compute it right now
+      case _ =>
+        val t0 = System.currentTimeMillis
+        indicator.computeFrom(0)
+        log.info("Computed " + indicator.shortName + "(" + indicator.freq + ", size=" + indicator.size +  ") in " + (System.currentTimeMillis - t0) + " ms")
+    }
+  }
+
+  def computeAsync(indicator: Indicator) {
+    indicator match {
+      case _: SpotIndicator => // don't compute it right now
+      case _ =>
+        log.info("Computing " + indicator.shortName + "(" + indicator.freq + ", size=" + indicator.size +  ")")
+        indicator ! ComputeFrom(0)
+    }
+  }
+
+  def printValuesOf(indicator: Indicator): Unit = {
+    println
+    println(indicator.freq)
+    println(indicator.shortName + ":" + indicator.size)
+    for (v <- indicator.vars) {
+      print(v.name + ": ")
+      v.values.reverse foreach {x => print(x + ",")}
+      println
+    }
+  }
+
+  def printLastValueOf(indicator: Indicator) {
+    println
+    println(indicator.freq + "-" +indicator.shortName + ":" + indicator.size)
+    for (v <- indicator.vars if v.size > 0) {
+      println(v.name + ": " + v.values.last)
+    }
+  }
+
+  def reportQuote(sec: Sec) {
+    println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
+    sec.serOf(TFreq.DAILY)   foreach {x => println("daily:  "  + x.size)}
+    sec.serOf(TFreq.ONE_MIN) foreach {x => println("1 min:  "  + x.size)}
+    sec.serOf(TFreq.WEEKLY)  foreach {x => println("weekly: "  + x.size)}
+  }
+
+  def reportRichInfo(sec: Sec) {
+    //println("\n======= " + new java.util.Date + " size of " + sec.uniSymbol  + " ======")
+    sec.infoPointSerOf(TFreq.DAILY) match {
+      case Some(ser) => println(sec.secInfo.uniSymbol + " daily:  "  + ser.size)
+      case None =>
+    }
+
+    sec.infoPointSerOf(TFreq.ONE_MIN) match {
+      case Some(ser) => println(sec.secInfo.uniSymbol + " 1 Min:  "  + ser.size)
+      case None =>
+    }
+
+
+  }
+
+  def reportInds(inds: Seq[_ <: Indicator]) {
+    inds foreach {x => println(x.toString)}
+  }
+
+
+  // wait for some ms
+  def waitFor(ms: Long) {
+    TimeUnit.MILLISECONDS.sleep(ms)
+  }
 }
