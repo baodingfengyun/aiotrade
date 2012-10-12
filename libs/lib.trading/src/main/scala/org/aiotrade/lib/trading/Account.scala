@@ -58,13 +58,14 @@ abstract class TradableAccount($description: String, $balance: Double,
    * @return  amount with signum
    */
   protected def calcSecTransactionAmount(order: Order, execution: Execution): Double
+  
   /**
    * For lots of brokers, will directly return transaction, in that case, we can just call processTransaction
    */
   private def processExecution(order: Order, execution: Execution): TradeTransaction = {
     val tradeTransaction = execution match {
       case PaperExecution(order, time, price, quantity) =>
-        val fillingAmount = calcSecTransactionAmount(order, execution: Execution)
+        val fillingAmount = calcSecTransactionAmount(order, execution)
         // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position increase/decrease.
         val secTransaction = SecurityTransaction(time, order.sec, price, order.side.signum * quantity, fillingAmount, order.side)
       
@@ -161,7 +162,7 @@ class FutureAccount($description: String, $balance: Double, val tradingRule: Tra
   
   protected def calcSecTransactionAmount(order: Order, execution: Execution): Double = {
     if (order.side.isOpening) {
-      // we won't minus the margin from balance, since the margin was actually not taken from balance, instead, availableFunds will minus mragin.
+      // we won't minus the margin from balance, since the margin was actually not taken from balance, instead, availableFunds will minus margin.
       0.0 
     } else { // is to close some positions
       _secToPosition.get(order.sec) match {
