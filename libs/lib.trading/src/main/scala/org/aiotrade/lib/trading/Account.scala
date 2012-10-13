@@ -168,7 +168,7 @@ class FutureAccount($description: String, $balance: Double, val tradingRule: Tra
       _secToPosition.get(order.sec) match {
         case Some(position) =>
           // calculate offset gain loss of closed position right now
-          order.side.signum * (execution.price - position.price) * execution.quantity * tradingRule.multiplier
+          -order.side.signum * (execution.price - position.price) * execution.quantity * tradingRule.multiplier
         case _ => 0.0 // This should not happen!
       }
     }
