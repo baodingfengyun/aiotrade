@@ -16,6 +16,8 @@ class TradingRule {
   /** contract multiplier,  price per index point, 300.0 in China Index Future, 1 for stock */
   val multiplier: Double = 1.0
   
+  def reserveFundsRate = 0.0
+  
   def buyPriceRule(quote: Quote): Double = {
     quote.open
   }
