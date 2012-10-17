@@ -10,7 +10,7 @@ final case class Order(account: TradableAccount, sec: Sec, price: Double, var qu
   
   private var _id: Long = _
   
-  private var _time: Long = System.currentTimeMillis
+  private var _time: Long = 0
   private var _expireTime: Long = Long.MinValue
   private var _stopPrice: Double = Double.NaN
   private var _validity: OrderValidity = _

@@ -250,7 +250,7 @@ class BaseTradingService(val broker: Broker, val accounts: List[Account], val pa
 
     accounts foreach {account =>
       if (numAccounts > 1) {
-        param.publish(ReportData(account.description, 0, currentTime, account.equity / initialEquity))
+        param.publish(ReportData(account.code, 0, currentTime, account.equity / initialEquity))
       }
 
       account match {

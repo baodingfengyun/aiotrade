@@ -90,7 +90,7 @@ abstract class TradeBroker extends Broker {
     var deltas = List[OrderDelta]()
 
     val sec = order.sec
-    log.info("Process trade: " + order.sec.uniSymbol + ", time=" + new java.util.Date(time) + ", price = " + price + ", quantity=" + quantity)
+    log.info("Process trade for: " + order + ", time=" + new java.util.Date(time))
     val secOrders = executingOrders synchronized {executingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
 
     var toRemove = List[Order]()
@@ -108,16 +108,18 @@ abstract class TradeBroker extends Broker {
                 fill(order, time, price, quantity, amount, expenses)
 
               case (OrderSide.Sell | OrderSide.BuyCover) if price >= order.price =>
-                deltas ::= new OrderDelta.Updated(order)
+                deltas ::= OrderDelta.Updated(order)
                 fill(order, time, price, quantity, amount, expenses)
-
+                
               case _ =>
             }
 
           case _ =>
+            log.info("Order tpe is " + order.tpe + ", won't be filled!")
         }
 
-      case _ =>
+      case _ => 
+        log.info("Order status is " + order.status + ", won't be filled!")
     }
 
     if (order.status == OrderStatus.Filled) {

@@ -187,7 +187,7 @@ class PaperBroker(val name: String) extends Broker {
                   fill(order, time, price, quantity)
                     
                 case (OrderSide.Sell | OrderSide.BuyCover) if price >= order.price => 
-                  deltas ::= new OrderDelta.Updated(order)
+                  deltas ::= OrderDelta.Updated(order)
                   fill(order, time, price, quantity)
 
                 case _ =>
