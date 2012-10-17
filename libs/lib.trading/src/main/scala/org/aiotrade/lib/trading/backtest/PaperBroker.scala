@@ -152,8 +152,8 @@ class PaperBroker(val name: String) extends Broker {
           println("Some order: %s".format(order))
           Some(order)
         } else {
-          println("None order: %s. Quote: volume=%5.2f, average=%5.2f, cost=%5.2f".format(
-              this, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
+          println("None order: %s. Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
+              oc, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
           )
           None
         }
