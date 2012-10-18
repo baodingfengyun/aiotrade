@@ -74,7 +74,7 @@ final class Quote extends BelongsToSec with TVal with Flag {
 
   var hasGaps = false
   
-  private val data = new Array[Double](11)
+  private val data = new Array[Double](10) // will increase to 11 to add averagy
   
   def open      = data(0)
   def high      = data(1)
@@ -107,16 +107,16 @@ final class Quote extends BelongsToSec with TVal with Flag {
   var isTransient: Boolean = true
   
   /** average price */
-  private var _average = Double.NaN
   def average: Double = {
-    if (data(10) == 0) {
-      data(10) = if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
-    } 
-    data(10)
+    //if (data(10) == 0) {
+      //data(10) = if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
+    //} 
+    //data(10)
+    if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
   }
-  def average_=(v: Double) {
-    data(10) = v
-  }
+  //def average_=(v: Double) {
+  //  data(10) = v
+  //}
   
   def copyFrom(another: Quote) {
     System.arraycopy(another.data, 0, data, 0, data.length)

@@ -116,7 +116,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
       quote.close  = close(time)
       quote.volume = volume(time)
       quote.amount = amount(time)
-      quote.average = average(time)
+      //quote.average = average(time)
       quote.prevClose = prevClose(time)
       quote.execCount = execCount(time)
       quote.turnoverRate = turnoverRate(time)
