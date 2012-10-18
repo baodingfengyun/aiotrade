@@ -138,7 +138,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
     assignValue(quote)
 
     /** be ware of fromTime here may not be same as ticker's event */
-    publish(TSerEvent.Updated(this, "", time, time))
+    publish(TSerEvent.Updated(this, quote.uniSymbol, time, time))
   }
 
   def adjust  (force: Boolean = false) {doAdjust(true,  force)}

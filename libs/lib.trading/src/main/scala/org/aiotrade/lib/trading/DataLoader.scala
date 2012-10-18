@@ -46,8 +46,7 @@ class DataLoader(val sec: Sec,
     // * init indicators before loadSer, so, they can receive the Loaded evt
     val inds = for (freq <- indFreqs; ser <- sec.serOf(freq)) yield initIndicators(content, ser) 
 
-    for (freq <- quoteFreqs) {
-      val ser = sec.serOf(freq).get
+    for (freq <- quoteFreqs; ser <- sec.serOf(freq)) {
       sec.loadSer(ser)
       ser.adjust()
     }

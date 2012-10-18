@@ -259,6 +259,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
         if (isSerCreated(TFreq.DAILY)) {
           serOf(TFreq.DAILY) foreach {_.updateFrom(quote)}
         }
+      case _ => // todo
     }
   }
   
@@ -272,6 +273,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
         if (isSerCreated(TFreq.DAILY)) {
           moneyFlowSerOf(TFreq.DAILY) foreach (_.updateFrom(moneyFlow))
         }
+      case _ => // todo
     }
   }
 
@@ -296,6 +298,7 @@ class Sec extends SerProvider with CRCLongId with Ordered[Sec] {
         if (isSerCreated(TFreq.DAILY)) {
           priceDistributionSerOf(TFreq.DAILY) foreach (_.updateFrom(priceDistribution))
         }
+      case _ => // todo
     }
   }
 
