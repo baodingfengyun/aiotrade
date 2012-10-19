@@ -9,7 +9,7 @@ import org.aiotrade.lib.util.actors.Reactor
  * 
  * @author Caoyuan Deng
  */
-class Benchmark(tradingService: BaseTradingService) extends Reactor {
+class Benchmark(tradingService: TradingService) extends Reactor {
   final case class Payoff(time: Long, nav: Double, accRate: Double, periodRate: Double, riskFreeRate: Double, referNav: Double) {
     val periodRateForSharpe = periodRate - riskFreeRate
     
