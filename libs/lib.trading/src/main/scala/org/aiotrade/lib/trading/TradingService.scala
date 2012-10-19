@@ -2,7 +2,9 @@ package org.aiotrade.lib.trading
 
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Currency
 import java.util.Date
+import java.util.Locale
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.SignalIndicator
