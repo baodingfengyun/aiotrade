@@ -2,9 +2,7 @@ package org.aiotrade.lib.trading
 
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Currency
 import java.util.Date
-import java.util.Locale
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.SignalIndicator
@@ -31,7 +29,7 @@ import scala.concurrent.SyncVar
 class TradingService(val broker: Broker, val accounts: List[Account], val param: Param,
                      protected val referSer: QuoteSer, protected val secPicking: SecPicking, protected val signalIndTemplates: SignalIndicator*
 ) extends Publisher {
-  protected val log = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(this.getClass.getName)
   
   val tradableAccounts = (accounts filter (_.isInstanceOf[TradableAccount])).asInstanceOf[List[TradableAccount]]
   val cashAccounts = (accounts filter (_.isInstanceOf[CashAccount])).asInstanceOf[List[CashAccount]]
