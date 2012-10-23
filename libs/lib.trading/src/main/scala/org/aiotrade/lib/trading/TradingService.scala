@@ -88,22 +88,26 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
       log.info("Listen to ser (" + sec.uniSymbol + " " + referSer.freq + ")")
       
     case evt@TSerEvent.Updated(ser: QuoteSer, symbol, fromTime, toTime, _, _) =>
-      // Drived by quoteSer's update for real trading
+      // Driven by quoteSer's update for real trading
       // @Note ser could be MoneyFlowSer etc too
       try {
         val idx = timestamps.indexOfOccurredTime(toTime)
-        val isClosed = ser.isClosed(idx)
-        log.info("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", isClosed=" + isClosed + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
-        if (idx >= currentReferIdx) {
+        if (idx >= 0) {
+          val isClosed = ser.isClosed(idx)
+          log.info("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", isClosed=" + isClosed + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
+          if (idx >= currentReferIdx) {
         
-          if (!isClosed) {
-            doOpen(idx)
-          }
+            if (!isClosed) {
+              doOpen(idx)
+            }
 
-          if (isClosed && idx > closedReferIdx) {
-            doClose(idx)
-          }
+            if (isClosed && idx > closedReferIdx) {
+              doClose(idx)
+            }
           
+          }
+        } else {
+          log.warning("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
         }
       } catch {
         case ex => log.log(Level.SEVERE, ex.getMessage, ex)
