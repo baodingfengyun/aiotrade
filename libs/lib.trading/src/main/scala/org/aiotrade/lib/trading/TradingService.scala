@@ -92,9 +92,9 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
       // @Note ser could be MoneyFlowSer etc too
       try {
         val idx = timestamps.indexOfOccurredTime(toTime)
-        log.info("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
+        val isClosed = ser.isClosed(idx)
+        log.info("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", isClosed=" + isClosed + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
         if (idx >= currentReferIdx) {
-          val isClosed = ser.isClosed(idx)
         
           if (!isClosed) {
             doOpen(idx)
@@ -103,6 +103,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           if (isClosed && idx > closedReferIdx) {
             doClose(idx)
           }
+          
         }
       } catch {
         case ex => log.log(Level.SEVERE, ex.getMessage, ex)
@@ -231,8 +232,10 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     currentReferIdx = referIdx
     closedReferIdx = referIdx
 
+    log.info("doClose: going to update positions price.")
     updatePositionsPrice
       
+    log.info("doClose: going to check order status.")
     checkOrderStatus
 
     if (isTradeStarted) {
@@ -242,14 +245,19 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     // today's orders processed, now begin to check new conditions and 
     // prepare new orders according to current closed status.
     
-    accounts foreach broker.updateAccount
+    log.info("doClose: going to update account.")
+    tradableAccounts foreach broker.updateAccount
     
+    log.info("doClose: going to check stop condition.")
     secPicking.go(currentTime)
     checkStopCondition
     
+    log.info("doClose: going to doClose(" + referIdx + ").")
     atClose(referIdx)
     
+    log.info("doClose: going to process pending orders.")
     processPendingOrders
+    log.info("doClose: done.")
   }
 
   /**
