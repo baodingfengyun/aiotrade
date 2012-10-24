@@ -117,6 +117,10 @@ class PaperBroker(val name: String) extends Broker {
       case Some(quote) =>
         if (side.isOpening) {
           
+          if (funds.isSet) {
+            funds(math.min(account.tradingRule.maxFundsPerOrder, funds))
+          }
+
           if (account.availableFunds > 0) {
             if (price.notSet) {
               price(account.tradingRule.buyPriceRule(quote))
@@ -127,8 +131,9 @@ class PaperBroker(val name: String) extends Broker {
           } else {
             quantity(0.0)
           }
+          
         } else { // closing
-            
+          
           if (price.notSet) {
             price(account.tradingRule.sellPriceRule(quote))
           }

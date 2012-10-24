@@ -31,6 +31,10 @@ abstract class TradeBroker extends Broker {
     val order = 
       if (side.isOpening) {
         
+        if (funds.isSet) {
+          funds(math.min(oc.account.tradingRule.maxFundsPerOrder, funds))
+        }
+        
         if (account.availableFunds > 0) {
           if (price.isSet) {
             if (quantity.isSet) {

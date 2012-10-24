@@ -28,7 +28,7 @@ class TradingRule {
   
   def buyQuantityRule(quote: Quote, price: Double, funds: Double): Int = {
     if (isTradable(quote)) {
-      val quantity = maxQuantity(quote.volume, price, funds)
+      val quantity = maxQuantity(quote.volume, price, math.min(maxFundsPerOrder, funds))
       roundQuantity(quantity)
     } else {
       0
@@ -50,6 +50,11 @@ class TradingRule {
   def takeProfitRule(position: Position): Boolean = {
     position.gainLossRatio < position.maxGainLossRatio * 0.6
   }
+  
+  /**
+   * Maxima funds to buy one sec each order
+   */
+  def maxFundsPerOrder: Double = Double.MaxValue
 
   // -- helper
   
