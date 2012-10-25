@@ -114,8 +114,8 @@ final case class Order(account: TradableAccount, sec: Sec, price: Double, var qu
   
   override
   def toString = {
-    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$d(%6$d), price=%7$ 5.2f, status=%8$s, stopPrice=%9$ 5.2f, validity=%10$s, expiration=%11$s, refrence=%12$s".format(
-      new Date(time), sec.uniSymbol, tpe, side, quantity.toInt, _filledQuantity.toInt, price, status, stopPrice, validity, expireTime, reference
+    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$d(%6$d), price=%7$ 5.2f, funds=%8$ 5.2f, status=%9$s, stopPrice=%10$ 5.2f, validity=%11$s, expiration=%12$s, refrence=%13$s".format(
+      new Date(time), sec.uniSymbol, tpe, side, quantity.toInt, _filledQuantity.toInt, price, funds, status, stopPrice, validity, expireTime, reference
     )
   }
 }
