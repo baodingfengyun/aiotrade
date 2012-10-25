@@ -83,9 +83,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
       backtestDone.set(true)
 
     case GoTrading =>
-      TradingService.this.listenTo(referSer)
-      val sec = referSer.serProvider
-      log.info("Listen to ser (" + sec.uniSymbol + " " + referSer.freq + ")")
+      goTrading()
       
     case evt@TSerEvent.Updated(ser: QuoteSer, symbol, fromTime, toTime, _, _) =>
       // Driven by quoteSer's update for real trading
@@ -147,8 +145,27 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     log.info("Inited singals in %ss.".format((System.currentTimeMillis - t0) / 1000))
   }
   
+  /**
+   * Main trade entrance for outside caller.
+   */ 
   def trade() {
     publish(GoTrading)
+  }
+  
+  private def goTrading() {
+    // if it was closed when trading started, we will call doClose right now
+    // 
+    // @Note, if trading service is invoked during opening, the last quote of referSer 
+    // may be still the last closed one, until it receives new TSer.Update event after
+    // listenTo(referSer)
+    val lastIdx = timestamps.length - 1
+    if (lastIdx >= 0 && referSer.isClosed(lastIdx)) {
+      doClose(lastIdx)
+    }
+    
+    // begin to drive trading by ticker or quote events.
+    listenTo(referSer)
+    log.info("Listen to ser (" + referSer.serProvider.uniSymbol + " " + freq + ")")
   }
   
   /**
@@ -160,7 +177,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   def backtest(fromTime: Long, toTime: Long) {
     initSignalIndicators
     publish(GoBacktest(fromTime, toTime))
-    // We should make this method calling synchronized, so block here untill done
+    // We should make this backtest(...) calling synchronized, so block here untill done
     backtestDone.get
   }
   
