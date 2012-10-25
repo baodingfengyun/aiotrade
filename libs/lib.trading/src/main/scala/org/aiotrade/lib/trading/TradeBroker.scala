@@ -77,7 +77,11 @@ abstract class TradeBroker extends Broker {
           }  
         }
         
-        Some(Order(account, sec, price, quantityToClose, side, OrderType.Market))
+        if (quantityToClose > 0) {
+          Some(Order(account, sec, price, quantityToClose, side, OrderType.Market))
+        } else {
+          None
+        }
           
       }
        

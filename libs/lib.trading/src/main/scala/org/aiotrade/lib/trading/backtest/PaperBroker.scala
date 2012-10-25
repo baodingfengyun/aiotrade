@@ -157,15 +157,21 @@ class PaperBroker(val name: String) extends Broker {
           println("Some order: %s".format(order))
           Some(order)
         } else {
-          println("None order: %s. Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
-              oc, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
+          println("None order, since quantity <= 0, something should be wrong! : %s. quantity=%5.2f Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
+              oc, quantity, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
           )
           None
         }
           
-      case None => None
+      case None => 
+        println("None order: %s. Quote of this time did not exist.".format(oc))
+        if (side.isOpening) {
+          // @todo, pend opening order or not ?
+        } else {
+          after (1) // pend closing order 1 period
+        }
+        None
     }
-    
   }
   
   /**

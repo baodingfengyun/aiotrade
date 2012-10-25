@@ -114,7 +114,7 @@ abstract class Broker extends Publisher {
 
     override 
     def toString = {
-      "OrderCompose(code=%1$s, willSubmitAtReferIdx=%2$s, %4$s, %5$10.2f, %6$d, %7$5.2f)".format(_account.code, referIdx, sec.uniSymbol, side, _funds, _quantity.toInt, _price)
+      "OrderCompose(account=%1$s, referIdx=%2$s, %3$s, %4$s, %5$10.2f, %6$d, %7$5.2f)".format(_account.code, referIdx, sec.uniSymbol, side, _funds, _quantity.toInt, _price)
     }
 
     def positionOf(sec: Sec): Option[Position] = {
