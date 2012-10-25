@@ -1,7 +1,6 @@
 package org.aiotrade.lib.trading
 
 
-import java.util.Date
 import org.aiotrade.lib.math.timeseries.TStamps
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Sec
@@ -12,7 +11,7 @@ import scala.collection.mutable
  * Brokers that managed accounts and receive trade to fill orders
  *
  */
-trait Broker extends Publisher {
+abstract class Broker extends Publisher {
   def id: Long
   def name: String
 
@@ -54,7 +53,7 @@ trait Broker extends Publisher {
     def notSet() = v.isNaN
   } 
   
-  trait OrderCompose {
+  abstract class OrderCompose {
     def sec: Sec
     def side: OrderSide
     protected def referIdxAtDecision: Int
@@ -107,11 +106,15 @@ trait Broker extends Publisher {
       this
     }
     
+    /**
+     * @Note This referIdx may may point to future and.exceed timestamps' lastIdx.
+     *   So be carefully to call timestamps(referIdx)
+     */
     def referIdx = referIdxAtDecision + _afterIdx
 
     override 
     def toString = {
-      "OrderCompose(%1$s, %2$tY.%2$tm.%2$td, %3$s, %4$s, %5$10.2f, %6$d, %7$5.2f)".format(_account.code, new Date(timestamps(referIdx)), sec.uniSymbol, side, _funds, _quantity.toInt, _price)
+      "OrderCompose(code=%1$s, willSubmitAtReferIdx=%2$s, %4$s, %5$10.2f, %6$d, %7$5.2f)".format(_account.code, referIdx, sec.uniSymbol, side, _funds, _quantity.toInt, _price)
     }
 
     def positionOf(sec: Sec): Option[Position] = {
