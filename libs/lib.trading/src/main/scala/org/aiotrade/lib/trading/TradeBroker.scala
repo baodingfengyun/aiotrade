@@ -27,7 +27,6 @@ abstract class TradeBroker extends Broker {
   def toOrder(oc: OrderCompose): Option[Order] = {
     import oc._
     
-    val time = timestamps(referIndex)
     val order = 
       if (side.isOpening) {
         
@@ -83,7 +82,7 @@ abstract class TradeBroker extends Broker {
       }
        
     println("To order: %s".format(order))
-    order map {x => x.time = time; x}
+    order
   }
   
   /**

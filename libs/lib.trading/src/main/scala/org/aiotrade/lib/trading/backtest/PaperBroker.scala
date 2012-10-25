@@ -112,7 +112,8 @@ class PaperBroker(val name: String) extends Broker {
   def toOrder(oc: OrderCompose): Option[Order] = {
     import oc._
     
-    val time = timestamps(referIndex)
+    // for paper work, we should already past the referIdx
+    val time = timestamps(referIdx)
     ser.valueOf(time) match {
       case Some(quote) =>
         if (side.isOpening) {
@@ -153,7 +154,6 @@ class PaperBroker(val name: String) extends Broker {
         quantity(math.abs(quantity))
         if (quantity > 0) {
           val order = Order(account, sec, price, quantity, side)
-          order.time = time
           println("Some order: %s".format(order))
           Some(order)
         } else {

@@ -314,8 +314,10 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   }  
   
   protected def executeOrdersOf(referIdx: Int) {
-    val allOpeningOrders = openingOrders flatMap (_._2)
-    val allClosingOrders = closingOrders flatMap (_._2)
+    val executeTime = timestamps(referIdx)
+
+    val allOpeningOrders = openingOrders flatMap (_._2) map {x => x.time = executeTime; x}
+    val allClosingOrders = closingOrders flatMap (_._2) map {x => x.time = executeTime; x}
     
     if (!isTradeStarted && (allOpeningOrders.nonEmpty || allClosingOrders.nonEmpty)) {
       tradeStartIdx = referIdx
@@ -396,76 +398,77 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * Check order of next trading day etc.
    */
   protected def processPendingOrders {
-    // check order of next trading day
+    // check order of next trading freq period
     val orderSubmitReferIdx = currentReferIdx + 1 
-    if (orderSubmitReferIdx < timestamps.length) {
-      val orderSubmitReferTime = timestamps(orderSubmitReferIdx)
 
-      val pendingOrdersToRemove = new mutable.HashSet[OrderCompose]()
-      // we should group pending orders here, since orderCompose.order may be set after created
-      val newOpenCloseOrders = pendingOrders groupBy (_.account) map {case (account, orders) =>
-          val expired = new mutable.HashSet[OrderCompose]()
-          val opening = new mutable.HashMap[Sec, OrderCompose]()
-          val closing = new mutable.HashMap[Sec, OrderCompose]()
-          for (order <- orders) {
-            if (order.referIndex < orderSubmitReferIdx) {
-              expired += order
-            } else if (order.referIndex == orderSubmitReferIdx) { 
-              if (order.ser.exists(orderSubmitReferTime)) {
-                order.side match {
-                  case OrderSide.Buy | OrderSide.SellShort => opening(order.sec) = order
-                  case OrderSide.Sell | OrderSide.BuyCover => closing(order.sec) = order
-                  case _ =>
-                }
-              } else {
-                order.side match {
-                  // @Note if we want to pend buying order, we should count it in opening, 
-                  // otherwise the funds may has used out during following steps.
-                  case OrderSide.Buy | OrderSide.SellShort => expired += order // drop this orderCompose
-                  case OrderSide.Sell | OrderSide.BuyCover => order after (1)   // pend 1 day
-                  case _ =>
-                }
-              }
+    val pendingOrdersToRemove = new mutable.HashSet[OrderCompose]()
+    // we should group pending orders here, since orderCompose.order may be set after created
+    val newOpenCloseOrders = pendingOrders groupBy (_.account) map {case (account, orders) =>
+        val expired = new mutable.HashSet[OrderCompose]()
+        val opening = new mutable.HashMap[Sec, OrderCompose]()
+        val closing = new mutable.HashMap[Sec, OrderCompose]()
+        for (order <- orders) {
+          if (order.referIdx < orderSubmitReferIdx) {
+            expired += order
+          } else if (order.referIdx == orderSubmitReferIdx) { 
+            order.side match {
+              case OrderSide.Buy | OrderSide.SellShort => opening(order.sec) = order
+              case OrderSide.Sell | OrderSide.BuyCover => closing(order.sec) = order
             }
           }
+        }
 
-          if (account.availableFunds <= 0) {
-            opening == Nil
-          }
+        if (account.availableFunds <= 0) {
+          opening == Nil
+        }
           
-          val conflicts = Nil//opening.keysIterator filter (closing.contains(_))
-          val openingx = (opening -- conflicts).values.toList
-          val closingx = (closing -- conflicts).values.toList
+        val conflicts = Nil//opening.keysIterator filter (closing.contains(_))
+        val openingx = (opening -- conflicts).values.toList
+        val closingx = (closing -- conflicts).values.toList
 
-          // opening
-          val (noFunds, withFunds) = openingx partition (_.funds.isNaN)
-          val assignedFunds = withFunds.foldLeft(0.0){(s, x) => s + x.funds}
-          val estimateFundsPerSec = if (noFunds.size != 0) (account.availableFunds - assignedFunds) / noFunds.size else 0.0
-          val openingOrdersx = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})) flatMap broker.toOrder
-          adjustOpeningOrders(account, openingOrdersx)
+        // opening
+        val (noFunds, withFunds) = openingx partition (_.funds.isNaN)
+        val assignedFunds = withFunds.foldLeft(0.0){(s, x) => s + x.funds}
+        val estimateFundsPerSec = if (noFunds.size != 0) (account.availableFunds - assignedFunds) / noFunds.size else 0.0
+        val openingOrdersx = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})) flatMap broker.toOrder
+        adjustOpeningOrders(account, openingOrdersx)
 
-          // closing
-          val closingOrdersx = closingx flatMap broker.toOrder
+        // closing
+        val closingOrdersx = closingx flatMap broker.toOrder
         
-          // pending to remove
-          pendingOrdersToRemove ++= expired 
-          pendingOrdersToRemove ++= openingx
-          pendingOrdersToRemove ++= closingx
+        // pending to remove
+        pendingOrdersToRemove ++= expired 
+        pendingOrdersToRemove ++= openingx
+        pendingOrdersToRemove ++= closingx
         
-          account -> (openingOrdersx, closingOrdersx)
+        account -> (openingOrdersx, closingOrdersx)
+    }
+      
+    // @Note newOpenCloseOrders may be empty, thus we should iterate through each account in tradableAccounts 
+    // instead of account in newOpenCloseOrders to make sure orders of each account are updated. 
+    for (account <- tradableAccounts) {
+      val (newOpeningOrders, newClosingOrders) = newOpenCloseOrders.getOrElse(account, (Nil, Nil))
+      
+      val oldOpeningOrders = openingOrders.getOrElse(account, Nil) filter {x => 
+        x.status match {
+          case OrderStatus.Filled | OrderStatus.Canceled | OrderStatus.PendingCancel | OrderStatus.Expired => false
+          case _ => true
+        }
+      }
+      val oldClosingOrders = closingOrders.getOrElse(account, Nil) filter {x => 
+        x.status match {
+          case OrderStatus.Filled | OrderStatus.Canceled | OrderStatus.PendingCancel | OrderStatus.Expired => false
+          case _ => true
+        }
       }
       
-      // We should iterate through each account of accounts instead of account in newOpenCloseOrders 
-      // to make sure orders of each account are updated. 
-      // @Note newOpenCloseOrders may be empty
-      for (account <- tradableAccounts) {
-        val (openingOrdersx, closingOrdersx) = newOpenCloseOrders.getOrElse(account, (Nil, Nil))
-        openingOrders(account) = openingOrdersx
-        closingOrders(account) = closingOrdersx
-      }
+      // ??? @Note if we want to pend buying order, we should count it in opening, 
+      // otherwise the funds may has used out during following steps.???
+      openingOrders(account) = oldOpeningOrders ++ newOpeningOrders
+      closingOrders(account) = oldClosingOrders ++ newClosingOrders
+    }
 
-      pendingOrders --= pendingOrdersToRemove
-    } // end if
+    pendingOrders --= pendingOrdersToRemove
   }
   
   /** 
