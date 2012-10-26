@@ -317,17 +317,18 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   protected def executeOrdersOf(referIdx: Int) {
     val executeTime = timestamps(referIdx)
 
-    val allOpeningOrders = openingOrders flatMap (_._2) map {x => x.time = executeTime; x}
-    val allClosingOrders = closingOrders flatMap (_._2) map {x => x.time = executeTime; x}
+    // The status of submited orders will be set to OrderStatus.PendingNew
+    val openingOrdersToSubmit = openingOrders flatMap (_._2) filter {_.status == OrderStatus.New} map {x => x.time = executeTime; x}
+    val closingOrdersToSubmit = closingOrders flatMap (_._2) filter {_.status == OrderStatus.New} map {x => x.time = executeTime; x}
     
-    if (!isTradeStarted && (allOpeningOrders.nonEmpty || allClosingOrders.nonEmpty)) {
+    if (!isTradeStarted && (openingOrdersToSubmit.nonEmpty || closingOrdersToSubmit.nonEmpty)) {
       tradeStartIdx = referIdx
     }
     
     // sell first?. If so, how about the returning funds?
-    allOpeningOrders foreach broker.submit
+    openingOrdersToSubmit foreach broker.submit
 
-    allClosingOrders foreach broker.submit
+    closingOrdersToSubmit foreach broker.submit
   }
   
   protected def updatePositionsPrice {
