@@ -273,7 +273,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     secPicking.go(currentTime)
     checkStopCondition
     
-    log.info("doClose: going to doClose(" + referIdx + ").")
+    log.info("doClose: going to atClose(" + referIdx + ").")
     atClose(referIdx)
     
     log.info("doClose: going to process pending orders.")
@@ -486,7 +486,13 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     while ({amount = calcTotalFundsToOpen(account, openingOrders); amount > account.availableFunds}) {
       orders match {
         case order :: tail =>
-          order.quantity -= account.tradingRule.quantityPerLot
+          if (order.funds.isNaN) {
+            order.quantity -= account.tradingRule.quantityPerLot
+          } else {
+            // @todo estimate price of order.sec
+            val price = 1.0
+            order.funds -= account.calcFundsToOpen(price, account.tradingRule.quantityPerLot, order.sec) 
+          }
           orders = tail
         case Nil => 
           orders = openingOrders // loop again
