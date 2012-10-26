@@ -515,7 +515,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
           val sec = quote.sec
           sec.updateQuoteSer(freq, quote)
         }
-        TickerServer.publish(api.QuotesEvt(freq.shortName, quotesToClose.toArray))
+        TickerServer.publish(api.QuotesEvt(freq.shortName, quotesToClose))
 
         if (alsoSave) {
           val t0 = System.currentTimeMillis
