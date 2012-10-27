@@ -153,7 +153,7 @@ class PaperBroker(val name: String) extends Broker {
           
         quantity(math.abs(quantity))
         if (quantity > 0) {
-          val order = Order(account, sec, price, quantity, side)
+          val order = Order(account, sec, price, quantity, side, tpe)
           println("Some order: %s".format(order))
           Some(order)
         } else {
@@ -168,7 +168,8 @@ class PaperBroker(val name: String) extends Broker {
         if (side.isOpening) {
           // @todo, pend opening order or not ?
         } else {
-          after (1) // pend closing order 1 period
+          // try next freq period
+          after (1)
         }
         None
     }

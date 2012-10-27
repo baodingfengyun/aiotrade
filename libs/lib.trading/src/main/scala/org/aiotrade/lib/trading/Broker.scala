@@ -21,6 +21,9 @@ abstract class Broker extends Publisher {
   @throws(classOf[BrokerException])
   def disconnect: Unit
 
+  /**
+   * If order is submitted successfully, the order status should be changed to PendeingNew
+   */
   @throws(classOf[BrokerException])
   def submit(order: Order)
 
@@ -68,6 +71,7 @@ abstract class Broker extends Publisher {
      */
     def ser: QuoteSer
 
+    private var _tpe: OrderType = OrderType.Market
     private var _account: TradableAccount = _
     private var _price = Double.NaN
     private var _funds = Double.NaN
@@ -76,7 +80,13 @@ abstract class Broker extends Publisher {
 
     implicit def ToSetDouble(v: Double) = new SetDouble(v)
     
-    def account: TradableAccount = _account
+    def tpe = _tpe
+    def tpe(tpe: OrderType): this.type = {
+      _tpe = tpe
+      this
+    }
+    
+    def account = _account
     def using(account: TradableAccount): this.type = {
       _account = account
       this

@@ -37,11 +37,11 @@ abstract class TradeBroker extends Broker {
         if (account.availableFunds > 0) {
           if (price.isSet) {
             if (quantity.isSet) {
-              Some(Order(account, sec, price, quantity, side, OrderType.Market))
+              Some(Order(account, sec, price, quantity, side, tpe))
             } else {
               if (funds.isSet) {
                 val quantityToOpen = account.calcQuantityToOpen(price, funds, sec)
-                Some(Order(account, sec, price, quantityToOpen, side, OrderType.Market))
+                Some(Order(account, sec, price, quantityToOpen, side, tpe))
               } else {
                 println("You should set either quantity or funds " + oc)
                 None
@@ -49,11 +49,16 @@ abstract class TradeBroker extends Broker {
             }
           } else { // price is not set
             if (quantity.isSet) {
-              println("You should also set price when quantity is set, since even funds is set, this opening stratery is suspicious " + oc)
-              None
+              // quantity without price, it will be market price order 
+              if (funds.isSet) {
+                println("You set both quantity and funds and without price, will use quantity at market price and ignore the funds" + oc)
+                Some(Order(account, sec, price, quantity, side, tpe))
+              } else {
+                Some(Order(account, sec, price, quantity, side, tpe))
+              }
             } else {
               if (funds.isSet) {
-                Some(Order(account, sec, price, quantity, side, OrderType.Market, funds))
+                Some(Order(account, sec, price, quantity, side, tpe, funds))
               } else {
                 println("You should set funds when both price and quantity are not set " + oc)
                 None
@@ -78,7 +83,7 @@ abstract class TradeBroker extends Broker {
         }
         
         if (quantityToClose > 0) {
-          Some(Order(account, sec, price, quantityToClose, side, OrderType.Market))
+          Some(Order(account, sec, price, quantityToClose, side, tpe))
         } else {
           None
         }
@@ -99,7 +104,7 @@ abstract class TradeBroker extends Broker {
     val sec = order.sec
     log.info("Process trade for: " + order + ", time=" + new java.util.Date(time))
     val secOrders = executingOrders synchronized {executingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
-
+    
     var toRemove = List[Order]()
     order.status match {
       case OrderStatus.PendingNew | OrderStatus.Partial =>
@@ -152,6 +157,8 @@ abstract class TradeBroker extends Broker {
   /**
    * Fill order by price and size, this will also process binding account.
    * Usually this method is used only in paper worker
+   * 
+   * @Note In case of vwap, the order's quantity is not set, so the filling process should be a special.
    */
   def fill(order: Order, time: Long, price: Double, quantity: Double, amount: Double, expenses: Double) {
     val fillingQuantity = math.min(quantity, order.remainQuantity)
