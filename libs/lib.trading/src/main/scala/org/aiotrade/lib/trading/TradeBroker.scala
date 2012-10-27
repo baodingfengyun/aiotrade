@@ -161,14 +161,15 @@ abstract class TradeBroker extends Broker {
    * @Note In case of vwap, the order's quantity is not set, so the filling process should be a special.
    */
   def fill(order: Order, time: Long, price: Double, quantity: Double, amount: Double, expenses: Double) {
-    val fillingQuantity = math.min(quantity, order.remainQuantity)
-    
-    if (fillingQuantity > 0) {
-      val execution = FullExecution(order, time, price, fillingQuantity, amount, expenses)
-      order.account.processTransaction(order, execution)
+    if (order.quantity.isNaN) {
+      // an order without quantity, may be an order with funds assigned.
     } else {
-      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, quantity, order.remainQuantity))
+      if (quantity > order.remainQuantity) {
+        log.warning("Filling quantity(%s) > order.remainQuantity(%s)".format(quantity, order.remainQuantity))
+      }
     }
+    
+    order.account.processTransaction(order, FullExecution(order, time, price, quantity, amount, expenses))
   }
 
 }

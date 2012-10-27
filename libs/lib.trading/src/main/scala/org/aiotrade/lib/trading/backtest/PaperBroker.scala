@@ -237,14 +237,7 @@ class PaperBroker(val name: String) extends Broker {
    * Usually this method is used only in paper worker
    */
   def fill(order: Order, time: Long, price: Double, quantity: Double) {
-    val fillingQuantity = math.min(quantity, order.remainQuantity)
-    
-    if (fillingQuantity > 0) {
-      val execution = PaperExecution(order, time, price, fillingQuantity)
-      order.account.processTransaction(order, execution)
-    } else {
-      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, quantity, order.remainQuantity))
-    }
+    order.account.processTransaction(order, PaperExecution(order, time, price, quantity))
   }
 
   def accounts: Array[Account] = {

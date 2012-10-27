@@ -101,21 +101,23 @@ final case class Order(account: TradableAccount, sec: Sec, price: Double, var qu
       _filledQuantity += quantity
       _averagePrice = (oldTotalAmount + price * quantity) / _filledQuantity
 
-      status = if (remainQuantity <= 0) 
+      status = if (remainQuantity <= 0) {
         OrderStatus.Filled
-      else
+      } else {
+        // if quantity is NaN, (remainQuantity <= 0) is always false @Todo how to deal with order in this case.
         OrderStatus.Partial
+      }
 
-      log.info("Order Filling: %s".format(this))
+      log.info("Order filling: %s".format(this))
     } else {
-      log.warning("Filling Quantity <= 0: feedPrice=%s, feedSize=%s, remainQuantity=%s".format(price, quantity, remainQuantity))
+      log.warning("Filling quantity <= 0: fillingPrice=%s, fillingQuantity=%s, remainQuantity=%s".format(price, quantity, remainQuantity))
     }
   }
   
   override
   def toString = {
-    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$d(%6$d), price=%7$ 5.2f, funds=%8$ 5.2f, status=%9$s, stopPrice=%10$ 5.2f, validity=%11$s, expiration=%12$s, refrence=%13$s".format(
-      new Date(time), sec.uniSymbol, tpe, side, quantity.toInt, _filledQuantity.toInt, price, funds, status, stopPrice, validity, expireTime, reference
+    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$s(%6$s), price=%7$ 5.2f, funds=%8$ 5.2f, status=%9$s, stopPrice=%10$ 5.2f, validity=%11$s, expiration=%12$s, refrence=%13$s".format(
+      new Date(time), sec.uniSymbol, tpe, side, quantity, _filledQuantity, price, funds, status, stopPrice, validity, expireTime, reference
     )
   }
 }
