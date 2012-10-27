@@ -33,34 +33,33 @@ import org.aiotrade.lib.trading.Param
 import org.aiotrade.lib.trading.ReportData
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable
+import scala.concurrent.SyncVar
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true, 
-                  upperBound: Int = 0, lowerBound: Int = 1000, 
-                  width: Int = 1200, height: Int = 900
+class ChartReport(
+  imageFileDirStr: String, isAutoRanging: Boolean = true, 
+  upperBound: Int = 0, lowerBound: Int = 1000, 
+  width: Int = 1200, height: Int = 900
 ) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private val cssUrl = Thread.currentThread.getContextClassLoader.getResource("chart.css").toExternalForm
   private val imageFileDir = {
-    if (imageFileDirStr != null) {
-      try {
-        val dir = new File(imageFileDirStr)
-        if (!dir.exists) {
-          dir.mkdirs
-        }
-        dir
-      } catch {
-        case ex => 
-          log.log(Level.WARNING, ex.getMessage, ex)
-          null
+    try {
+      val dir = new File(if (imageFileDirStr != null) imageFileDirStr else ".")
+      if (!dir.exists) {
+        dir.mkdirs
       }
-    } else null
+      dir
+    } catch {
+      case ex => throw(ex)
+    }
   }
-  
+  private val fileDf = new SimpleDateFormat("yyMMddHHmm")
+
   private var imageSavingLatch: CountDownLatch = _
   private var chartTabs = List[ChartTab]()
   
@@ -108,16 +107,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
   def roundFinished {
     imageSavingLatch = new CountDownLatch(chartTabs.length)
     Thread.sleep(2000) // wait for chart painted in FX thread
-    trySaveNextImage
-  }
-  
-  private def trySaveNextImage {
-    chartTabs match {
-      case Nil =>
-      case x :: xs =>
-        chartTabs = xs
-        x.roundFinished
-    }
+    chartTabs foreach (_.saveImage.get.release)
   }
   
   private class ChartTab(param: Param) extends Reactor {
@@ -126,10 +116,8 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
     private var referChart: LineChart[String, Number] = _
 
     private val df = new SimpleDateFormat("yy.MM.dd")
-    private val fileDf = new SimpleDateFormat("yyMMddHHmm")
 
-    val tab = new Tab()
-    tab.setText(param.titleDescription)
+    private val tab = new Tab()
     private var root: VBox = _
     
     initAndShowGUI
@@ -168,6 +156,7 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
         root.getChildren.add(dataChart)
         root.getChildren.add(referChart)
         tab.setContent(root)
+        tab.setText(param.titleDescription)
 
         tabPane.getTabs.add(tab)
       }
@@ -206,24 +195,33 @@ class ChartReport(imageFileDirStr: String, isAutoRanging: Boolean = true,
       series
     }
   
-    def roundFinished {
-      if (imageFileDir != null) {
-        tabPane.getSelectionModel.select(tab)
-
-        val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
-        var timer: Timer = null
-        timer = new Timer(1500, new ActionListener {
-            def actionPerformed(e: java.awt.event.ActionEvent) {
-              ChartReport.saveImage(jfxPanel, file)
-              tabPane.getTabs.remove(tab)
-              imageSavingLatch.countDown
-              trySaveNextImage
-              timer.stop
-            }
+    /**
+     * @return SyncVar[ChartTab](this)
+     */
+    def saveImage: SyncVar[ChartTab] = {
+      val done = new SyncVar[ChartTab]()
+      val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
+      tabPane.getSelectionModel.select(tab)
+      
+      // wait for sometime after select this tab via timer
+      var timer: Timer = null
+      timer = new Timer(1500, new ActionListener {
+          def actionPerformed(e: java.awt.event.ActionEvent) {
+            ChartReport.saveImage(jfxPanel, file)
+            tabPane.getTabs.remove(tab)
+            done.set(ChartTab.this)
+            imageSavingLatch.countDown
+            timer.stop
           }
-        )
-        timer.start
-      }
+        }
+      )
+      timer.start
+      
+      done
+    }
+    
+    def release {
+      deafTo(param)
     }
   }
   
