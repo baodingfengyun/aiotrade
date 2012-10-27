@@ -112,66 +112,72 @@ class PaperBroker(val name: String) extends Broker {
   def toOrder(oc: OrderCompose): Option[Order] = {
     import oc._
     
-    // for paper work, we should already past the referIdx
-    val time = timestamps(referIdx)
-    ser.valueOf(time) match {
-      case Some(quote) =>
-        if (side.isOpening) {
+    if (referIdx >= timestamps.length) {
+      println("None order: %s. referIdx %s >= timestamps.length, it's future time, paper work will stop here.".format
+              (oc, referIdx, timestamps.length)
+      )
+      None
+    } else {
+      val time = timestamps(referIdx)
+      ser.valueOf(time) match {
+        case Some(quote) =>
+          if (side.isOpening) {
           
-          if (funds.isSet) {
-            funds(math.min(account.tradingRule.maxFundsPerOrder, funds))
-          }
+            if (funds.isSet) {
+              funds(math.min(account.tradingRule.maxFundsPerOrder, funds))
+            }
 
-          if (account.availableFunds > 0) {
+            if (account.availableFunds > 0) {
+              if (price.notSet) {
+                price(account.tradingRule.buyPriceRule(quote))
+              }
+              if (quantity.notSet) {
+                quantity(account.tradingRule.buyQuantityRule(quote, price, funds))
+              }
+            } else {
+              quantity(0.0)
+            }
+          
+          } else { // closing
+          
             if (price.notSet) {
-              price(account.tradingRule.buyPriceRule(quote))
+              price(account.tradingRule.sellPriceRule(quote))
             }
             if (quantity.notSet) {
-              quantity(account.tradingRule.buyQuantityRule(quote, price, funds))
+              quantity(
+                positionOf(sec) match {
+                  case Some(position) => 
+                    // @Note quantity of position may be negative because of sellShort etc.
+                    account.tradingRule.sellQuantityRule(quote, price, math.abs(position.quantity))
+                  case None => 0
+                }
+              )
             }
-          } else {
-            quantity(0.0)
-          }
-          
-        } else { // closing
-          
-          if (price.notSet) {
-            price(account.tradingRule.sellPriceRule(quote))
-          }
-          if (quantity.notSet) {
-            quantity(
-              positionOf(sec) match {
-                case Some(position) => 
-                  // @Note quantity of position may be negative because of sellShort etc.
-                  account.tradingRule.sellQuantityRule(quote, price, math.abs(position.quantity))
-                case None => 0
-              }
-            )
-          }
             
-        }
+          }
           
-        quantity(math.abs(quantity))
-        if (quantity > 0) {
-          val order = Order(account, sec, price, quantity, side, tpe)
-          println("Some order: %s".format(order))
-          Some(order)
-        } else {
-          println("None order, since quantity <= 0, something should be wrong! : %s. quantity=%5.2f Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
-              oc, quantity, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
-          )
+          quantity(math.abs(quantity))
+          if (quantity > 0) {
+            val order = Order(account, sec, price, quantity, side, tpe)
+            println("Some order: %s".format(order))
+            Some(order)
+          } else {
+            println("None order, since quantity <= 0, something should be wrong! : %s. quantity=%5.2f Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
+                oc, quantity, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
+            )
+            None
+          }
+          
+        case None => 
+          println("None order: %s. Quote of this time did not exist.".format(oc))
+          if (side.isOpening) {
+            // @todo, pend opening order or not ?
+          } else {
+            // try next freq period
+            after (1)
+          }
           None
-        }
-          
-      case None => 
-        println("None order: %s. Quote of this time did not exist.".format(oc))
-        if (side.isOpening) {
-          // @todo, pend opening order or not ?
-        } else {
-          // try next freq period
-          after (1)
-        }
-        None
+      }
     }
   }
   
