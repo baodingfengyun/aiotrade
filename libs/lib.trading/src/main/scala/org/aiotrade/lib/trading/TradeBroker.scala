@@ -155,8 +155,7 @@ abstract class TradeBroker extends Broker {
   }
   
   /**
-   * Fill order by price and size, this will also process binding account.
-   * Usually this method is used only in paper worker
+   * Fill order by price and quantity etc, and process binding account.
    * 
    * @Note In case of vwap, the order's quantity is not set, so the filling process should be a special.
    */

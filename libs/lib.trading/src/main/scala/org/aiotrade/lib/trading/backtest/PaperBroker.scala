@@ -233,8 +233,7 @@ class PaperBroker(val name: String) extends Broker {
   }
   
   /**
-   * Fill order by price and size, this will also process binding account.
-   * Usually this method is used only in paper worker
+   * Fill order by price and quantity, and process binding account.
    */
   def fill(order: Order, time: Long, price: Double, quantity: Double) {
     order.account.processTransaction(order, PaperExecution(order, time, price, quantity))
