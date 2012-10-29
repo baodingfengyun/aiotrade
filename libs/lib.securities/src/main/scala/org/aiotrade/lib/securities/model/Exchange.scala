@@ -42,10 +42,33 @@ import org.aiotrade.lib.securities.api
 import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.util
 import org.aiotrade.lib.util.actors.Publisher
-
 import org.aiotrade.lib.util.pinyin.PinYin
 import ru.circumflex.orm._
 import scala.collection.mutable
+
+sealed trait ExchangeStatus {
+  def time: Long
+  def timeInMinutes: Int
+
+  def toString(exchange: Exchange) = {
+    val cal = util.calendarOf(exchange.timeZone)
+    cal.setTimeInMillis(time)
+    this.getClass.getSimpleName + "(" + util.dateFormatOf(exchange.timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + "," + time + "," + timeInMinutes + ")"
+  }
+}
+
+object ExchangeStatus {
+  // For each ExchangeStatus class, we need an empty constructor for serialization as part of an Evt
+  final case class PreOpen(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class Open(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class Opening(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class Break(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class Close(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class Closed(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class ClosedDate(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+  final case class Unknown(time: Long, timeInMinutes: Int) extends ExchangeStatus {def this() = this(0, 0)}
+}
 
 final case class SecsAddedToDb(secs: Array[Sec])
 final case class SecInfosAddedToDb(secInfo: Array[SecInfo])
@@ -69,30 +92,11 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
 
   log.info("Create exchange: identityHashCode=" + System.identityHashCode(this))
 
-  lazy val longDescription:  String = BUNDLE.getString(code + "_Long")
-  lazy val shortDescription: String = BUNDLE.getString(code + "_Short")
+  lazy val longName:  String = BUNDLE.getString(code + "_Long")
+  lazy val shortName: String = BUNDLE.getString(code + "_Short")
   lazy val timeZone: TimeZone = TimeZone.getTimeZone(timeZoneStr)
 
-  sealed trait TradingStatus {
-    def time: Long
-    def timeInMinutes: Int
-    override def toString = {
-      val cal = util.calendarOf(timeZone)
-      cal.setTimeInMillis(time)
-      this.getClass.getSimpleName + "(" + util.dateFormatOf(timeZone, "yyyy-MM-dd HH:mm:ss").format(cal.getTime) + "," + time + "," + timeInMinutes + ")"
-    }
-  }
-  final case class PreOpen(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class OpeningCallAcution(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class Open(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class Opening(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class Break(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class Close(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class Closed(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class ClosedDate(time: Long, timeInMinutes: Int) extends TradingStatus
-  final case class UnknownStatus(time: Long, timeInMinutes: Int) extends TradingStatus
-
-  private var _tradingStatus: TradingStatus = UnknownStatus(-1, -1)
+  private var _status: ExchangeStatus = ExchangeStatus.Unknown(-1, -1)
 
   private lazy val openHour  = openCloseHMs(0)
   private lazy val openMin   = openCloseHMs(1)
@@ -224,9 +228,10 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
     freqToUnclosedPriceDistributions.getOrElseUpdate(freq, new ArrayList[PriceCollection]) += pd
   }
 
-  def tradingStatus = _tradingStatus
-  def tradingStatus_=(status: TradingStatus) {
-    _tradingStatus = status
+  def status = _status
+  def status_=(status: ExchangeStatus) {
+    _status = status
+    Exchange.publish(api.ExchangeStatusEvt(code, status))
   }
 
   def open: Calendar = {
@@ -272,67 +277,68 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
     isClosedDate(cal)
   }
 
-  protected def tradingStatusCN(timeInMinutes: Int, time: Long): Option[TradingStatus]  = {
+  protected def statusCN(time: Long, timeInMinutes: Int): ExchangeStatus = {
     if (timeInMinutes < firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES) {
-      Some(PreOpen(time, timeInMinutes))
+      ExchangeStatus.PreOpen(time, timeInMinutes)
     } else if (timeInMinutes >= firstOpen - CN_OPENING_CALL_AUCTION_MINUTES - CN_PREOPEN_BREAK_MINUTES &&
                timeInMinutes <= firstOpen - CN_PREOPEN_BREAK_MINUTES) {
-      Some(OpeningCallAcution(time, timeInMinutes))
+      ExchangeStatus.OpeningCallAcution(time, timeInMinutes)
     } else if (timeInMinutes > firstOpen - CN_PREOPEN_BREAK_MINUTES &&
                timeInMinutes < firstOpen) {
-      Some(Break(time, timeInMinutes))
+      ExchangeStatus.Break(time, timeInMinutes)
     } else if (timeInMinutes > lastClose && timeInMinutes <= lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
-      Some(Close(time, timeInMinutes))
+      ExchangeStatus.Close(time, timeInMinutes)
     } else if (timeInMinutes > lastClose + CLOSE_QUOTE_DELAY_MINUTES) {
-      Some(Closed(time, timeInMinutes))
+      ExchangeStatus.Closed(time, timeInMinutes)
     } else {
-      None
+      ExchangeStatus.Unknown(time, timeInMinutes)
     }
   }
 
-  def tradingStatusOf(time: Long): TradingStatus = {
+  def statusOf(time: Long): ExchangeStatus = {
     val cal = util.calendarOf(timeZone)
     cal.setTimeInMillis(time)
     val timeInMinutes = cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
 
-    if (isClosedDate(cal)) return ClosedDate(time, timeInMinutes)
+    if (isClosedDate(cal)) {
+      return ExchangeStatus.ClosedDate(time, timeInMinutes)
+    }
 
     if (this == SZ || this == SS) {
-
-      tradingStatusCN(timeInMinutes, time) match {
-        case Some(status) => return status
-        case None =>
+      statusCN(time, timeInMinutes) match {
+        case ExchangeStatus.Unknown(_, _) => 
+        case status => return status
       }
     }
 
-    var status: TradingStatus = null
     if (time == 0) {
-      status = Closed(time, timeInMinutes)
+      ExchangeStatus.Closed(time, timeInMinutes)
     } else {
       if (timeInMinutes < firstOpen) {
-        status = PreOpen(time, timeInMinutes)
+        ExchangeStatus.PreOpen(time, timeInMinutes)
       } else if (timeInMinutes == firstOpen) {
-        status = Open(time, timeInMinutes)
+        ExchangeStatus.Open(time, timeInMinutes)
       } else if (timeInMinutes == lastClose) {
-        status = Close(time, timeInMinutes)
+        ExchangeStatus.Close(time, timeInMinutes)
       } else if (timeInMinutes > lastClose) {
-        status = Closed(time, timeInMinutes)
+        ExchangeStatus.Closed(time, timeInMinutes)
       } else {
+        var status: ExchangeStatus = null
         var i = -1
         while ({i += 1; i < openingPeriods.length && status == null}) {
           val openingPeriod = openingPeriods(i)
           if (timeInMinutes >= openingPeriod._1 && timeInMinutes <= openingPeriod._2) {
-            status = Opening(time, timeInMinutes)
+            status = ExchangeStatus.Opening(time, timeInMinutes)
           }
         }
 
         if (status == null) {
-          status = UnknownStatus(time, timeInMinutes)
+          ExchangeStatus.Unknown(time, timeInMinutes)
+        } else {
+          status
         }
       }
     }
-
-    status
   }
 
   private val EmptyQuotes = Array[Quote]()
@@ -341,20 +347,20 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
   private val dailyCloseDelay = 5L // 5 minutes
   private var timeInMinutesToClose = -1
 
-  private def isClosed(freq: TFreq, tradingStatusTime: Long, roundedTime: Long) = {
-    tradingStatusTime >= roundedTime + freq.interval
+  private def isClosed(freq: TFreq, exchangeStatusTime: Long, roundedTime: Long) = {
+    exchangeStatusTime >= roundedTime + freq.interval
   }
 
   /**
    * Do closing in delay minutes. If quotesToClose/mfsToClose is empty, will do
    * nothing and return at once.
    */
-  private[securities] def tryClosing(tradingStatus: TradingStatus, alsoSave: Boolean) {
+  private[securities] def tryClosing(exchangeStatus: ExchangeStatus, alsoSave: Boolean) {
     val closeTimeInMinutes = timeInMinutesToClose
-    val statusTime = tradingStatus.time
+    val statusTime = exchangeStatus.time
 
-    val freqs = tradingStatus match {
-      case Opening(time, timeInMinutes) =>
+    val freqs = exchangeStatus match {
+      case ExchangeStatus.Opening(time, timeInMinutes) =>
         if (timeInMinutesToClose <= 0 || timeInMinutes <  timeInMinutesToClose) {
           // When processing legacy data, 'timeInMinutesToClose' may be set to previous date's larger timeInMinutes,
           // so we add '|| timeInMinutes <  timeInMinutesToClose'
@@ -366,10 +372,10 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
           List(TFreq.ONE_MIN)
         } else Nil
 
-      case Close(time, timeInMinutes) =>
+      case ExchangeStatus.Close(time, timeInMinutes) =>
         timeInMinutesToClose = -1
         List(TFreq.ONE_MIN, TFreq.DAILY)
-      case Closed(time, timeInMinutes) =>
+      case ExchangeStatus.Closed(time, timeInMinutes) =>
         timeInMinutesToClose = -1
         List(TFreq.ONE_MIN, TFreq.DAILY)
 
@@ -587,6 +593,10 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
       }
     } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+    }
+    
+    if (freq == TFreq.DAILY) {
+      TickerServer.publish(api.ExchangeStatusEvt(this.code, status))
     }
   }
 

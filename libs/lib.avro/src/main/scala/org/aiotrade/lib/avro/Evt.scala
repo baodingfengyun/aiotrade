@@ -257,7 +257,7 @@ object Evt {
   // -- simple test
   def main(args: Array[String]) {
     //testMatch
-    //testObject
+    testObject
 //    testPrimitives
     testVmap
     
@@ -464,6 +464,7 @@ private[avro] object TestAPIs {
   // """)
 
   final case class TestData(x1: String, x2: Int, x3: Double, x4: Array[Float]) {
+    // An empty constructor is a must for evt serialization
     def this() = this(null, 0, 0.0, Array())
     override def toString = "TestData(" + x1 + "," + x2 + "," + x3 + "," + x4.mkString("[", ",", "]")
   }
