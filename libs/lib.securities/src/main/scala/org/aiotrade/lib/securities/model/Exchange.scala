@@ -504,6 +504,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
               Quotes1d.saveBatch(time, quotesToClose)
             case TFreq.ONE_MIN =>
               Quotes1m.saveBatch(time, quotesToClose)
+            case _ =>
           }
           log.info("Saved closed quotes in " + (System.currentTimeMillis - t0) + "ms: size=" + quotesToClose.length +
                    ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
@@ -527,6 +528,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
               MoneyFlows1d.saveBatch(time, mfsToClose)
             case TFreq.ONE_MIN =>
               MoneyFlows1m.saveBatch(time, mfsToClose)
+            case _ =>
           }
           log.info("Saved closed moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + mfsToClose.length +
                    ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
@@ -550,6 +552,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
               SectorMoneyFlows1d.saveBatch(time, sectorMfsToClose)
             case TFreq.ONE_MIN =>
               SectorMoneyFlows1m.saveBatch(time, sectorMfsToClose)
+            case _ =>
           }
           log.info("Saved closed sector moneyflows in " + (System.currentTimeMillis - t0) + "ms, size=" + sectorMfsToClose.length +
                    ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
@@ -571,6 +574,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
             case TFreq.DAILY =>
               log.info(this.code + " closed, saving " + freq + " price distributions: " + pdsToClose.length)
               PriceDistributions.saveBatch(time, pdsToClose)
+            case _ =>
           }
           log.info("Saved closed price distributions in " + (System.currentTimeMillis - t0) + "ms, size=" + pdsToClose.length +
                    ", freq=" + freq.shortName + ", time(in os timezone)=" + util.formatTime(time))
@@ -581,7 +585,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
         COMMIT
         log.info(this.code + " doClosing: committed.")
       }
-    }catch {
+    } catch {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
