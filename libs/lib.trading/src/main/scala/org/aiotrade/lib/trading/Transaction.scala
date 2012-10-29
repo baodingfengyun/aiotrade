@@ -42,7 +42,7 @@ final case class SecTransaction(time: Long, price: Double, quantity: Double, amo
 
   override
   def toString = {
-    "Transaction(time=%1$tY.%1$tm.%1$td, sec=%2s, side=%3s, price=%4$ 10.2f, quantity=%5$ 10.2f, amount=%6$ 10.2f)".format(
+    "Transaction(time=%1$tY.%1$tm.%1$td, sec=%2$s, side=%3$s, price=%4$ 10.2f, quantity=%5$ 10.2f, amount=%6$ 10.2f)".format(
       new Date(time), order.sec.uniSymbol, order.side, price, quantity, amount
     )
   }
@@ -74,7 +74,7 @@ final case class TradeTransaction(time: Long, secTransactions: Array[SecTransact
   
   override
   def toString = {
-    "Transaction(time=%1$tY.%1$tm.%1$td, sec=%2s, side=%3s, secAmount=%4$ 10.2f, expenses=%5$ 10.2f, amount=%6$ 10.2f)".format(
+    "Transaction(time=%1$tY.%1$tm.%1$td, sec=%2$s, side=%3$s, secAmount=%4$ 10.2f, expenses=%5$ 10.2f, amount=%6$ 10.2f)".format(
       new Date(time), order.sec.uniSymbol, order.side, secAmount, expensesAmount, amount
     )
   }
