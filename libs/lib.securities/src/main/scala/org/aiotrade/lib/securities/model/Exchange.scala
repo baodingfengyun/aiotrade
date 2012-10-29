@@ -209,40 +209,19 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
   }
 
   def addNewQuote(freq: TFreq, quote: Quote) = freqToUnclosedQuotes synchronized {
-    (freqToUnclosedQuotes.get(freq) getOrElse {
-        val xs = new ArrayList[Quote]
-        freqToUnclosedQuotes.put(freq, xs)
-        xs
-      }
-    ) += quote
+    freqToUnclosedQuotes.getOrElseUpdate(freq, new ArrayList[Quote]) += quote
   }
 
   def addNewMoneyFlow(freq: TFreq, mf: MoneyFlow) = freqToUnclosedMoneyFlows synchronized {
-    (freqToUnclosedMoneyFlows.get(freq) getOrElse {
-        val xs = new ArrayList[MoneyFlow]
-        freqToUnclosedMoneyFlows.put(freq, xs)
-        xs
-      }
-    ) += mf
+    freqToUnclosedMoneyFlows.getOrElseUpdate(freq, new ArrayList[MoneyFlow]) += mf
   }
 
   def addNewSectorMoneyFlow(freq: TFreq, mf: MoneyFlow) = freqToUnclosedSectorMoneyFlows synchronized {
-    (freqToUnclosedSectorMoneyFlows.get(freq) getOrElse {
-        val xs = new ArrayList[MoneyFlow]
-        freqToUnclosedSectorMoneyFlows.put(freq, xs)
-        xs
-      }
-    ) += mf
+    freqToUnclosedSectorMoneyFlows.getOrElseUpdate(freq, new ArrayList[MoneyFlow]) += mf
   }
 
   def addNewPriceDistribution(freq: TFreq, pd: PriceCollection) = freqToUnclosedPriceDistributions synchronized {
-    val xs = freqToUnclosedPriceDistributions.get(freq) getOrElse {
-      val xs = new ArrayList[PriceCollection]
-      freqToUnclosedPriceDistributions.put(freq, xs)
-      xs
-    }
-
-    xs += pd
+    freqToUnclosedPriceDistributions.getOrElseUpdate(freq, new ArrayList[PriceCollection]) += pd
   }
 
   def tradingStatus = _tradingStatus
