@@ -96,16 +96,16 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           if (idx >= currentReferIdx) {
         
             if (!isClosed) {
-              doOpen(idx)
-            }
-
-            if (isClosed && idx > closedReferIdx) {
-              doClose(idx)
+              doOpen(idx) // will do whenever unclosed quote is updated 
+            } else {
+              if (idx > closedReferIdx) {
+                doClose(idx) // will do only once
+              }
             }
           
           }
         } else {
-          log.warning("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
+          log.warning("TSerEvent.Updated with idx < 0 (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
         }
       } catch {
         case ex => log.log(Level.SEVERE, ex.getMessage, ex)

@@ -58,46 +58,17 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
    */
   protected def calcSecTransactionAmount(order: Order, execution: Execution): Double
   
-  /**
-   * For lots of brokers, will directly return transaction, in that case, we can just call processTransaction
-   */
-  private def processExecution(order: Order, execution: Execution): TradeTransaction = {
-    val tradeTransaction = execution match {
-      case PaperExecution(order, time, price, quantity) =>
-        val fillingAmount = calcSecTransactionAmount(order, execution)
-        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position increase/decrease.
-        val secTransaction = SecurityTransaction(time, order.sec, price, order.side.signum * quantity, fillingAmount, order.side)
-      
-        val expenses = if (order.side.isOpening)  
-          tradingRule.expenseScheme.getOpeningExpenses(price, quantity, order.sec)
-        else
-          tradingRule.expenseScheme.getClosingExpenses(price, quantity, order.sec)
-        val expensesTransaction = ExpensesTransaction(time, -expenses)
-    
-        TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
-        
-      case FullExecution(order, time, price, quantity, amount, expenses) =>
-        val fillingAmount = -order.side.signum * amount
-        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position add/remove.
-        val secTransaction = SecurityTransaction(time, order.sec, price, order.side.signum * quantity, fillingAmount, order.side)
-        
-        TradeTransaction(time, Array(secTransaction), ExpensesTransaction(time, -expenses), order)
-    }
-    _transactions += tradeTransaction
-
-    tradeTransaction
-  }
-  
   def processTransaction(order: Order, execution: Execution) {
     order.fill(execution.price, execution.quantity)
     
-    val transaction = processExecution(order, execution)
+    val transaction = toTransaction(order, execution)
+    _transactions += transaction
     
     log.info(transaction.toString)
     
     _balance += transaction.amount
 
-    for (SecurityTransaction(time, sec, price, quantity, amount, side) <- transaction.securityTransactions) {
+    for (SecTransaction(time, price, quantity, amount, order) <- transaction.secTransactions; sec = order.sec) {
       _secToPosition.get(sec) match {
         case None => 
           val position = Position(this, time, sec, price, quantity)
@@ -115,6 +86,31 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
       }
     }
   }
+  
+  private def toTransaction(order: Order, execution: Execution): TradeTransaction = {
+    execution match {
+      case PaperExecution(order, time, price, quantity) =>
+        val fillingAmount = calcSecTransactionAmount(order, execution)
+        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position increase/decrease.
+        val secTransaction = SecTransaction(time, price, order.side.signum * quantity, fillingAmount, order)
+      
+        val expenses = if (order.side.isOpening)  
+          tradingRule.expenseScheme.getOpeningExpenses(price, quantity, order.sec)
+        else
+          tradingRule.expenseScheme.getClosingExpenses(price, quantity, order.sec)
+        val expensesTransaction = ExpensesTransaction(time, -expenses, order)
+    
+        TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
+        
+      case FullExecution(order, time, price, quantity, amount, expenses) =>
+        val fillingAmount = -order.side.signum * amount
+        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position add/remove.
+        val secTransaction = SecTransaction(time, price, order.side.signum * quantity, fillingAmount, order)
+        
+        TradeTransaction(time, Array(secTransaction), ExpensesTransaction(time, -expenses, order), order)
+    }
+  }
+  
 }
 
 class StockAccount($code: String, $balance: Double, $tradingRule: TradingRule, 

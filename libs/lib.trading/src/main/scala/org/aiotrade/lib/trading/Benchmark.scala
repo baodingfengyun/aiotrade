@@ -48,7 +48,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   val referIndices = new ArrayList[Double]()
   private var initialReferIndex = Double.NaN
   private val marginCalls = ArrayList[MarginCall]
-  private var secTransactions = Array[SecurityTransaction]()
+  private var secTransactions = Array[SecTransaction]()
   private var expTransactions = Array[ExpensesTransaction]()
   
   var weeklyPayoffs: Array[Payoff] = Array()
@@ -268,7 +268,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   
   
   private def collectTransactions = {
-    val secTransactions = new ArrayList[SecurityTransaction]()
+    val secTransactions = new ArrayList[SecTransaction]()
     val expTransactions = new ArrayList[ExpensesTransaction]()
     for {
       account <- tradingService.accounts
@@ -331,7 +331,7 @@ date \u0009 sec \u0009 quantity \u0009 price \u0009 amount
       monthlyPayoffs.mkString("\n"),
       statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7,
       marginCalls.mkString("\n"),
-      secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$8.2f \t %5$8.2f".format(new Date(x.time), x.sec.uniSymbol, x.quantity.toInt, x.price, math.abs(x.amount))) mkString ("\n")
+      secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$8.2f \t %5$8.2f".format(new Date(x.time), x.order.sec.uniSymbol, x.quantity.toInt, x.price, math.abs(x.amount))) mkString ("\n")
     )
   }
   

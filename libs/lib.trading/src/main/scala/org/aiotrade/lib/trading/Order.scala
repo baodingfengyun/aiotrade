@@ -5,6 +5,9 @@ import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
+/**
+ * quantity should always be >= 0
+ */
 final case class Order(account: TradableAccount, sec: Sec, price: Double, var quantity: Double, side: OrderSide, tpe: OrderType = OrderType.Market, var funds: Double = Double.NaN) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
