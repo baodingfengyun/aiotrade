@@ -548,7 +548,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
  * @author Caoyuan Deng
  */
 object TradingService {
-  
+
   def createIndicator[T <: SignalIndicator](signalClass: Class[T], factors: Array[Double]): T = {
     val ind = signalClass.newInstance.asInstanceOf[T]
     ind.factorValues = factors

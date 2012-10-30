@@ -48,7 +48,8 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   
   private var _shortName: String = _sec.uniSymbol
   var isAdjusted: Boolean = false
-  override def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
+  override 
+  def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
   val open   = TVar[Double]("O", Plot.Quote)
   val high   = TVar[Double]("H", Plot.Quote)
@@ -72,9 +73,11 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
 
   val isClosed = TVar[Boolean]()
   
-  override val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, prevClose, prev5Close, execCount, turnoverRate, lastModify)
+  override 
+  val exportableVars = List(open_ori, high_ori, low_ori, close_ori, volume, amount, prevClose, prev5Close, execCount, turnoverRate, lastModify)
 
-  override protected def assignValue(tval: TVal) {
+  override 
+  protected def assignValue(tval: TVal) {
     super.assignValue(tval)
     val time = tval.time
     tval match {
@@ -210,7 +213,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
 
     isAdjusted = b
     
-    log.info(serProvider + (if (isAdjusted) " adjusted." else " unadjusted."))
+    log.info(serProvider.uniSymbol + (if (isAdjusted) " adjusted." else " unadjusted."))
 
     publish(TSerEvent.Updated(this, null, 0, lastOccurredTime))
   }
@@ -245,16 +248,15 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
     val divs = Exchanges.dividendsOf(serProvider)
     if (divs.isEmpty) {
       var i = 0
-      while ({i += 1; i < size}){
-        if (prevClose(i) == 0){
+      while ({i += 1; i < size}) {
+        if (prevClose(i) == 0) {
           prevClose(i) = close_ori(i - 1)
         }
       }
-    }
-    else{
+    } else {
       var i = 0
-      while ({i += 1; i < size}){
-        if (prevClose(i) == 0){
+      while ({i += 1; i < size}) {
+        if (prevClose(i) == 0) {
           prevClose(i) = close_ori(i - 1)
           val time = TFreq.DAILY.round(timestamps(i), java.util.Calendar.getInstance)
           val divItr = divs.iterator

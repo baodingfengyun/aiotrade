@@ -93,7 +93,7 @@ package object securities {
   def loadSer(sec: Sec, freq: TFreq, doAdjust: Boolean = true): QuoteSer = {
     val ser = sec.serOf(freq).get
     sec.loadSerFromPersistence(ser, false)
-    ser.isLoaded = true // should be called to let adjust go and release a rection later.
+    ser.isLoaded = true // should be called to let adjust go and release a reaction later.
     if (doAdjust) {
       ser.adjust(true)
     }
