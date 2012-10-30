@@ -47,14 +47,15 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _shortName: String = _sec.uniSymbol
-  var isAdjusted: Boolean = false
+  private var _isAdjusted: Boolean = false
+  
   override 
   def serProvider: Sec = super.serProvider.asInstanceOf[Sec]
 
-  val open   = TVar[Double]("O", Plot.Quote)
-  val high   = TVar[Double]("H", Plot.Quote)
-  val low    = TVar[Double]("L", Plot.Quote)
-  val close  = TVar[Double]("C", Plot.Quote)
+  val open = TVar[Double]("O", Plot.Quote)
+  val high = TVar[Double]("H", Plot.Quote)
+  val low = TVar[Double]("L", Plot.Quote)
+  val close = TVar[Double]("C", Plot.Quote)
   val volume = TVar[Double]("V", Plot.Volume)
   val amount = TVar[Double]("A", Plot.Volume)
   val average = TVar[Double]("R", Plot.None)
@@ -65,10 +66,10 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   val lastModify = TVar[Long]("LM", Plot.None)
     
   // unadjusted values
-  val open_ori    = TVar[Double]("O")
-  val high_ori    = TVar[Double]("H")
-  val low_ori     = TVar[Double]("L")
-  val close_ori   = TVar[Double]("C")
+  val open_ori = TVar[Double]("O")
+  val high_ori = TVar[Double]("H")
+  val low_ori = TVar[Double]("L")
+  val close_ori = TVar[Double]("C")
   val average_ori = TVar[Double]("R")
 
   val isClosed = TVar[Boolean]()
@@ -82,10 +83,10 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
     val time = tval.time
     tval match {
       case quote: Quote =>
-        open(time)   = quote.open
-        high(time)   = quote.high
-        low(time)    = quote.low
-        close(time)  = quote.close
+        open(time) = quote.open
+        high(time) = quote.high
+        low(time) = quote.low
+        close(time) = quote.close
         volume(time) = quote.volume
         amount(time) = quote.amount
         average(time) = quote.average
@@ -94,10 +95,10 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
         turnoverRate(time) = quote.volume / freeFloat(time)
         lastModify(time) = quote.lastModify
 
-        open_ori(time)    = quote.open
-        high_ori(time)    = quote.high
-        low_ori(time)     = quote.low
-        close_ori(time)   = quote.close
+        open_ori(time) = quote.open
+        high_ori(time) = quote.high
+        low_ori(time) = quote.low
+        close_ori(time) = quote.close
         average_ori(time) = quote.average
 
         isClosed(time) = quote.closed_?
@@ -112,14 +113,15 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
   def valueOf(time: Long): Option[Quote] = {
     if (exists(time)) {
       val quote = new Quote
-      quote.time   = time
-      quote.open   = open(time)
-      quote.high   = high(time)
-      quote.low    = low(time)
-      quote.close  = close(time)
+      
+      quote.time = time
+      quote.open = open(time)
+      quote.high = high(time)
+      quote.low = low(time)
+      quote.close = close(time)
       quote.volume = volume(time)
       quote.amount = amount(time)
-      //quote.average = average(time)
+      quote.average = average(time)
       quote.prevClose = prevClose(time)
       quote.execCount = execCount(time)
       quote.turnoverRate = turnoverRate(time)
@@ -144,6 +146,11 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
     publish(TSerEvent.Updated(this, quote.uniSymbol, time, time))
   }
 
+  def isAdjusted = _isAdjusted
+  def isAdjusted_=(b: Boolean) {
+    _isAdjusted = b
+  }
+  
   def adjust  (force: Boolean = false) {doAdjust(true,  force)}
   def unadjust(force: Boolean = false) {doAdjust(false, force)}
   
@@ -272,12 +279,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
     
   }
 
-  override def shortName: String = {
-    if (isAdjusted) {
-      _shortName + "(*)"
-    } else {
-      _shortName
-    }
-  }
+  override 
+  def shortName: String = _shortName + {if (isAdjusted) "(*)" else ""}
 
 }
