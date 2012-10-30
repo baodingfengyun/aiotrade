@@ -81,8 +81,8 @@ class Position private (var _account: TradableAccount, private var _time: Long, 
   
   override 
   def toString = {
-    "%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%, type=%s".format(
-      sec.uniSymbol, price, quantity, currentPrice, gainLoss, gainLossRatio * 100, if (isLong) "Long" else "Short"
+    "Position(%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%)".format(
+      sec.uniSymbol, price, quantity, currentPrice, gainLoss, gainLossRatio * 100
     )
   }
 }

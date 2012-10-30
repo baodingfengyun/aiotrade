@@ -132,8 +132,8 @@ class StockAccount($code: String, $balance: Double, $tradingRule: TradingRule,
   }
 
   override 
-  def toString = "%1$s, availableFunds=%2$.0f, equity=%3$.0f, positions=%4$s".format(
-    code, availableFunds, equity, positions.values.size
+  def toString = "%1$s\t, availableFunds=%2$.0f, equity=%3$.0f, positionEquity=%4$.0f, positionGainLoss=%5$.0f, positions=%6$s".format(
+    code, availableFunds, equity, positionEquity, positionGainLoss, positions.values.size
   )
 }
 
