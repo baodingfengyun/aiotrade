@@ -69,7 +69,10 @@ class DataInputStream(in: InputStream) extends FilterInputStream(in) with DataIn
   @throws(classOf[IOException])
   def readBytesString(len: Int, charSet: String): String = {
     val bytes = new Array[Byte](len)
-    read(bytes)
+    var readSize = 0
+    do{
+      readSize += read(bytes, readSize, len - readSize)
+    }while(readSize < len)
 
     new String(bytes, charSet)
   }
