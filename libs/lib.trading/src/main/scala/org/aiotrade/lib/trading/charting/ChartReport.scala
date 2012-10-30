@@ -1,4 +1,4 @@
-package org.aiotrade.lib.trading.backtest
+package org.aiotrade.lib.trading.charting
 
 import java.awt.BorderLayout
 import java.awt.Container
@@ -231,7 +231,7 @@ class ChartReport(
 object ChartReport {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  private[backtest] def saveImage(container: Container, file: File)  {
+  private def saveImage(container: Container, file: File)  {
     try {
       val name = file.getName
       val ext = name.lastIndexOf(".") match {

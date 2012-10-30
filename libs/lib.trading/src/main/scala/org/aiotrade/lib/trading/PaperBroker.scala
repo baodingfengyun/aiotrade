@@ -1,4 +1,4 @@
-package org.aiotrade.lib.trading.backtest
+package org.aiotrade.lib.trading
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -6,17 +6,6 @@ import java.util.UUID
 import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.trading.Account
-import org.aiotrade.lib.trading.Broker
-import org.aiotrade.lib.trading.BrokerException
-import org.aiotrade.lib.trading.Order
-import org.aiotrade.lib.trading.OrderDelta
-import org.aiotrade.lib.trading.OrderDeltasEvent
-import org.aiotrade.lib.trading.OrderSide
-import org.aiotrade.lib.trading.OrderStatus
-import org.aiotrade.lib.trading.OrderType
-import org.aiotrade.lib.trading.OrderValidity
-import org.aiotrade.lib.trading.PaperExecution
 import scala.collection.mutable
 
 class PaperBroker(val name: String) extends Broker {
@@ -64,7 +53,7 @@ class PaperBroker(val name: String) extends Broker {
 
     order.status = OrderStatus.Canceled
       
-    log.info("Order Cancelled: %s".format(order))
+    log.info("Order cancelled: %s".format(order))
         
     publish(OrderDeltasEvent(this, Array(OrderDelta.Updated(order))))
   }
@@ -81,7 +70,7 @@ class PaperBroker(val name: String) extends Broker {
     order.id = orderIdFormatter.format(new Date()).toLong
     order.status = OrderStatus.PendingNew
 
-    log.info("Order Submitted: %s".format(order))
+    log.info("Order submitted: %s".format(order))
 
     publish(OrderDeltasEvent(this, Array(OrderDelta.Updated(order))))
     
@@ -113,7 +102,7 @@ class PaperBroker(val name: String) extends Broker {
     import oc._
     
     if (referIdx >= timestamps.length) {
-      println("None order: %s. referIdx %s >= timestamps.length, it's future time, paper work will stop here.".format
+      println("No order: %s. referIdx %s >= timestamps.length, it's future time, paper work will stop here.".format
               (oc, referIdx, timestamps.length)
       )
       None
@@ -159,17 +148,17 @@ class PaperBroker(val name: String) extends Broker {
           quantity(math.abs(quantity))
           if (quantity > 0) {
             val order = Order(account, sec, price, quantity, side, tpe)
-            println("Some order: %s".format(order))
+            println("Prepared %s".format(order))
             Some(order)
           } else {
-            println("None order, since quantity <= 0, something should be wrong! : %s. quantity=%5.2f Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
+            println("No order, since quantity <= 0, something should be wrong! : %s. quantity=%5.2f Quote: volume=%5.2f, average=%5.2f, expenses=%5.2f".format(
                 oc, quantity, quote.volume, quote.average, quote.average * account.tradingRule.multiplier * account.tradingRule.marginRate)
             )
             None
           }
           
         case None => 
-          println("None order: %s. Quote of this time did not exist.".format(oc))
+          println("No order: %s. Quote of this time did not exist.".format(oc))
           if (side.isOpening) {
             // @todo, pend opening order or not ?
           } else {

@@ -90,7 +90,7 @@ abstract class TradeBroker extends Broker {
           
       }
        
-    println("To order: %s".format(order))
+    println("Prepared %s".format(order))
     order
   }
   

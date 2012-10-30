@@ -16,8 +16,7 @@ import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.ExchangeStatus
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.trading.backtest.ChartReport
-import org.aiotrade.lib.trading.backtest.PaperBroker
+import org.aiotrade.lib.trading.charting.ChartReport
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable

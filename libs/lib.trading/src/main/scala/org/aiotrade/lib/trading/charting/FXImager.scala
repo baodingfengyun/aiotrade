@@ -1,4 +1,4 @@
-package org.aiotrade.lib.trading.backtest
+package org.aiotrade.lib.trading.charting
 
 import com.sun.javafx.stage.EmbeddedWindow
 import java.awt.Container
