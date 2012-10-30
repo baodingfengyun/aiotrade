@@ -1,7 +1,7 @@
 package org.aiotrade.lib.trading
 
 import java.util.logging.Logger
-import org.aiotrade.lib.securities._
+import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.dataserver.NullQuoteServer
 import org.aiotrade.lib.securities.dataserver.NullTickerServer
 import org.aiotrade.lib.securities.model.Sec
@@ -32,10 +32,10 @@ class DataLoader(val sec: Sec,
     val content = sec.content
 
     for (freq <- quoteFreqs) {
-      val quoteContract = createQuoteContract(symbol, "", "", freq, false, quoteServerClass)
+      val quoteContract = securities.createQuoteContract(symbol, "", "", freq, false, quoteServerClass)
       content.addDescriptor(quoteContract)
     }
-    val tickerContract = createTickerContract(symbol, "", "", TFreq.ONE_MIN, tickerServerClass)
+    val tickerContract = securities.createTickerContract(symbol, "", "", TFreq.ONE_MIN, tickerServerClass)
     sec.tickerContract = tickerContract
 
     for (freq <- indFreqs) {
@@ -44,18 +44,18 @@ class DataLoader(val sec: Sec,
   
 
     // * init indicators before loadSer, so, they can receive the Loaded evt
-    val inds = for (freq <- indFreqs; ser <- sec.serOf(freq)) yield initIndicators(content, ser) 
+    val inds = for (freq <- indFreqs; ser <- sec.serOf(freq)) yield securities.initIndicators(content, ser) 
 
     for (freq <- quoteFreqs; ser <- sec.serOf(freq)) {
       sec.loadSer(ser)
       ser.adjust()
     }
-
+    
     // * Here, we test two possible conditions:
     // * 1. inds may have been computed by Loaded evt,
     // * 2. data loading may not finish yet
     // * For what ever condiction, we force to compute it again to test concurrent
-    inds flatMap (x => x) foreach computeAsync
+    inds flatMap (x => x) foreach securities.computeAsync
   }
     
   /**
