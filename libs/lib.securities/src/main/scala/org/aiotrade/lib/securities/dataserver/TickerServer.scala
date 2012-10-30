@@ -405,11 +405,12 @@ abstract class TickerServer extends DataServer[Ticker] {
       case ex => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
-    // Try to close and save updated quotes, moneyflows 
+    // Update exchange status and try to close and save updated quotes, moneyflows etc
     for ((exchange, lastTime) <- exchangeToLastTime) {
-      val status = exchange.tradingStatusOf(lastTime)
-      log.info("Trading status of " + exchange.code + ": " + status)
-      exchange.tradingStatus = status
+      val status = exchange.statusOf(lastTime)
+      exchange.status = status
+      log.info("Trading status of " + exchange.code + ": " + status.toString(exchange))
+      
       val alsoSave = TickerServer.isServer
       exchange.tryClosing(status, alsoSave)
     }

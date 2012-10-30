@@ -14,6 +14,7 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.model.Exchange
+import org.aiotrade.lib.securities.model.ExchangeStatus
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.trading.backtest.ChartReport
 import org.aiotrade.lib.trading.backtest.PaperBroker
@@ -96,21 +97,36 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           if (idx >= currentReferIdx) {
         
             if (!isClosed) {
-              doOpen(idx)
-            }
-
-            if (isClosed && idx > closedReferIdx) {
-              doClose(idx)
+              doOpen(idx) // will do whenever unclosed quote is updated 
+            } else {
+              if (idx > closedReferIdx) { // will do only once
+                doClose(idx)
+              }
             }
           
           }
         } else {
-          log.warning("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
+          log.warning("TSerEvent.Updated with idx < 0 (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
         }
       } catch {
         case ex => log.log(Level.SEVERE, ex.getMessage, ex)
       }
       
+    case securities.api.ExchangeStatusEvt(code, status) if code == referSer.serProvider.exchange.code =>
+      // @todo temperary solution, should driven by closed quotes (since only daily freq period can be drived by exchange closed evt)
+      log.info("Exchange status of " + code + ": " + status)
+      status match {
+        case ExchangeStatus.Closed(time, timeInMinutes) =>
+          try {
+            val lastIdx = timestamps.length - 1
+            if (lastIdx >= 0 && lastIdx > closedReferIdx) { // will do only once
+              doClose(lastIdx) 
+            }
+          } catch {
+            case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+          }
+        case _ =>
+      }
   }
   
   listenTo(secPicking)
@@ -163,7 +179,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
       doClose(lastIdx)
     }
     
-    // begin to drive trading by ticker or quote events.
+    listenTo(Exchange)
+    // begin to drive trading by ticker or quote or exchange events.
     listenTo(referSer)
     log.info("Listen to ser (" + referSer.serProvider.uniSymbol + " " + freq + ")")
   }

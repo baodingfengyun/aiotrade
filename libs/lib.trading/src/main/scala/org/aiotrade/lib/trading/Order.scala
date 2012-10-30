@@ -5,6 +5,9 @@ import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.actors.Publisher
 
+/**
+ * quantity should always be >= 0
+ */
 final case class Order(account: TradableAccount, sec: Sec, price: Double, var quantity: Double, side: OrderSide, tpe: OrderType = OrderType.Market, var funds: Double = Double.NaN) extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
   
@@ -108,7 +111,7 @@ final case class Order(account: TradableAccount, sec: Sec, price: Double, var qu
         OrderStatus.Partial
       }
 
-      log.info("Order filling: %s".format(this))
+      log.info("Filling order with price=%1$ 5.2f, quantity=%2$ 5.2f. After filled %3$s".format(price, quantity, this))
     } else {
       log.warning("Filling quantity <= 0: fillingPrice=%s, fillingQuantity=%s, remainQuantity=%s".format(price, quantity, remainQuantity))
     }
@@ -116,7 +119,7 @@ final case class Order(account: TradableAccount, sec: Sec, price: Double, var qu
   
   override
   def toString = {
-    "Order: time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$s(%6$s), price=%7$ 5.2f, funds=%8$ 5.2f, status=%9$s, stopPrice=%10$ 5.2f, validity=%11$s, expiration=%12$s, refrence=%13$s".format(
+    "Order(time=%1$tY.%1$tm.%1$td, sec=%2$s, tpe=%3$s, side=%4$s, quantity(filled)=%5$s(%6$s), price=%7$ 5.2f, funds=%8$ 5.2f, status=%9$s, stopPrice=%10$ 5.2f, validity=%11$s, expiration=%12$s, refrence=%13$s)".format(
       new Date(time), sec.uniSymbol, tpe, side, quantity, _filledQuantity, price, funds, status, stopPrice, validity, expireTime, reference
     )
   }

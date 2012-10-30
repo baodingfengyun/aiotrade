@@ -1,7 +1,7 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.avro.Evt
-//import org.aiotrade.lib.securities.dataserver.DepthSnap
+import org.aiotrade.lib.securities.model.ExchangeStatus
 import org.aiotrade.lib.securities.model.Execution
 import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.PriceCollection
@@ -20,11 +20,11 @@ package object api {
 
   
   // update evts
-  val QuoteEvt      = Evt[(String, Quote)](10, "freq, quote")
-  val QuotesEvt     = Evt[(String, Array[Quote])](11)
-  val MoneyFlowEvt  = Evt[(String, MoneyFlow)](20, "freq, moneyflow")
-  val MoneyFlowsEvt = Evt[(String, Array[MoneyFlow])](21)
-  val PriceDistributionEvt = Evt[PriceCollection](30, "", schemaJson = """
+  val QuoteEvt              = Evt[(String, Quote)](10, "freq, quote")
+  val QuotesEvt             = Evt[(String, Array[Quote])](11)
+  val MoneyFlowEvt          = Evt[(String, MoneyFlow)](20, "freq, moneyflow")
+  val MoneyFlowsEvt         = Evt[(String, Array[MoneyFlow])](21)
+  val PriceDistributionEvt  = Evt[PriceCollection](30, "", schemaJson = """
       {"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.securities.model",
               "fields":[{"name":"map","type":["null",
                                               {"type":"map",
@@ -42,8 +42,9 @@ package object api {
 """)
   
   val PriceDistributionsEvt = Evt[Array[PriceCollection]](31)
+  val ExchangeStatusEvt     = Evt[(String, ExchangeStatus)](40, "exchangeCode, status")
 
-  // ---
+  // --- base data evt
   val SecDividendAddedEvt   = Evt[SecDividend](6000)
   val SecDividendUpdatedEvt = Evt[SecDividend](6001)
   val SecDividendDeletedEvt = Evt[SecDividend](6002)
