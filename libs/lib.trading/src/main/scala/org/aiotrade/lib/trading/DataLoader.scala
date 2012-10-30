@@ -27,8 +27,6 @@ class DataLoader(val sec: Sec,
   def act() {
     val symbol = sec.uniSymbol
     
-    log.info("Loading " + symbol)
-
     val content = sec.content
 
     for (freq <- quoteFreqs) {
@@ -46,16 +44,21 @@ class DataLoader(val sec: Sec,
     // * init indicators before loadSer, so, they can receive the Loaded evt
     val inds = for (freq <- indFreqs; ser <- sec.serOf(freq)) yield securities.initIndicators(content, ser) 
 
-    for (freq <- quoteFreqs; ser <- sec.serOf(freq)) {
-      sec.loadSer(ser)
-      ser.adjust()
+    //for (freq <- quoteFreqs; ser <- sec.serOf(freq)) {
+    //  sec.loadSer(ser)
+    //  ser.adjust()
+    //}
+    // @todo above code seems will miss adjust() call due to lost of TSer.Loaded evt, need to dig later, just use a plain securities.loadSer(sec, freq)
+    for (freq <- quoteFreqs) {
+      log.info("Loading " + symbol + " freq")
+      securities.loadSer(sec, freq, true)
     }
-    
+
     // * Here, we test two possible conditions:
     // * 1. inds may have been computed by Loaded evt,
     // * 2. data loading may not finish yet
     // * For what ever condiction, we force to compute it again to test concurrent
-    inds flatMap (x => x) foreach securities.computeAsync
+    inds flatMap (x => x) foreach securities.computeSync
   }
     
   /**

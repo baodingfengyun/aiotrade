@@ -76,7 +76,7 @@ package object securities {
     var i = 0
     while (i < secs.length) {
       val sec = secs(i)
-      loadSer(sec, freq)
+      loadSer(sec, freq, true)
       i += 1
       log.info("Loaded %s, %s of %s.".format(sec.uniSymbol, i, secs.length))
     }
@@ -302,7 +302,8 @@ package object securities {
   }
 
 
-  def loadSer(sec: Sec, freq: TFreq): Unit = {
+  @Deprecated
+  def loadSer_deprecated(sec: Sec, freq: TFreq) {
     var mayNeedsReload = false
     if (sec == null) {
       return
