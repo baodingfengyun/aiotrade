@@ -107,18 +107,24 @@ final class Quote extends BelongsToSec with TVal with Flag {
   var isTransient: Boolean = true
 
   /**
-   * @Note add var _average and assign value to it to make sure that doAdjust could also be applied on averagy properly.
-   * @see org.aiotrade.lib.securities.QuoteSer
+   * @Note With var _average, we can make sure that after doAdjust in QuoteSer,
+   * the quote that returns by valueOf(time) could be set a proper adjusted value 
+   * to _average. We cannot simplely use amount / volume as the adjusted average,
+   * since amount/volume won't be changed during adjusting.
+   * @see org.aiotrade.lib.securities.QuoteSer#valueOf
    */
-  private var _average: Double = 0.0
+  @transient private var _average: Double = Double.NaN
   /** 
    * average price 
    */
   def average: Double = {
-    if (_average == 0) {
-      _average = if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
-    } 
-    _average
+    if (_average.isNaN) {
+      // has not been set by outside (for example, by adjusted QuoteSer)
+      if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
+    } else {
+      // it has been set by outside, just use it
+      _average
+    }
   }
   def average_=(v: Double) {
     _average = v
