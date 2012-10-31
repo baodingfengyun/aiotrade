@@ -258,6 +258,7 @@ object Evt {
   def main(args: Array[String]) {
     //testMatch
     testObject
+    testTransientField
 //    testPrimitives
     testVmap
     
@@ -426,6 +427,21 @@ object Evt {
     //jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
+  def testTransientField {
+    import TestAPIs._
+    
+    printSchema(classOf[TestTransientField])
+    
+    val data = new TestTransientField(1, 1, 1, 1)
+    val msg = TestTransientFieldEvt(data)
+    msg match {
+      case TestTransientFieldEvt(data1) => println("matched: " + data1)
+      case _ => error("Failed to match")
+    }
+    testMsg(TestTransientFieldEvt(data))
+
+  }
+  
 }
 
 private[avro] object TestAPIs {
@@ -446,8 +462,9 @@ private[avro] object TestAPIs {
 
   val BadEmpEvt = Evt(-13) // T will be AnyRef
   
-  val TestDataEvt =  Evt[TestData](-100)
-  val TestVmapEvt = Evt[collection.Map[String, Array[_]]](-101)//, schemaJson = """
+  val TestDataEvt = Evt[TestData](-100)
+  val TestTransientFieldEvt = Evt[TestTransientField](-101)
+  val TestVmapEvt = Evt[collection.Map[String, Array[_]]](-102)//, schemaJson = """
 //    {"type":"map","values":{"type":"array","items":["long","double","string",
 //     {"type":"record","name":"TestData","namespace":"org.aiotrade.lib.avro.TestAPIs$",
 //       "fields":[
@@ -459,16 +476,25 @@ private[avro] object TestAPIs {
 //     ]}}
 //  """)
 
-  val PCEvt = Evt[PriceCollection](-102)//, "", """
+  val PCEvt = Evt[PriceCollection](-103)//, "", """
   //{"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.avro.TestAPIs$","fields":[{"name":"map","type":["null",{"type":"map","values":{"type":"record","name":"PriceDistribution","fields":[{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"price","type":["null","double"]},{"name":"volumeUp","type":["null","double"]},{"name":"volumeDown","type":["null","double"]},{"name":"_uniSymbol","type":["null","string"]}]}}]},{"name":"isTransient","type":["null","boolean"]},{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"_uniSymbol","type":["null","string"]}]}
   // """)
 
   final case class TestData(x1: String, x2: Int, x3: Double, x4: Array[Float]) {
     // An empty constructor is a must for evt serialization
     def this() = this(null, 0, 0.0, Array())
-    override def toString = "TestData(" + x1 + "," + x2 + "," + x3 + "," + x4.mkString("[", ",", "]")
+    override def toString = "TestData(" + x1 + ", " + x2 + ", " + x3 + ", " + x4.mkString("[", ", ", "]") + ")"
   }
-
+  
+  final class TestTransientField(
+    var pubVar: Int,
+    private var priVar: Double,
+    @transient var pubTrans: Int,
+    @transient private var priTrans: Double
+  ) {
+    def this() = this(0, 0, 0, 0)
+    override def toString = "TestTransientField(" + pubVar + ", " + priVar + ", " + pubTrans + ", " + priTrans + ")" 
+  }
 
   @serializable
   class PriceCollection extends BelongsToSec with TVal with Flag  {
