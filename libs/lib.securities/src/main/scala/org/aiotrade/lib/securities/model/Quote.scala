@@ -118,11 +118,16 @@ final class Quote extends BelongsToSec with TVal with Flag {
    * average price 
    */
   def average: Double = {
-    if (_average.isNaN) {
-      // has not been set by outside (for example, by adjusted QuoteSer)
-      if (amount != 0 && volume != 0) amount / volume else (open + high + low + close) / 4
-    } else {
-      // it has been set by outside, just use it
+    if (_average.isNaN) { // has not been set by outside (for example, by adjusted QuoteSer)
+      if (amount != 0 && volume != 0) {
+        amount / volume match {
+          case x if x >= low && x <= high => x // beware that index's amount/volume may not be average
+          case _ => (open + high + low + close) / 4
+        }
+      } else {
+        (open + high + low + close) / 4
+      }
+    } else { // has been set by outside, just use it
       _average
     }
   }
