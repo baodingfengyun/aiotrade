@@ -115,10 +115,11 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
       // @todo temperary solution, should driven by closed quotes (since only daily freq period can be drived by exchange closed evt)
       log.info("Exchange status of " + code + ": " + status)
       status match {
-        case ExchangeStatus.Closed(time, timeInMinutes) =>
+        case ExchangeStatus.Close(time, timeInMinutes) =>
           try {
             val lastIdx = timestamps.length - 1
             if (lastIdx >= 0 && lastIdx > closedReferIdx) { // will do only once
+              // @Todo How to make sure doClose after all quoteSers were updated
               doClose(lastIdx) 
             }
           } catch {
@@ -269,10 +270,10 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     currentReferIdx = referIdx
     closedReferIdx = referIdx
 
-    log.info("doClose: going to update positions price.")
+    log.info("doClose(" + referIdx + "): going to update positions price.")
     updatePositionsPrice
       
-    log.info("doClose: going to check order status.")
+    log.info("doClose(" + referIdx + "): going to check order status.")
     checkOrderStatus
 
     if (isTradeStarted) {
@@ -282,20 +283,20 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     // today's orders processed, now begin to check new conditions and 
     // prepare new orders according to current closed status.
     
-    log.info("doClose: going to update account.")
+    log.info("doClose(" + referIdx + "): going to update account.")
     tradableAccounts foreach broker.updateAccount
     
-    log.info("doClose: going to check stop condition.")
+    log.info("doClose(" + referIdx + "): going to check stop condition.")
     secPicking.go(currentTime)
     checkStopCondition
     
-    log.info("doClose: going to atClose(" + referIdx + ").")
+    log.info("doClose(" + referIdx + "): going to atClose(" + referIdx + ").")
     atClose(referIdx)
     
-    log.info("doClose: going to process pending orders.")
+    log.info("doClose(" + referIdx + "): going to process pending orders.")
     processPendingOrders
     
-    log.info("doClose: done.")
+    log.info("doClose(" + referIdx + "): done.")
   }
 
   /**

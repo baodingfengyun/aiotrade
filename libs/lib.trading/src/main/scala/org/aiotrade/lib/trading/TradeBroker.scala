@@ -102,7 +102,6 @@ abstract class TradeBroker extends Broker {
     var deltas = List[OrderDelta]()
 
     val sec = order.sec
-    log.info("Process trade for: " + order + ", time=" + new java.util.Date(time))
     val secOrders = executingOrders synchronized {executingOrders.getOrElse(sec, new mutable.HashSet[Order]())}
     
     var toRemove = List[Order]()
