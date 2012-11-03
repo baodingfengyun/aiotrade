@@ -107,7 +107,7 @@ class ChartReport(
   def roundFinished {
     imageSavingLatch = new CountDownLatch(chartTabs.length)
     Thread.sleep(2000) // wait for chart painted in FX thread
-    chartTabs foreach (_.saveImage.get.release)
+    chartTabs foreach (_.saveImage)
   }
   
   private class ChartTab(param: Param) extends Reactor {
@@ -218,10 +218,6 @@ class ChartReport(
       timer.start
       
       done
-    }
-    
-    def release {
-      deafTo(param)
     }
   }
   
