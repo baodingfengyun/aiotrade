@@ -322,9 +322,9 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           sell (sec) after (1)
         case Side.EnterShort =>
         case Side.ExitShort =>
-        case Side.CutLoss => 
+        case Side.CutLoss if position != null => 
           sell (sec) quantity (position.quantity) after (1)
-        case Side.TakeProfit =>
+        case Side.TakeProfit if position != null =>
           sell (sec) quantity (position.quantity) after (1)
         case _ =>
       }
@@ -612,10 +612,10 @@ object TradingService {
               case Side.ExitLong =>
                 sell (sec) after (1)
               
-              case Side.CutLoss => 
+              case Side.CutLoss if position != null => 
                 sell (sec) quantity (position.quantity) after (1)
               
-              case Side.TakeProfit =>
+              case Side.TakeProfit if position != null =>
                 sell (sec) quantity (position.quantity) after (1)
               
               case _ =>

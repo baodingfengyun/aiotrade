@@ -37,6 +37,7 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
   protected val _secToPosition = new mutable.HashMap[Sec, Position]()
 
   def positions = _secToPosition
+  def positionOf(sec: Sec): Option[Position] = _secToPosition.get(sec)
   def positionGainLoss: Double
   def positionEquity: Double
   def calcFundsToOpen(price: Double, quantity: Double, sec: Sec = null): Double
