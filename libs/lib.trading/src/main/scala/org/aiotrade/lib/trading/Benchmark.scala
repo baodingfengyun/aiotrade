@@ -2,7 +2,9 @@ package org.aiotrade.lib.trading
 
 import java.util.Calendar
 import java.util.Date
+import java.util.TimeZone
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.util
 import org.aiotrade.lib.util.actors.Reactor
 
 /**
@@ -51,15 +53,19 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   private var secTransactions = Array[SecTransaction]()
   private var expTransactions = Array[ExpensesTransaction]()
   
+  var dailyPayoffs: Array[Payoff] = Array()
   var weeklyPayoffs: Array[Payoff] = Array()
   var monthlyPayoffs: Array[Payoff] = Array()
   var rrr: Double = _
   var sharpeRatioOnWeek: Double = _
   var sharpeRatioOnMonth: Double = _
   
+  var timezone = TimeZone.getDefault
+  var dailyRiskFreeRate = 0.0 
   var weeklyRiskFreeRate = 0.0 // 0.003
   var monthlyRiskFreeRate = 0.0 // 0.003
   
+  var reportHourOfDay = 23
   var reportDayOfWeek = Calendar.SATURDAY
   var reportDayOfMonth = 26
   
@@ -92,6 +98,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
     
     val navs = toNavs(initialEquity, equities)
     val referNavs = toNavs(initialReferIndex, referIndices)
+    dailyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getDailyReportTime(reportHourOfDay))(dailyRiskFreeRate)
     weeklyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getWeeklyReportTime(reportDayOfWeek))(weeklyRiskFreeRate)
     monthlyPayoffs = calcPeriodicReturns(times.toArray, navs, referNavs)(getMonthlyReportTime(reportDayOfMonth))(monthlyRiskFreeRate)
     sharpeRatioOnWeek = math.sqrt(52) * calcSharpeRatio(weeklyPayoffs)
@@ -151,119 +158,111 @@ class Benchmark(tradingService: TradingService) extends Reactor {
   /**
    * navs Net Asset Value
    */
-  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double], referNavs: Array[Double])(getPeriodicReportTimeFun: (Calendar) => Long)(riskFreeRate: Double) = {
-    val reportTimes = new ArrayList[Long]()
-    val reportNavs = new ArrayList[Double]()
-    val reportReferNavs = new ArrayList[Double]()
+  private def calcPeriodicReturns(times: Array[Long], navs: Array[Double], referNavs: Array[Double])(getPeriodicReportTimeFun: Long => Long)(riskFreeRate: Double) = {
+    if (times.length > 0) {
+      val reportTimes = new ArrayList[Long]()
+      val reportNavs = new ArrayList[Double]()
+      val reportReferNavs = new ArrayList[Double]()
     
-    val now = Calendar.getInstance
-    var prevTime = 0L
-    var prevNav = 1.0
-    var prevReferNav = 1.0
-    var reportTime = Long.MaxValue
-    var i = 0
-    while (i < times.length) {
-      val time = times(i)
-      val nav = navs(i)
-      val referNav = referNavs(i)
+      var prevNav = 1.0
+      var prevReferNav = 1.0
+      var reportTime = getPeriodicReportTimeFun(times(0)) // first reportTime
+      var i = 0
+      while (i < times.length) {
+        val time = times(i)
+        val nav = navs(i)
+        val referNav = referNavs(i)
 
-      now.setTimeInMillis(time)
-      if (reportTime == Long.MaxValue) {
-        reportTime = getPeriodicReportTimeFun(now)
-      }
-      
-      var reported = false
-      if (time > reportTime) {
-        if (prevTime <= reportTime) {
+        if (time > reportTime) { // just passed reportTime,it's time to report previous periodic data
           reportTimes += reportTime
           reportNavs += prevNav
           reportReferNavs += prevReferNav
-          reported = true
+          // and set next reportTime
+          reportTime = getPeriodicReportTimeFun(time)
+        } else if (i == times.length - 1) { // last period, and not reported, report it whatever
+          reportTimes += reportTime
+          reportNavs += nav
+          reportReferNavs += referNav
+        } else {
         }
-        reportTime = getPeriodicReportTimeFun(now)
-      }
       
-      if (!reported && i == times.length - 1) {
-        reportTimes += getPeriodicReportTimeFun(now)
-        reportNavs += nav
-        reportReferNavs += referNav
+        // -- adjust control vars for next loop
+        prevNav = nav
+        prevReferNav = referNav
+        i += 1
       }
-      
-      prevTime = time
-      prevNav = nav
-      prevReferNav = referNav
-      i += 1
-    }
     
-    if (reportTimes.length > 0) {
-      val payoffs = new ArrayList[Payoff]
- 
-      var prevNav = 1.0
-      var i = 0
+      // -- calculate payoffs
+      val payoffs = Array.ofDim[Payoff](reportTimes.length)
+      prevNav = 1.0
+      i = 0
       while (i < reportTimes.length) {
         val time = reportTimes(i)
         val nav = reportNavs(i)
         val referNav = reportReferNavs(i)
         val accRate = nav - 1
         val periodRate = nav / prevNav - 1
-        payoffs += Payoff(time, nav, accRate, periodRate, riskFreeRate, referNav)
+        payoffs(i) = Payoff(time, nav, accRate, periodRate, riskFreeRate, referNav)
         
         prevNav = nav
         i += 1
       }
       
-      payoffs.toArray
+      payoffs
     } else {
       Array[Payoff]()
     }
   } 
   
   /**
+   * @param the hour of day of settlement, default 23 o'clock. @Note not >= 24
    * @param the current date calendar
-   * @param the day of settlement, calendar day if -1 
    */
-  private def getDailyReportTime(now: Calendar) = {
-    
-    if (now.getTimeInMillis > reportDayOfWeek) {
-      now.add(Calendar.WEEK_OF_YEAR, 1) // will report in next week
+  private def getDailyReportTime(_reportHourOfDay: Int = 23)(now: Long) = {
+    val cal = util.calendarOf(timezone)
+    cal.setTimeInMillis(now)
+
+    val reportHourOfDay = math.min(_reportHourOfDay, 23)
+    if (cal.get(Calendar.HOUR_OF_DAY) > reportHourOfDay) {
+      cal.add(Calendar.DAY_OF_YEAR, 1) // will report in next day
     }
     
-    now.set(Calendar.DAY_OF_WEEK, reportDayOfWeek)
-    now.getTimeInMillis
+    cal.set(Calendar.HOUR_OF_DAY, reportHourOfDay)
+    cal.getTimeInMillis
   }
 
   /**
+   * @param the day of week of settlement, default SATURDAY
    * @param the current date calendar
-   * @param the day of week of settlement, last day of each week if -1 
    */
-  private def getWeeklyReportTime(_reportDayOfWeek: Int = -1)(now: Calendar) = {
-    val reportDayOfWeek = if (_reportDayOfWeek == -1) {
-      Calendar.SATURDAY
-    } else _reportDayOfWeek
-    
-    if (now.get(Calendar.DAY_OF_WEEK) > reportDayOfWeek) {
-      now.add(Calendar.WEEK_OF_YEAR, 1) // will report in next week
+  private def getWeeklyReportTime(_reportDayOfWeek: Int = Calendar.SATURDAY)(now: Long) = {
+    val cal = util.calendarOf(timezone)
+    cal.setTimeInMillis(now)
+
+    val reportDayOfWeek = math.min(_reportDayOfWeek, Calendar.SUNDAY)
+    if (cal.get(Calendar.DAY_OF_WEEK) > reportDayOfWeek) {
+      cal.add(Calendar.WEEK_OF_YEAR, 1) // will report in next week
     }
     
-    now.set(Calendar.DAY_OF_WEEK, reportDayOfWeek)
-    now.getTimeInMillis
+    cal.set(Calendar.DAY_OF_WEEK, reportDayOfWeek)
+    cal.getTimeInMillis
   }
 
   /**
+   * @param the day of month of settlement, default 26
    * @param the current date calendar
-   * @param the day of month of settlement, last day of each month if -1 
    */
-  private def getMonthlyReportTime(_reportDayOfMonth: Int = -1)(now: Calendar) = {
-    val reportDayOfMonth = if (_reportDayOfMonth == -1) {
-      now.getActualMaximum(Calendar.DAY_OF_MONTH)
-    } else _reportDayOfMonth
-    
-    if (now.get(Calendar.DAY_OF_MONTH) > reportDayOfMonth) {
-      now.add(Calendar.MONTH, 1) // will report in next month
+  private def getMonthlyReportTime(_reportDayOfMonth: Int = 26)(now: Long) = {
+    val cal = util.calendarOf(timezone)
+    cal.setTimeInMillis(now)
+
+    val reportDayOfMonth = math.min(_reportDayOfMonth, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
+    if (cal.get(Calendar.DAY_OF_MONTH) > reportDayOfMonth) {
+      cal.add(Calendar.MONTH, 1) // will report in next month
     }
     
-    now.set(Calendar.DAY_OF_MONTH, reportDayOfMonth)
-    now.getTimeInMillis
+    cal.set(Calendar.DAY_OF_MONTH, reportDayOfMonth)
+    cal.getTimeInMillis
   }
   
   
@@ -283,6 +282,7 @@ class Benchmark(tradingService: TradingService) extends Reactor {
 
   override 
   def toString = {
+    val statDaily   = calcStatistics(dailyPayoffs)
     val statWeekly  = calcStatistics(weeklyPayoffs)
     val statMonthly = calcStatistics(monthlyPayoffs)
     ;
@@ -298,23 +298,28 @@ RRR                    : %11$5.2f
 Sharpe Ratio on Weeks  : %12$5.2f  (%13$s weeks)
 Sharpe Ratio on Months : %14$5.2f  (%15$s months)
 
-================ Weekly Return ================
+================ Daily Return ================
 date \u0009 nav \u0009 accum \u0009 period \u0009 riskfree \u0009 sharpe \u0009 refer
 %16$s
 Average:%17$ 5.2f%%  Max:%18$ 5.2f%%  Min:%19$ 5.2f%%  Stdev: %20$5.2f%%  Win: %21$5.2f%%  Loss: %22$5.2f%%  Tie: %23$5.2f%%
 
-================ Monthly Return ================
+================ Weekly Return ================
 date \u0009 nav \u0009 accum \u0009 period \u0009 riskfree \u0009 sharpe \u0009 refer
 %24$s
 Average:%25$ 5.2f%%  Max:%26$ 5.2f%%  Min:%27$ 5.2f%%  Stdev: %28$5.2f%%  Win: %29$5.2f%%  Loss: %30$5.2f%%  Tie: %31$5.2f%%
+
+================ Monthly Return ================
+date \u0009 nav \u0009 accum \u0009 period \u0009 riskfree \u0009 sharpe \u0009 refer
+%32$s
+Average:%33$ 5.2f%%  Max:%34$ 5.2f%%  Min:%35$ 5.2f%%  Stdev: %36$5.2f%%  Win: %37$5.2f%%  Loss: %38$5.2f%%  Tie: %39$5.2f%%
     
 ================ Margin Call ================
 date           avaliableFunds           equity  positionEquity positionMargin
-%32$s
+%40$s
 
 ================ Executions ================
 date \u0009 sec \u0009 quantity \u0009 price \u0009 amount
-%33$s
+%41$s
     """.format(
       tradingService.param,
       tradeFromTime, tradeToTime, tradePeriod, times.length,
@@ -326,10 +331,16 @@ date \u0009 sec \u0009 quantity \u0009 price \u0009 amount
       rrr,
       sharpeRatioOnWeek, weeklyPayoffs.length,
       sharpeRatioOnMonth, monthlyPayoffs.length,
+      
+      dailyPayoffs.mkString("\n"),
+      statDaily._1, statDaily._2, statDaily._3, statDaily._4, statDaily._5, statDaily._6, statDaily._7,
+      
       weeklyPayoffs.mkString("\n"),
       statWeekly._1, statWeekly._2, statWeekly._3, statWeekly._4, statWeekly._5, statWeekly._6, statWeekly._7,
+      
       monthlyPayoffs.mkString("\n"),
       statMonthly._1, statMonthly._2, statMonthly._3, statMonthly._4, statMonthly._5, statMonthly._6, statMonthly._7,
+      
       marginCalls.mkString("\n"),
       secTransactions map (x => "%1$tY.%1$tm.%1$td \t %2$s \t %3$ d \t %4$8.2f \t %5$8.2f".format(new Date(x.time), x.order.sec.uniSymbol, x.quantity.toInt, x.price, math.abs(x.amount))) mkString ("\n")
     )
