@@ -10,20 +10,24 @@ import scala.collection.mutable
 
 /**
  *
- * @Note Currency.getInstance(Locale.getDefault) may cause exception on some OSs
+ * @Note Currency.getInstance(Locale.getDefault) may cause exception on some OSs,
+ * So it's better to assign currency explictly.
  * 
  * @author Caoyuan Deng
  */
-abstract class Account(val code: String, protected var _balance: Double, val currency: Currency = Currency.getInstance(Locale.getDefault)
+abstract class Account(val code: String, protected var _balance: Double, 
+                       val currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends Publisher {
   protected val _transactions = new ArrayList[TradeTransaction]()
+  def transactions = _transactions.toArray
   
   val initialEquity = _balance
   def balance = _balance
+  def balance_=(balance: Double) {
+    _balance = balance
+  }
   def credit(funds: Double) {_balance += funds}
   def debit (funds: Double) {_balance -= funds}
-
-  def transactions = _transactions.toArray
 
   def equity: Double
   def availableFunds: Double
@@ -34,12 +38,15 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
 ) extends Account($code, $balance, $currency) {
   private val log = Logger.getLogger(this.getClass.getName)
   
-  protected val _secToPosition = new mutable.HashMap[Sec, Position]()
-
+  protected var _secToPosition = new mutable.HashMap[Sec, Position]()
   def positions = _secToPosition
+  def positions_=(secToPosition: mutable.HashMap[Sec, Position]) {
+    _secToPosition = secToPosition
+  }
   def positionOf(sec: Sec): Option[Position] = _secToPosition.get(sec)
   def positionGainLoss: Double
   def positionEquity: Double
+  
   def calcFundsToOpen(price: Double, quantity: Double, sec: Sec = null): Double
   
   /**
@@ -74,15 +81,15 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
         case None => 
           val position = Position(this, time, sec, price, quantity)
           _secToPosition(sec) = position
-          publish(PositionOpened(this, position))
+          publish(PositionOpened(position))
         
         case Some(position) =>
           position.add(time, price, quantity)
           if (position.quantity == 0) {
             _secToPosition -= sec
-            publish(PositionClosed(this, position))
+            publish(PositionClosed(position))
           } else {
-            publish(PositionChanged(this, position))
+            publish(PositionChanged(position))
           }
       }
     }
@@ -181,7 +188,7 @@ class CashAccount($code: String, $balance: Double,
 ) extends Account($code, $balance, $currency) {
 
   def equity = _balance
-  def availableFunds = _balance
+  def availableFunds: Double = _balance
 
   override 
   def toString = "%1$s\t: availableFunds=%2$.0f".format(
