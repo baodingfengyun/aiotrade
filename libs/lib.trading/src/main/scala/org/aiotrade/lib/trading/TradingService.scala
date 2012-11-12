@@ -3,6 +3,8 @@ package org.aiotrade.lib.trading
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.SignalIndicator
@@ -38,7 +40,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   
   protected val timestamps = referSer.timestamps
   protected val freq = referSer.freq
-
+  
   protected val signalIndicators = new mutable.HashSet[SignalIndicator]()
   protected val triggers = new mutable.HashSet[Trigger]()
   protected val openingOrders = new mutable.HashMap[TradableAccount, List[Order]]() // orders to open position
@@ -54,10 +56,11 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   protected var tradeStartIdx: Int = -1
   protected def isTradeStarted: Boolean = tradeStartIdx >= 0
 
+  private val closingScheduler = new ScheduledThreadPoolExecutor(1)
   private case object GoTrading
   private case class GoBacktest(fromTime: Long, toTime: Long)
   private val backtestDone = new SyncVar[Boolean]()
-  
+
   reactions += {
     case SecPickingEvent(secValidTime, side) =>
       val position = positionOf(secValidTime.ref).getOrElse(null)
@@ -119,8 +122,17 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           try {
             val lastIdx = timestamps.length - 1
             if (lastIdx >= 0 && lastIdx > closedReferIdx) { // will do only once
-              // @Todo How to make sure doClose after all quoteSers were updated
-              doClose(lastIdx) 
+              if (freq == TFreq.DAILY) { // daily close
+                val closingTask = new Runnable {
+                  def run {
+                    doClose(lastIdx)
+                  }
+                }
+                log.info("Daily closing, will doClose in 20 minuts.")
+                closingScheduler.schedule(closingTask, 20, TimeUnit.MINUTES)
+              } else {
+                doClose(lastIdx) 
+              }
             }
           } catch {
             case ex => log.log(Level.SEVERE, ex.getMessage, ex)
