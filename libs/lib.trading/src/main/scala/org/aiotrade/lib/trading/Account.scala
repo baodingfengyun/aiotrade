@@ -43,10 +43,11 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
   def positions_=(secToPosition: mutable.HashMap[Sec, Position]) {
     _secToPosition = secToPosition
   }
+
   def positionOf(sec: Sec): Option[Position] = _secToPosition.get(sec)
-  def positionGainLoss: Double
-  def positionEquity: Double
-  
+  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
+  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss}
+
   def calcFundsToOpen(price: Double, quantity: Double, sec: Sec = null): Double
   
   /**
@@ -125,9 +126,6 @@ class StockAccount($code: String, $balance: Double, $tradingRule: TradingRule,
                    $currency: Currency = Currency.getInstance(Locale.getDefault)
 ) extends TradableAccount($code, $balance, $tradingRule, $currency) {
 
-  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss}
-  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity}
-
   def equity = _balance + positionEquity
   def availableFunds = _balance
   
@@ -152,9 +150,6 @@ class FutureAccount($code: String, $balance: Double, $tradingRule: TradingRule,
   def riskLevel = positionMargin / equity * 100
   def positionMargin = positionEquity * tradingRule.marginRate
 
-  def positionGainLoss = _secToPosition.foldRight(0.0){(x, s) => s + x._2.gainLoss * tradingRule.multiplier} // calculate tracking gain loass
-  def positionEquity   = _secToPosition.foldRight(0.0){(x, s) => s + x._2.equity   * tradingRule.multiplier}
-  
   def equity = _balance + positionGainLoss
   def availableFunds = equity - positionMargin
   

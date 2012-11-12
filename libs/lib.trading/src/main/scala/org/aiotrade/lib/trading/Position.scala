@@ -75,8 +75,8 @@ class Position private (private var _account: TradableAccount,
   def isLong:  Boolean = _quantity > 0
   def isShort: Boolean = _quantity < 0
   
-  def gainLoss = (_currentPrice - _price) * quantity 
-  def equity = _currentPrice * math.abs(quantity)
+  def gainLoss = (_currentPrice - _price) * quantity * _account.tradingRule.multiplier
+  def equity = _currentPrice * math.abs(quantity) * _account.tradingRule.multiplier
 
   /**
    * @todo, consider expenses?
@@ -86,8 +86,8 @@ class Position private (private var _account: TradableAccount,
   
   override 
   def toString = {
-    "Position(%s, price=%.2f, quantity=%.0f, currentPrice=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%)".format(
-      sec.uniSymbol, price, quantity, currentPrice, gainLoss, gainLossRatio * 100
+    "Position(%s, quantity=%.0f, price=%.2f, currentPrice=%.2f, equity=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%)".format(
+      sec.uniSymbol, quantity, price, currentPrice, equity, gainLoss, gainLossRatio * 100
     )
   }
 }
