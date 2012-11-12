@@ -14,6 +14,7 @@ class Position private (private var _account: TradableAccount,
   private var _subPositions: ArrayList[Position] = null
   private var _currentPrice = _price
   private var _maxGainLossRatio = 0.0
+  private var _minGainLossRatio = 0.0
   
   def subPositions: Array[Position] = if (_subPositions == null) Array() else _subPositions.toArray
 
@@ -53,6 +54,7 @@ class Position private (private var _account: TradableAccount,
     if (!currentPrice.isNaN) {
       _currentPrice = currentPrice
       _maxGainLossRatio = math.max(_maxGainLossRatio, gainLossRatio)
+      _minGainLossRatio = math.min(_minGainLossRatio, gainLossRatio)
     }
   }
   
@@ -83,6 +85,7 @@ class Position private (private var _account: TradableAccount,
    */
   def gainLossRatio = (if (isLong) 1 else if (isShort) -1 else 0) * (_currentPrice - _price) / _price
   def maxGainLossRatio = _maxGainLossRatio
+  def minGainLossRatio = _minGainLossRatio
   
   override 
   def toString = {
