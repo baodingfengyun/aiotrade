@@ -97,11 +97,13 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           val isClosed = ser.isClosed(idx)
           log.info("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", isClosed=" + isClosed + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
           if (idx >= currentReferIdx) {
-        
+            currentReferIdx = idx
+            
             if (!isClosed) {
               doOpen(idx) // will do whenever unclosed quote is updated 
             } else {
               if (idx > closedReferIdx) { // will do only once
+                closedReferIdx = idx
                 doClose(idx)
               }
             }
@@ -122,6 +124,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           try {
             val lastIdx = timestamps.length - 1
             if (lastIdx >= 0 && lastIdx > closedReferIdx) { // will do only once
+              closedReferIdx = lastIdx
+              
               if (freq == TFreq.DAILY) { // daily close
                 val closingTask = new Runnable {
                   def run {
@@ -188,6 +192,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     // listenTo(referSer)
     val lastIdx = timestamps.length - 1
     if (lastIdx >= 0 && referSer.isClosed(lastIdx)) {
+      currentReferIdx = lastIdx
+      closedReferIdx = lastIdx
       doClose(lastIdx)
     }
     
@@ -217,7 +223,10 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     
     var i = fromIdx
     while (i <= toIdx) {
+      currentReferIdx = i
       doOpen(i)
+      
+      closedReferIdx = i
       doClose(i)
       
       i += 1
@@ -267,8 +276,6 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * @Todo we can also define actions atPreOpen, atOpening etc...
    */
   def doOpen(referIdx: Int) {
-    currentReferIdx = referIdx
-
     atOpen(referIdx)
     
     executeOrdersOf(referIdx)
@@ -279,9 +286,6 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * It could be trigged by a closed event
    */
   def doClose(referIdx: Int) {
-    currentReferIdx = referIdx
-    closedReferIdx = referIdx
-
     log.info("doClose(" + referIdx + "): going to update positions price.")
     updatePositionsPrice
       
