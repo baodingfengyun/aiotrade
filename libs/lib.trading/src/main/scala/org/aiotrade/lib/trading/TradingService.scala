@@ -176,6 +176,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   }
   
   private def goTrading() {
+    accounts foreach broker.updateAccount
+    
     // if it was closed when trading started, we will call doClose right now
     // 
     // @Note, if trading service is invoked during opening, the last quote of referSer 
@@ -206,6 +208,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   }
   
   private def goBacktest(fromTime: Long, toTime: Long) {
+    accounts foreach broker.updateAccount
+    
     val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
     val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
     println("Backtest from %s to %s, referIdx: from %s to %s, total referPeriods: %s".format(new Date(timestamps(fromIdx)), new Date(timestamps(toIdx)), fromIdx, toIdx, timestamps.length))
@@ -318,7 +322,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     // prepare new orders according to current closed status.
     
     log.info("doClose(" + referIdx + "): going to update account.")
-    tradableAccounts foreach broker.updateAccount
+    accounts foreach broker.updateAccount
     
     log.info("doClose(" + referIdx + "): going to check stop condition.")
     secPicking.go(currentTime)
