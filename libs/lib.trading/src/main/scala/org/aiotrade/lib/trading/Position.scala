@@ -89,7 +89,7 @@ class Position private (private var _account: TradableAccount,
   
   override 
   def toString = {
-    "Position(%s, quantity=%.0f, price=%.2f, currentPrice=%.2f, equity=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%)".format(
+    "Position(%s, quantity=%.0f, price=%.6f, currentPrice=%.4f, equity=%.2f, gainLoss=%.2f, gainLossRatio=%.2f%%)".format(
       sec.uniSymbol, quantity, price, currentPrice, equity, gainLoss, gainLossRatio * 100
     )
   }
