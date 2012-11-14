@@ -99,9 +99,9 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
   private def toTransaction(order: Order, execution: Execution): TradeTransaction = {
     execution match {
       case PaperExecution(order, time, price, quantity) =>
-        val fillingAmount = calcSecTransactionAmount(order, execution)
-        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position increase/decrease.
-        val secTransaction = SecTransaction(time, price, order.side.signum * quantity, fillingAmount, order)
+        val transactionAmount = calcSecTransactionAmount(order, execution)
+        // @Note transactionAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position increase/decrease.
+        val secTransaction = SecTransaction(time, price, order.side.signum * quantity, transactionAmount, order)
       
         val expenses = if (order.side.isOpening)  
           tradingRule.expenseScheme.getOpeningExpenses(price, quantity, order.sec)
@@ -112,9 +112,9 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
         TradeTransaction(time, Array(secTransaction), expensesTransaction, order)
         
       case FullExecution(order, time, price, quantity, amount, expenses) =>
-        val fillingAmount = -order.side.signum * amount
-        // @Note fillingAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position add/remove.
-        val secTransaction = SecTransaction(time, price, order.side.signum * quantity, fillingAmount, order)
+        val transactionAmount = -order.side.signum * amount
+        // @Note transactionAmount/fillingQuantity should consider signum for SecurityTransaction, which causes money in/out, position add/remove.
+        val secTransaction = SecTransaction(time, price, order.side.signum * quantity, transactionAmount, order)
         
         TradeTransaction(time, Array(secTransaction), ExpensesTransaction(time, -expenses, order), order)
     }
