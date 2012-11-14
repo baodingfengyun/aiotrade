@@ -56,7 +56,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   protected var tradeStartIdx: Int = -1
   protected def isTradeStarted: Boolean = tradeStartIdx >= 0
 
-  private val closingScheduler = new ScheduledThreadPoolExecutor(1)
+  private val taskScheduler = new ScheduledThreadPoolExecutor(1)
   private case object GoTrading
   private case class GoBacktest(fromTime: Long, toTime: Long)
   private val backtestDone = new SyncVar[Boolean]()
@@ -97,13 +97,11 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           val isClosed = ser.isClosed(idx)
           log.info("TSerEvent.Updated (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", isClosed=" + isClosed + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
           if (idx >= currentReferIdx) {
-            currentReferIdx = idx
-            
+
             if (!isClosed) {
               doOpen(idx) // will do whenever unclosed quote is updated 
             } else {
               if (idx > closedReferIdx) { // will do only once
-                closedReferIdx = idx
                 doClose(idx)
               }
             }
@@ -124,16 +122,9 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           try {
             val lastIdx = timestamps.length - 1
             if (lastIdx >= 0 && lastIdx > closedReferIdx) { // will do only once
-              closedReferIdx = lastIdx
-              
               if (freq == TFreq.DAILY) { // daily close
-                val closingTask = new Runnable {
-                  def run {
-                    doClose(lastIdx)
-                  }
-                }
+                doClose(lastIdx, 20, TimeUnit.MINUTES)
                 log.info("Daily closing, will doClose in 20 minuts.")
-                closingScheduler.schedule(closingTask, 20, TimeUnit.MINUTES)
               } else {
                 doClose(lastIdx) 
               }
@@ -192,8 +183,6 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     // listenTo(referSer)
     val lastIdx = timestamps.length - 1
     if (lastIdx >= 0 && referSer.isClosed(lastIdx)) {
-      currentReferIdx = lastIdx
-      closedReferIdx = lastIdx
       doClose(lastIdx)
     }
     
@@ -223,10 +212,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     
     var i = fromIdx
     while (i <= toIdx) {
-      currentReferIdx = i
       doOpen(i)
-      
-      closedReferIdx = i
       doClose(i)
       
       i += 1
@@ -275,7 +261,22 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * It could be trigged by an opened event
    * @Todo we can also define actions atPreOpen, atOpening etc...
    */
-  def doOpen(referIdx: Int) {
+  def doOpen(referIdx: Int, delay: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
+    currentReferIdx = referIdx
+    
+    if (delay == 0) {
+      doOpenTask(referIdx)
+    } else {
+      val task = new Runnable {
+        def run {
+          doOpenTask(referIdx)
+        }
+      }
+      taskScheduler.schedule(task, delay, unit)
+    }
+  }
+  
+  protected def doOpenTask(referIdx: Int) {
     atOpen(referIdx)
     
     executeOrdersOf(referIdx)
@@ -285,7 +286,24 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * Main entrance of trading server at period referIdx when it's closed.
    * It could be trigged by a closed event
    */
-  def doClose(referIdx: Int) {
+  def doClose(referIdx: Int, delay: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
+    currentReferIdx = referIdx
+    closedReferIdx = referIdx
+
+    if (delay == 0) {
+      doCloseTask(referIdx)
+    } else {
+      val task = new Runnable {
+        def run {
+          doCloseTask(referIdx)
+        }
+      }
+      taskScheduler.schedule(task, delay, unit)
+    }
+    
+  }
+  
+  protected def doCloseTask(referIdx: Int) {
     log.info("doClose(" + referIdx + "): going to update positions price.")
     updatePositionsPrice
       
