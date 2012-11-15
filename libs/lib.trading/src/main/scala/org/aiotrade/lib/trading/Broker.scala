@@ -42,8 +42,12 @@ abstract class Broker extends Publisher {
   def getSymbolBySecurity(sec: Sec)
   def accounts: Array[Account]
   
+  /**
+   * For those secs that are not registed to Exchange, for example a temporary futureIndex
+   */
+  val specialSecs = new mutable.HashMap[String, Sec]()
   val executingOrders = new mutable.HashMap[Sec, mutable.HashSet[Order]]()
-
+  
   /**
    * Update account's funds, positions etc to newest status
    */
