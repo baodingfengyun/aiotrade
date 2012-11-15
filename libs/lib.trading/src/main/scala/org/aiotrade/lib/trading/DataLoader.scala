@@ -50,7 +50,7 @@ class DataLoader(val sec: Sec,
     //}
     // @todo above code seems will miss adjust() call due to lost of TSer.Loaded evt, need to dig later, just use a plain securities.loadSer(sec, freq)
     for (freq <- quoteFreqs) {
-      log.info("Loading " + symbol + " freq")
+      log.info("Loading " + symbol + freq)
       securities.loadSer(sec, freq, true)
     }
 
