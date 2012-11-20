@@ -20,7 +20,7 @@ Make sure you've installed JavaFX 2.0. Then set 'javafx.home' property in your m
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <javafx.home>${user.home}/myapps/javafx-sdk2.1.0-beta</javafx.home>
+                <javafx.home>${user.home}/myapps/javafx-sdk2.1.0-beta/rt</javafx.home>
             </properties>
         </profile>
     </profiles>
