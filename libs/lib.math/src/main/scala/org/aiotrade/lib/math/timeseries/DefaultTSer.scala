@@ -257,7 +257,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
              ", checkedCursor=" + tsLogCheckedCursor +
              ", log=" + tlog)
     } catch {
-      case ex => log.log(Level.WARNING, "exception", ex)
+      case ex: Throwable => log.log(Level.WARNING, "exception", ex)
     } finally {
       writeLock.unlock
       //timestamps.readLock.unlock

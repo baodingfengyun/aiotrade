@@ -146,7 +146,7 @@ class GenericDatumWriter[T] protected (private var root: Schema, data: GenericDa
     out.writeMapStart()
     out.setItemCount(size)
     datum match {
-      case map: java.util.Map[AnyRef, AnyRef] => 
+      case map: java.util.Map[_, _] => 
         val itr = map.entrySet.iterator
         while (itr.hasNext) {
           val entry = itr.next
@@ -154,7 +154,7 @@ class GenericDatumWriter[T] protected (private var root: Schema, data: GenericDa
           writeString(entry.getKey, out)
           write(value, entry.getValue, out)
         }
-      case map: collection.Map[AnyRef, AnyRef] => map.size
+      case map: collection.Map[_, _] => map.size
         val itr = map.iterator
         while (itr.hasNext) {
           val entry = itr.next

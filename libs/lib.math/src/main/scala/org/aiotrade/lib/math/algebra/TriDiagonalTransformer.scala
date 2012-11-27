@@ -60,7 +60,7 @@ protected[algebra] class TriDiagonalTransformer(matrix: Matrix) {
   def getQT: Matrix = {
     if (cachedQt == null) {
       val m = householderVectors.length
-      val qta = new Array[Array[Double]](m, m)
+      val qta = Array.ofDim[Double](m, m)
 
       // build up first part of the matrix by applying Householder transforms
       var k = m - 1
@@ -111,7 +111,7 @@ protected[algebra] class TriDiagonalTransformer(matrix: Matrix) {
   def getT: Matrix = {
     if (cachedT == null) {
       val m = main.length;
-      val ta = new Array[Array[Double]](m, m)
+      val ta = Array.ofDim[Double](m, m)
       var i = 0
       while (i < m) {
         ta(i)(i) = main(i)

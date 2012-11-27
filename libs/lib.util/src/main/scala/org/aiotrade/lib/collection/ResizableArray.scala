@@ -11,11 +11,7 @@
 
 package org.aiotrade.lib.collection
 
-
-import scala.collection.generic.CanBuildFrom
-import scala.collection.generic.GenericCompanion
-import scala.collection.generic.GenericTraversableTemplate
-import scala.collection.generic.SeqFactory
+import scala.collection.generic._
 import scala.collection.mutable.Builder
 import scala.collection.mutable.IndexedSeqOptimized
 
@@ -70,6 +66,19 @@ trait ResizableArray[A] extends IndexedSeq[A]
     array(idx) = elem
   }
 
+  override 
+  def foreach[U](f: A =>  U) {
+    // size is cached here because profiling reports a lot of time spent calling
+    // it on every iteration.  I think it's likely a profiler ghost but it doesn't
+    // hurt to lift it into a local.
+    var i = 0
+    val top = size
+    while (i < top) {
+      f(array(i).asInstanceOf[A])
+      i += 1
+    }
+  }
+
   /** Fills the given array <code>xs</code> with at most `len` elements of
    *  this traversable starting at position `start`.
    *  Copying will stop once either the end of the current traversable is reached or
@@ -82,16 +91,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
   override 
   def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
     val len1 = len min (xs.length - start) min length
-    Array.copy(array, 0, xs, start, len1)
-  }
-
-  override 
-  def foreach[U](f: A =>  U) {
-    var i = 0
-    while (i < size) {
-      f(array(i).asInstanceOf[A])
-      i += 1
-    }
+    scala.compat.Platform.arraycopy(array, 0, xs, start, len1)
   }
 
   //##########################################################################
@@ -116,7 +116,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
       while (n > newsize)
         newsize = newsize * 2
       val newar: Array[A] = makeArray(newsize)
-      Array.copy(array, 0, newar, 0, size0)
+      scala.compat.Platform.arraycopy(array, 0, newar, 0, size0)
       array = newar
     }
   }
@@ -132,7 +132,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
   /** Move parts of the array.
    */
   protected def copy(m: Int, n: Int, len: Int) {
-    Array.copy(array, m, array, n, len)
+    scala.compat.Platform.arraycopy(array, m, array, n, len)
   }
 }
 

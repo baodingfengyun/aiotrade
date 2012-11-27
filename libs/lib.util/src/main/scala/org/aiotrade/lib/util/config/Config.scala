@@ -111,7 +111,7 @@ object Config {
         val is = new FileInputStream(file)
         if (is != null) props.load(is)
         is.close
-      } catch {case _ =>}
+      } catch {case _: Throwable =>}
     }
   }
 
@@ -143,7 +143,7 @@ object Config {
         }
       }
       in.close
-    } catch {case _ =>}
+    } catch {case _: Throwable =>}
     props
   }
 

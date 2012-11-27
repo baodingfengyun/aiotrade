@@ -82,7 +82,8 @@ class Installer extends ModuleInstall {
 
   private val Bundle = ResourceBundle.getBundle("org.aiotrade.modules.ui.windows.Bundle")
 
-  override def restored {
+  override 
+  def restored {
     doRealCheck
     //doCheckWhenUIReady
   }
@@ -134,8 +135,8 @@ class Installer extends ModuleInstall {
 
     // load config file
     val configFilePath = configFile.getCanonicalPath
-    org.aiotrade.lib.util.config.Config(configFilePath)
     log.info("Config file is " + configFilePath)
+    org.aiotrade.lib.util.config.Config(configFilePath)
 
     val dataPath = System.getProperty("netbeans.user") + File.separator + "data"
     val dataDir = new File(dataPath)
@@ -154,13 +155,13 @@ class Installer extends ModuleInstall {
     UserOptionsManager.assertLoaded
 
     /* if (!isSymbolNodesAdded) {
-      val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
-      ProgressUtils.showProgressDialogAndRun(new Runnable {
-          def run {
-            addSymbolsFromDB(handle)
-          }
-        }, handle, true)
-    } */
+     val handle = ProgressHandleFactory.createHandle(Bundle.getString("MSG_CreateSymbolNodes"))
+     ProgressUtils.showProgressDialogAndRun(new Runnable {
+     def run {
+     addSymbolsFromDB(handle)
+     }
+     }, handle, true)
+     } */
 
     // run some task in background
 //    SwingUtilities.invokeLater(new Runnable {
@@ -210,10 +211,11 @@ class Installer extends ModuleInstall {
 
     // add symbols to exchange folder
     val symbolsToFolder = mutable.Map[String, DataFolder]()
-    for (exchange <- activeExchanges;
-         exchangeFolder = DataFolder.create(rootFolder, exchange.code);
-         symbol <- Exchange.symbolsOf(exchange)
-    ) {
+    for {
+      exchange <- activeExchanges
+      exchangeFolder = DataFolder.create(rootFolder, exchange.code)
+      symbol <- Exchange.symbolsOf(exchange)
+    } {
       symbolsToFolder.put(symbol, exchangeFolder)
     }
 
@@ -231,7 +233,8 @@ class Installer extends ModuleInstall {
     log.info("Created symbols node files from db in " + ((System.currentTimeMillis - start) / 1000.0) + "s")
   }
 
-  override def closing: Boolean = {
+  override 
+  def closing: Boolean = {
     PersistenceManager().shutdown
         
     super.closing

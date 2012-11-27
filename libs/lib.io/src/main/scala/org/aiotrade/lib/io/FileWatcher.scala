@@ -4,6 +4,7 @@ import java.io.File
 import java.util.Date
 import java.util.Timer
 import java.util.TimerTask
+import org.aiotrade.lib.util.actors.Publisher
 
 object FileWatcher {
   // ----- simple test
@@ -19,7 +20,7 @@ object FileWatcher {
   }
 }
 
-class FileWatcher(file: File) extends TimerTask with scala.swing.Publisher {
+class FileWatcher(file: File) extends TimerTask with Publisher {
   private var timeStamp: Long = file.lastModified
 
   final def run {

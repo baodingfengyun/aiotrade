@@ -159,7 +159,7 @@ object NaturalCalendar {
     val day_e = DATE_FORMAT.lastIndexOf('D')
     val month_l = month_e - month_s + 1
     val year_l = year_e - year_s + 1
-    "Todo"
+    //"Todo"
   }
 
   def main(args: Array[String]): Unit = {

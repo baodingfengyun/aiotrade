@@ -59,7 +59,7 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
               zipEntries = getZipEntries(zipFile)
               log.info("Unziping " + zipFile.getName)
             } catch {
-              case ex => 
+              case ex: Throwable => 
                 log.log(Level.WARNING, "Bad zip file, please check the zip format of file using jar " + 
                         "or did you copy a zip file to here directly? You sould copy it to " + 
                         "here with a tmp file name (not end with .zip, then rename it to .zip file). " +
@@ -99,7 +99,7 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
 
       (zipFile.getInputStream(zipFile.getEntry(entry)), entry, fileToDelete)
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); (null, "", null)
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); (null, "", null)
     }
   }
 
@@ -112,7 +112,7 @@ class DirWatchedFileFeeder(watchingDir: String, fileFilter: FileFilter, period: 
         zFile.getEntry(entry.getName) // test if it's corrupted, if no, may throws Exception
         zFileList.add(entry.getName)
       } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
       }
     }
     // sort by the file name.

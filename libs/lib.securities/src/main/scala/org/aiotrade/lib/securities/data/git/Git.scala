@@ -79,7 +79,7 @@ object Git {
           deleteDir(gitDir)
           log.info(gitDir.getAbsolutePath + " deleted: " + !gitDir.exists)
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex) 
         }
       }
     
@@ -100,7 +100,7 @@ object Git {
       log.info("Cloned in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
       Option(git)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
   }
   
@@ -114,7 +114,7 @@ object Git {
     val pullResult = try {
       Option(cmd.call)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
     log.info("Pulled in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
     
@@ -130,7 +130,7 @@ object Git {
     try {
       cmd.call
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
     log.info("Added all in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
@@ -145,7 +145,7 @@ object Git {
     try {
       cmd.call
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
     log.info("Committed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
@@ -160,7 +160,7 @@ object Git {
     try {
       cmd.call
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex) 
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex) 
     }
     log.info("Pushed in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
   }
@@ -173,7 +173,7 @@ object Git {
       val repo = openGitRepository(gitDir)
       Option(new org.eclipse.jgit.api.Git(repo))
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
   }
   
@@ -213,7 +213,7 @@ object Git {
       }
       dir.delete
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
     }
   }
   

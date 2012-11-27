@@ -133,9 +133,11 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
    *    to generate wrong code for match {case .. case ..}
    * 2. Don't write to unapply(evtMsg: Msg[_]), which will cause sth like:
    *    msg match {case => StrEvt("") => ... } doesn't work
+   * 3. Don't write to: case Msg(`tag`, value: T) if ClassHelper.isInstance(tpe, value), which
+   *    will cause Primitives types of value match failure
    */
   def unapply(evtMsg: Any): Option[T] = evtMsg match {
-    case Msg(`tag`, value: T) if ClassHelper.isInstance(tpe, value) =>
+    case Msg(`tag`, value) if ClassHelper.isInstance(tpe, value) =>
       // we will do 1-level type arguments check, and won't deep check it's type parameter anymore
       value match {
         case x: collection.Seq[_] =>
@@ -145,16 +147,16 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
             if (!ClassHelper.isInstance(t, vs.next)) 
               return None
           }
-          Some(value)
-        case x: Product if ClassHelper.isTuple(x) =>
+          Some(value.asInstanceOf[T])
+        case x: Product if ClassHelper.isTuple(x.asInstanceOf[AnyRef]) =>
           val vs = x.productIterator
           val ts = tpeParams.iterator
           while (vs.hasNext) {
             if (!ClassHelper.isInstance(ts.next, vs.next)) 
               return None
           }
-          Some(value)
-        case _ => Some(value)
+          Some(value.asInstanceOf[T])
+        case _ => Some(value.asInstanceOf[T])
       }
     case _ => None
   }
@@ -256,7 +258,7 @@ object Evt {
   
   // -- simple test
   def main(args: Array[String]) {
-    //testMatch
+    testMatch
     testObject
     testTransientField
 //    testPrimitives
@@ -328,15 +330,23 @@ object Evt {
     }
     
     /** But we'd like a more concise approach: */
-    def advancedMatch(v: Any) = v match {
-      case EmpEvt(_) => println("Matched emp evt2"); true
+    def advancedMatch(v: Any): Boolean = v match {
+      // @todo, for Scala 2.10.0: error: error during expansion of this match (this is a scalac bug).
+      // The underlying error was: type mismatch;
+      //  found   : Unit
+      //  required: <notype>
+      //    def advancedMatch(v: Any): Boolean = v match {
+      //                                           ^
+      // We have to change 'case EmpEvt(_)' to 'case EmpEvt()'
+      //case EmpEvt(_) => println("Matched emp evt2"); true
+      case EmpEvt() => println("Matched emp evt2"); true
       case StringEvt("a")  => println("Matched with value equals: " + v + " => " + "a"); true
       case StringEvt(aval) => println("Matched: " + v + " => " + aval); true
       case IntEvt(aval) => println("Matched: " + v + " => " + aval); true
       case ArrayEvt(aval) => println("Matched: " + v + " => " + aval); true
       case ListEvt(aval@List(a: String, b: String)) => println("Matched: " + v + " => " + aval); true
       case TupleEvt(aint: Int, astr: String, adou: Double, xs: Array[TestData]) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
-      case BadEmpEvt => println("Matched emp evt"); true
+      case BadEmpEvt => println("Matched emp evt"); true 
       case _ => println("Unmatched: " + v); false
     }
   }
@@ -460,7 +470,7 @@ private[avro] object TestAPIs {
   val TupleEvt = Evt[(Int, String, Double, Array[TestData])](-12, "id, name, value")
   val TEvt = Evt[(Int, String, collection.Map[String, Array[Int]])](-14, "")
 
-  val BadEmpEvt = Evt(-13) // T will be AnyRef
+  val BadEmpEvt = Evt(-13) // T will be AnyRef or Nothing(scala 2.10.0)
   
   val TestDataEvt = Evt[TestData](-100)
   val TestTransientFieldEvt = Evt[TestTransientField](-101)
@@ -496,8 +506,7 @@ private[avro] object TestAPIs {
     override def toString = "TestTransientField(" + pubVar + ", " + priVar + ", " + pubTrans + ", " + priTrans + ")" 
   }
 
-  @serializable
-  class PriceCollection extends BelongsToSec with TVal with Flag  {
+  class PriceCollection extends BelongsToSec with TVal with Flag with Serializable  {
     @transient
     val cal = Calendar.getInstance
     private var map = mutable.Map[String, PriceDistribution]()

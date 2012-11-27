@@ -175,7 +175,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
 
       Left(conn)
     } catch {
-      case ex => Right(ex)
+      case ex: Throwable => Right(ex)
     }
 
     connectTry match {
@@ -192,7 +192,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           publish(AMQPConnected)
         }
         catch{
-          case ex => // don't log ex here, we hope ShutdownListener will give us the cause
+          case ex: Throwable => // don't log ex here, we hope ShutdownListener will give us the cause
             log.log(Level.SEVERE, ex.getMessage, ex)
             publish(AMQPDisconnected)
             // @Note **only** when there is none created connection, we'll try to reconnect here,
@@ -228,7 +228,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         consumer foreach {case x: DefaultConsumer => _ch.basicCancel(x.getConsumerTag)}
         _ch.close
       } catch {
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
       }
     }
 
@@ -239,7 +239,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           _conn.close
           log.log(Level.FINEST, "Disconnected AMQP connection at %s:%s [%s]", Array(factory.getHost, factory.getPort, this))
         } catch {
-          case _ =>
+          case _: Throwable =>
         }
       }
     }
@@ -312,7 +312,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         _ch.basicPublish(exchange, routingKey, mandatory, immediate, outProps, body)
         log.fine(content + " sent: routingKey=" + routingKey + " size=" + body.length)
       } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
       }
     }
   }
@@ -327,11 +327,11 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           _ch.queueDelete(queue)
           log.info("Deleted queue: " + queue)
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
         }
       } catch {
         case ex: IOException => // queue doesn't exist
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
       }
     }
   }
@@ -356,7 +356,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
           //              false to acknowledge just the supplied delivery tag.
           _channel.basicAck(_envelope.getDeliveryTag, false)
         } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
         }
       }
     }
@@ -418,7 +418,7 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
       }
     }
   }

@@ -238,8 +238,8 @@ protected object FastMathResources {
   private def loadTable2d(name: String, len: Int, rowLen: Int): Array[Array[Double]] = {
     try {
       val dis = in(name)
-      val b = new Array[Byte](BYTES_IN_DOUBLE * rowLen)
-      val data = new Array[Array[Double]](len, rowLen)
+      val b = Array.ofDim[Byte](BYTES_IN_DOUBLE * rowLen)
+      val data = Array.ofDim[Double](len, rowLen)
       val bBuf = ByteBuffer.wrap(b)
 
       var i = 0
@@ -272,7 +272,7 @@ protected object FastMathResources {
   private def transpose(data: Array[Array[Double]]): Array[Array[Double]] = {
     val rowLen = data.length
     val len = data(0).length
-    val tData = new Array[Array[Double]](len, rowLen)
+    val tData = Array.ofDim[Double](len, rowLen)
 
     var i = 0
     while (i < len) {

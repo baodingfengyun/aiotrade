@@ -111,7 +111,7 @@ object YahooTickerServer extends TickerServer with Singleton {
       if (is == null) None else Some(if (gzipped) new GZIPInputStream(is) else is)
     } catch {
       case e: SocketTimeoutException => None
-      case e => None
+      case e: Throwable => None
     }
   }
 

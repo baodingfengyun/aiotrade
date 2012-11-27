@@ -165,7 +165,7 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               bBuf.get(bytes)
               new String(bytes, charsetName)
             } catch {
-              case _ => ""
+              case _: Throwable => ""
             }
           case 'D' =>
             try {
@@ -182,7 +182,7 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
 
               cal.getTime
             } catch {
-              case _ => null // this field may be empty or may have improper value set
+              case _: Throwable => null // this field may be empty or may have improper value set
             } 
 
           case 'F' =>
@@ -193,7 +193,7 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               parseFloat(bytes)
             } catch {
               case ex: NumberFormatException => 0.0F // throw new IOException("Failed to parse Float: " + ex.getMessage)
-              case _ => 0.0F
+              case _: Throwable => 0.0F
             }
 
           case 'N' =>
@@ -204,7 +204,7 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               parseDouble(bytes)
             } catch {
               case ex: NumberFormatException => 0.0 // throw new IOException("Failed to parse Number: " + ex.getMessage)
-              case _ => 0.0
+              case _: Throwable => 0.0
             }
 
           case 'L' =>
@@ -243,7 +243,7 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               
               cal.getTime
             } catch {
-              case _ => null // this field may be empty or may have improper value set
+              case _: Throwable => null // this field may be empty or may have improper value set
             }
           case 'I' =>
             try{
@@ -251,7 +251,7 @@ class DBFReader private (input: Either[FileChannel, InputStream], charsetName: S
               bBuf.get(bytes)
               parseInt(bytes)
             } catch{
-              case _ => 0
+              case _: Throwable => 0
             }
           case _ => "null"
         }
@@ -358,12 +358,12 @@ object DBFReader {
     try {
       new DBFReader(Left(fileChannel), charsetName)
     } catch {
-      case ex => 
+      case ex: Throwable => 
         if (fileChannel != null) {
           try {
             fileChannel.close
           } catch {
-            case _ =>
+            case _: Throwable =>
           }
         }
 

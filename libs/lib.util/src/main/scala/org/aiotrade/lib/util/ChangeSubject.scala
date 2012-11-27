@@ -103,11 +103,11 @@ trait ChangeSubject {
 //    }
 //  }
 
-  def observers: Collection[ChangeObserver] = {
+  def observers: Iterable[ChangeObserver] = {
     observerToOwner.keySet
   }
 
-  def observersOf[T <: ChangeObserver](observerType: Class[T]): Collection[T] = {
+  def observersOf[T <: ChangeObserver](observerType: Class[T]): Iterable[T] = {
     val result = new ListBuffer[T]
     for (observer <- observerToOwner.keysIterator if observerType.isInstance(observer)) {
       result += observer.asInstanceOf[T]

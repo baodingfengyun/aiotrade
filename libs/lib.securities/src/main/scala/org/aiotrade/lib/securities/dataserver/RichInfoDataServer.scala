@@ -109,7 +109,6 @@ abstract class RichInfoDataServer extends DataServer[RichInfo] {
       log.info("Publish RichInfoSnapshots :" + allRichInfo.size)
       RichInfoDataServer.publish(RichInfoSnapshots(allRichInfo.toList))
     }
-    updatedEvents
 
     var lastTime = Long.MinValue
     updatedEvents foreach {

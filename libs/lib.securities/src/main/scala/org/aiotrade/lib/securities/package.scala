@@ -108,7 +108,7 @@ package object securities {
           ) ORDER_BY (q.time DESC) list()
         ) toArray
     
-      case _ => Array()
+      case _ => Array[Quote]()
     }
     
     val referTimes = new ArrayList[Long]()
@@ -395,7 +395,7 @@ package object securities {
   }
 
   def reportInds(inds: Seq[_ <: Indicator]) {
-    inds foreach {x => println(x.toString)}
+    inds foreach {x: Indicator => println(x.toString)}
   }
 
 

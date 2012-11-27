@@ -56,8 +56,8 @@ class HashBiMap[A, B](forward: ConcurrentHashMap[A, B], backward: ConcurrentHash
 
   def -=(key: A): this.type = {
     forward.get(key) match {
-      case v: B => backward.remove(v)
       case null =>
+      case v: B => backward.remove(v)
     }
 
     forward.remove(key)

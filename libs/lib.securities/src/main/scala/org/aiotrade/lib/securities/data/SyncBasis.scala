@@ -237,13 +237,13 @@ abstract class SyncBasis {
       
       log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
     } finally {
       if (jarFile != null) {
         try {
           jarFile.close
         } catch {
-          case _ =>
+          case _: Throwable =>
         }
       }
     }

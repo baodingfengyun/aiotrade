@@ -74,7 +74,7 @@ class Util {
     sname: String,
     quoteServer: Class[_],
     tickerServer: Class[_]
-  ): Collection[Reference[AnalysisChartViewContainer]] = {
+  ): Iterable[Reference[AnalysisChartViewContainer]] = {
 
     val leftPaneWidth = 240
     
@@ -98,7 +98,7 @@ class Util {
     val supportOneMin = dailyQuoteContract.isFreqSupported(TFreq.ONE_MIN)
     val oneMinQuoteContract = createQuoteContract(symbol, category, sname, TFreq.ONE_MIN, supportOneMin, quoteServer)
     val tickerContract =
-      if (tickerServer != null) {
+      if (tickerServer ne null) {
         createTickerContract(symbol, category, sname, TFreq.ONE_MIN, tickerServer)
       } else null
 

@@ -88,7 +88,6 @@ class AdjustYfactorAction extends CallableSystemAction {
   override def getToolbarPresenter: Component = {
 
     val name = NbBundle.getMessage(this.getClass,"CTL_AdjustYfactorAction")
-    name
         
     yslider = new JSlider(SwingConstants.VERTICAL);
     yslider.setPaintTrack(true);

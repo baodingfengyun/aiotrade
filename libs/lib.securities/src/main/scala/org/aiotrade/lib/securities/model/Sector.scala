@@ -444,7 +444,7 @@ object Sector {
       println("Finished in " + (System.currentTimeMillis - t0) / 1000.0 + "s")
       System.exit(0)
     } catch {
-      case ex => ex.printStackTrace; System.exit(1)
+      case ex: Throwable => ex.printStackTrace; System.exit(1)
     }
   }
 }
@@ -471,7 +471,7 @@ object Sectors extends CRCLongPKTable[Sector] {
     val res = try {
       SELECT (Sectors.*) FROM (Sectors) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res map (_.key)
   }
@@ -480,7 +480,7 @@ object Sectors extends CRCLongPKTable[Sector] {
     try {
       SELECT (Sectors.*) FROM (Sectors) WHERE (Sectors.category EQ category) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -492,7 +492,7 @@ object Sectors extends CRCLongPKTable[Sector] {
     try {
       SELECT (Secs.*) FROM (SectorSecs JOIN Secs) WHERE (SectorSecs.sector.field EQ Sectors.idOf(sector)) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -505,7 +505,7 @@ object Sectors extends CRCLongPKTable[Sector] {
     try {
       SELECT (Sectors.*) FROM (Sectors) WHERE ((Sectors.category EQ category) AND (Sectors.code EQ code)) unique()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
   }
 
@@ -518,17 +518,17 @@ object Sectors extends CRCLongPKTable[Sector] {
     val sectorsHolder = try {
       SELECT(Sectors.*) FROM (Sectors) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     val secsHolder = try {
       SELECT(Secs.*) FROM (Secs) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     val sectorSecs = try {
       SELECT (SectorSecs.*) FROM (SectorSecs) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     for (sectorSec <- sectorSecs) {
       if (sectorSec.sector != null && sectorSec.sec != null) {
@@ -560,17 +560,17 @@ object Sectors extends CRCLongPKTable[Sector] {
     val secsHolder = try {
       SELECT(Secs.*) FROM (Secs) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     val sectorsHolder = try {
       SELECT(Sectors.*) FROM (Sectors) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     val sectorSecs = try {
       SELECT (SectorSecs.*) FROM (SectorSecs) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     for (sectorSec <- sectorSecs) {
       if (sectorSec.sec ne null) {

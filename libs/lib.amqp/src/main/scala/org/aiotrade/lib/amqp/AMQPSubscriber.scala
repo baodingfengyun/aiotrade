@@ -134,7 +134,7 @@ class AMQPSubscriber(factory: ConnectionFactory, exchange: String, isAutoAck: Bo
         try {
           ch.queueDeclare(queue.name, queue.durable, queue.exclusive, queue.autoDelete, null)
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
         }
       
         ch.basicConsume(queue.name, cs.asInstanceOf[AMQPConsumer].isAutoAck, cs)

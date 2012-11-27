@@ -57,7 +57,7 @@ object Function {
           idToFunction.putIfAbsent(id, function)
           function
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); null.asInstanceOf[T]
         }
       case x => x.asInstanceOf[T]
     }

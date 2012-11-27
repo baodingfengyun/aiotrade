@@ -234,7 +234,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
    * GenericArray}.*/
   protected def peekArray(array: Any): Any = {
     array match {
-      case x: GenericArray[AnyRef] => x.peek
+      case x: GenericArray[_] => x.peek
       case _ => null
     }
   }

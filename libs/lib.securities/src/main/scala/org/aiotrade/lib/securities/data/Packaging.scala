@@ -57,7 +57,7 @@ object Packaging {
     try {
       Git.clone(destPath, sourceUri, branch = branch)
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
     }
     
     val dotGit = new File(destPath, ".git")

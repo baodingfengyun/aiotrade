@@ -258,7 +258,7 @@ object Tickers extends TickersTable {
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res match {
       case Seq(one) =>
@@ -277,7 +277,7 @@ object Tickers extends TickersTable {
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time DESC) LIMIT (2) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res match {
       case Seq() =>
@@ -302,7 +302,7 @@ object Tickers extends TickersTable {
         (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (dailyRoundedTime, dailyRoundedTime + ONE_DAY - 1))
       ) ORDER_BY (Tickers.time) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -312,7 +312,7 @@ object Tickers extends TickersTable {
         Tickers.sec.field EQ Secs.idOf(sec)
       ) ORDER_BY (Tickers.time DESC) LIMIT (1) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res.headOption match {
       case Some(time) =>
@@ -324,7 +324,7 @@ object Tickers extends TickersTable {
             (Tickers.sec.field EQ Secs.idOf(sec)) AND (Tickers.time BETWEEN (rounded, rounded + ONE_DAY - 1))
           ) ORDER_BY (Tickers.time) list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         }
       case None => Nil
     }
@@ -358,7 +358,7 @@ object Tickers extends TickersTable {
 
           } list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         }
         res foreach {x => map.put(x.sec, x)}
 
@@ -387,7 +387,7 @@ object Tickers extends TickersTable {
 
       } list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res foreach {x => map.put(x.sec, x)}
 
@@ -422,7 +422,7 @@ object Tickers extends TickersTable {
     val res = try {
       SELECT (Tickers.time) FROM (Tickers JOIN Secs) WHERE (Secs.exchange.field EQ Exchanges.idOf(exchange)) ORDER_BY (Tickers.time DESC) LIMIT (1) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res.headOption
   }
@@ -439,7 +439,7 @@ object TickersLast extends TickersTable {
         (Secs.exchange.field EQ Exchanges.idOf(exchange))
       ) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res foreach {x => map.put(x.sec, x)}
 
@@ -465,7 +465,7 @@ object TickersLast extends TickersTable {
             (this.time BETWEEN (rounded, rounded + ONE_DAY - 1)) AND (Secs.exchange.field EQ Exchanges.idOf(exchange))
           ) list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
         res foreach {x => map.put(x.sec, x)}
 
@@ -485,7 +485,7 @@ object TickersLast extends TickersTable {
         Secs.exchange.field EQ Exchanges.idOf(exchange)
       ) ORDER_BY (this.time DESC) LIMIT (1) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res.headOption
   }

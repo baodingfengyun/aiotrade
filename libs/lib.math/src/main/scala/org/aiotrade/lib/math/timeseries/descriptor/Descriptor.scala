@@ -150,7 +150,7 @@ abstract class Descriptor[S](
           val klass = Class.forName(serviceClassName, true, classLoader)
           
           getScalaSingletonInstance(klass) match {
-            case Some(x) if x.isInstanceOf[S] => Option(x.asInstanceOf[S])
+            case Some(x: S) => Option(x)
             case _ => Option(klass.newInstance.asInstanceOf[S])
           }
         } catch {
@@ -188,7 +188,8 @@ abstract class Descriptor[S](
     Array[Action]()
   }
   
-  override def clone: Descriptor[S] = {
+  override 
+  def clone: Descriptor[S] = {
     try {
       super.clone.asInstanceOf[Descriptor[S]]
     } catch {

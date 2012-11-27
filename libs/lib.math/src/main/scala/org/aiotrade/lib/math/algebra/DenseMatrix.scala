@@ -78,7 +78,7 @@ class DenseMatrix protected (private var values: Array[Array[Double]]) extends A
   def assign(matrix: DenseMatrix): Matrix = {
     // make sure the data field has the correct length
     if (matrix.values(0).length != this.values(0).length || matrix.values.length != this.values.length) {
-      this.values = new Array[Array[Double]](matrix.values.length, matrix.values(0).length)
+      this.values = Array.ofDim[Double](matrix.values.length, matrix.values(0).length)
     }
     // now copy the values
     var i = 0
@@ -152,6 +152,6 @@ object DenseMatrix {
   }
 
   def apply(rows: Int, columns: Int) = {
-    new DenseMatrix(new Array[Array[Double]](rows,  columns))
+    new DenseMatrix(Array.ofDim[Double](rows,  columns))
   }
 }

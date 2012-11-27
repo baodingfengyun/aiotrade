@@ -190,7 +190,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
           ) foreach {x => map.put(x.price.toString, x)}
         }
         catch{
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
         }
 
         map.isTransient = map.isEmpty
@@ -213,7 +213,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
       ) foreach {x => map.put(x.price.toString, x)}
     }
     catch{
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     map.time = date
@@ -356,7 +356,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         this.insertBatch_!(inserts.toArray)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 
@@ -369,7 +369,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
       ) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res foreach {x => exists.put(x.sec -> x.price, x)}
 
@@ -390,7 +390,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         this.insertBatch_!(inserts.toArray)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
   

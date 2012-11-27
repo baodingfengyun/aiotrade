@@ -402,7 +402,7 @@ abstract class TickerServer extends DataServer[Ticker] {
         log.info("Committed")
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     // Update exchange status and try to close and save updated quotes, moneyflows etc

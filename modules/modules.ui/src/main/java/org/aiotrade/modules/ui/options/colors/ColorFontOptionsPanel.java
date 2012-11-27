@@ -35,7 +35,6 @@ import java.io.InputStream;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import org.aiotrade.lib.charting.chart.QuoteChart;
-import org.aiotrade.lib.charting.chart.QuoteChart$Type$;
 import org.aiotrade.lib.charting.laf.CityLights;
 import org.aiotrade.lib.charting.laf.Gray;
 import org.aiotrade.lib.charting.laf.LookFeel;
@@ -51,6 +50,7 @@ import org.aiotrade.lib.securities.QuoteSer;
 import org.aiotrade.lib.securities.model.*;
 import org.aiotrade.lib.securities.dataserver.QuoteContract;
 import org.aiotrade.lib.securities.dataserver.QuoteServer;
+import org.aiotrade.modules.ui.JavaWrapper;
 import org.openide.ErrorManager;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -75,7 +75,7 @@ public class ColorFontOptionsPanel extends javax.swing.JPanel {
                 });
         lafBox.setModel(lafModel);
 
-        ComboBoxModel quoteChartTypeModel = new DefaultComboBoxModel(QuoteChart$Type$.MODULE$.values());
+        ComboBoxModel quoteChartTypeModel = new DefaultComboBoxModel(JavaWrapper.QuoteChartType().MODULE$.values());
         quoteChartTypeBox.setModel(quoteChartTypeModel);
     }
     private AnalysisChartViewContainer previewContainer;

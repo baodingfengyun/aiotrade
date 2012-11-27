@@ -34,8 +34,8 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
     tql2()
 
   } else {
-    H = new Array[Array[Double]](n, n)
-    ort = new Array[Double](n)
+    H = Array.ofDim[Double](n, n)
+    ort = Array.ofDim[Double](n)
 
     var j = 0
     while (j < n) {
@@ -80,7 +80,7 @@ final class EigenvalueDecomposition(V: Array[Array[Double]]) {
    * @return <tt>D</tt>
    */
   def getD: Matrix = {
-    val D = new Array[Array[Double]](n, n)
+    val D = Array.ofDim[Double](n, n)
     var i = 0
     while (i < n) {
       var j = 0

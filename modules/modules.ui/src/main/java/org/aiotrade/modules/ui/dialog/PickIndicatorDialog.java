@@ -39,9 +39,9 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import org.aiotrade.lib.charting.view.ChartViewContainer;
 import org.aiotrade.lib.math.timeseries.BaseTSer;
-import org.aiotrade.lib.math.timeseries.TUnit$Day$;
 import org.aiotrade.lib.indicator.Indicator;
 import org.aiotrade.lib.securities.PersistenceManager$;
+import org.aiotrade.modules.ui.JavaWrapper;
 import org.aiotrade.modules.ui.windows.AnalysisChartTopComponent;
 import scala.collection.mutable.Map;
 
@@ -118,7 +118,7 @@ public class PickIndicatorDialog extends javax.swing.JDialog {
             nameMapResult.put("unit", baseSer.freq().unit());
         } else {
             nameMapResult.put("nUnits", new Integer(1));
-            nameMapResult.put("unit", TUnit$Day$.MODULE$);
+            nameMapResult.put("unit", JavaWrapper.TUnitDay().MODULE$);
         }
 
     }

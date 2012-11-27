@@ -1,6 +1,6 @@
 package org.aiotrade.lib.collection
 
-import scala.actors.threadpool.locks.ReentrantReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import scala.collection.generic.CanBuildFrom
 import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
@@ -15,9 +15,14 @@ class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends
   val readLock  = readWriteLock.readLock
   val writeLock = readWriteLock.writeLock
 
-  override def empty: WeakIdentityBiHashMap[A, B] = new WeakIdentityBiHashMap[A, B]
-  override def clear() = clearTable
-  override def size: Int = {
+  override 
+  def empty: WeakIdentityBiHashMap[A, B] = new WeakIdentityBiHashMap[A, B]
+
+  override 
+  def clear() = clearTable
+
+  override 
+  def size: Int = {
     if (tableSize == 0) return 0
     expungeStaleEntries
     tableSize
@@ -35,7 +40,8 @@ class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends
     else Some(e.key)
   }
 
-  override def put(key: A, value: B): Option[B] = {
+  override 
+  def put(key: A, value: B): Option[B] = {
     val e = findEntry(key)
     
     if (e == null) {
@@ -56,9 +62,11 @@ class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends
     }
   }
 
-  override def update(key: A, value: B): Unit = put(key, value)
+  override 
+  def update(key: A, value: B): Unit = put(key, value)
 
-  override def remove(key: A): Option[B] = {
+  override 
+  def remove(key: A): Option[B] = {
     val e = removeEntry(key)
     if (e ne null) Some(e.value)
     else None
@@ -75,27 +83,34 @@ class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends
 
   def iterator = entriesIterator map {e => (e.key, e.value)}
 
-  override def foreach[C](f: ((A, B)) => C): Unit = foreachEntry(e => f(e.key, e.value))
+  override 
+  def foreach[C](f: ((A, B)) => C): Unit = foreachEntry(e => f(e.key, e.value))
 
   /* Override to avoid tuple allocation in foreach */
-  override def keySet: collection.Set[A] = new DefaultKeySet {
-    override def foreach[C](f: A => C) = foreachEntry(e => f(e.key))
+  override 
+  def keySet: collection.Set[A] = new DefaultKeySet {
+    override 
+    def foreach[C](f: A => C) = foreachEntry(e => f(e.key))
   }
 
   /* Override to avoid tuple allocation in foreach */
-  override def values: collection.Iterable[B] = new DefaultValuesIterable {
-    override def foreach[C](f: B => C) = foreachEntry(e => f(e.value))
+  override 
+  def values: collection.Iterable[B] = new DefaultValuesIterable {
+    override 
+    def foreach[C](f: B => C) = foreachEntry(e => f(e.value))
   }
 
   /* Override to avoid tuple allocation */
-  override def keysIterator: Iterator[A] = new Iterator[A] {
+  override 
+  def keysIterator: Iterator[A] = new Iterator[A] {
     val iter = entriesIterator
     def hasNext = iter.hasNext
     def next = iter.next.key
   }
 
   /* Override to avoid tuple allocation */
-  override def valuesIterator: Iterator[B] = new Iterator[B] {
+  override 
+  def valuesIterator: Iterator[B] = new Iterator[B] {
     val iter = entriesIterator
     def hasNext = iter.hasNext
     def next = iter.next.value

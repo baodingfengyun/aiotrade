@@ -11,15 +11,15 @@
 
 package org.aiotrade.lib.collection
 
-import scala.collection.generic.CanBuildFrom
-import scala.collection.generic.GenericCompanion
-import scala.collection.generic.GenericTraversableTemplate
-import scala.collection.generic.SeqFactory
+import scala.collection.CustomParallelizable
+import scala.collection.generic._
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.BufferLike
 import scala.collection.mutable.Builder
 import scala.collection.mutable.IndexedSeqOptimized
+import scala.collection.mutable.Seq
 import scala.collection.mutable.WrappedArray
+import scala.collection.parallel.mutable.ParArray
 
 
 /** An implementation of the <code>Buffer</code> class using an array to
@@ -37,15 +37,34 @@ import scala.collection.mutable.WrappedArray
  *  
  *  @note Don't add @specialized in front of A, which will generate a shadow array and waste memory
  */
-@serializable @SerialVersionUID(1529165946227428979L)
-class ArrayList[A](override protected val initialSize: Int, protected val elementClass: Class[A] = null)(protected implicit val m: Manifest[A]
-) extends Buffer[A]
-     with GenericTraversableTemplate[A, ArrayList]
-     with BufferLike[A, ArrayList[A]]
-     with IndexedSeqOptimized[A, ArrayList[A]]
-     with Builder[A, ArrayList[A]]
-     with ResizableArray[A] {
 
+/** Explicit instantiation of the `Buffer` trait to reduce class file size in subclasses. */
+private[collection] abstract class collectionAbstractTraversable[+A] extends scala.collection.Traversable[A]
+private[collection] abstract class collectionAbstractIterable[+A] extends collectionAbstractTraversable[A] with scala.collection.Iterable[A]
+private[collection] abstract class collectionAbstractSeq[+A] extends collectionAbstractIterable[A] with scala.collection.Seq[A]
+private[collection] abstract class AbstractSeq[A] extends collectionAbstractSeq[A] with Seq[A]
+private[collection] abstract class AbstractBuffer[A] extends AbstractSeq[A] with Buffer[A]
+
+@SerialVersionUID(1529165946227428979L)
+class ArrayList[A](override protected val initialSize: Int, protected val elementClass: Class[A] = null
+)(protected implicit val m: Manifest[A]) extends AbstractBuffer[A]
+                                            with Buffer[A]
+                                            with GenericTraversableTemplate[A, ArrayList]
+                                            with BufferLike[A, ArrayList[A]]
+                                            with IndexedSeqOptimized[A, ArrayList[A]]
+                                            with Builder[A, ArrayList[A]]
+                                            with ResizableArray[A] 
+                                            with CustomParallelizable[A, ParArray[A]] 
+                                            with Serializable {
+  
+  /**
+   * We have to override this seq method to fix:
+   * error: overriding method seq in trait Seq of type => scala.collection.mutable.Seq[A];
+   * method seq in trait IndexedSeq of type => IndexedSeq[A] has incompatible type
+   */
+  override 
+  def seq: ArrayList[A] = this
+  
   override 
   def companion: GenericCompanion[ArrayList] = ArrayList
 
@@ -59,17 +78,19 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
   def sizeHint(len: Int) {
     if (len > size && len >= 1) {
       val newarray = makeArray(len)
-      Array.copy(array, 0, newarray, 0, size0)
+      scala.compat.Platform.arraycopy(array, 0, newarray, 0, size0)
       array = newarray
     }
   }
+  
+  override 
+  def par = ParArray.handoff[A](array.asInstanceOf[Array[A]], size)  
   
   /** Appends a single element to this buffer and returns
    *  the identity of the buffer. It takes constant time.
    *
    *  @param elem  the element to append.
    */
-  override 
   def +(elem: A): this.type =  {
     ensureSize(size0 + 1)
     array(size0) = elem
@@ -92,7 +113,6 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *
    *  @param xs  the itertable object.
    */
-  override
   def ++(xs: TraversableOnce[A]): this.type =  {
     val len = xs match {
       case xs: IndexedSeq[A] => xs.length
@@ -132,7 +152,6 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *
    *  @param elem  the element to append.
    */
-  
   def +:(elem: A): this.type = {
     ensureSize(size0 + 1)
     copy(0, 1, size0)
@@ -194,7 +213,7 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
     seq match {
       /** a Traversable Array instance will always be converted to WrappedArray, @see https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
       case xs: WrappedArray[A] =>
-        Array.copy(xs.array, 0, array, n, len)
+        scala.compat.Platform.arraycopy(xs.array, 0, array, n, len)
       case _ =>
         seq.copyToArray(array, n)
     }
@@ -255,43 +274,43 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    */
   def toArray: Array[A] = {
     val res = makeArray(length)
-    Array.copy(array, 0, res, 0, length)
+    scala.compat.Platform.arraycopy(array, 0, res, 0, length)
     res
   }
   
   override 
   def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
-    Array.copy(array, 0, xs, start, len)
+    scala.compat.Platform.arraycopy(array, 0, xs, start, len)
   }
 
   def sliceToArray(start: Int, len: Int): Array[A] = {
     val res = makeArray(len)
-    Array.copy(array, start, res, 0, len)
+    scala.compat.Platform.arraycopy(array, start, res, 0, len)
     res
   }
 
   def sliceToArrayList(start: Int, len: Int): ArrayList[A] = {
     val res = new ArrayList(len)
-    Array.copy(array, start, res.array, 0, len)
+    scala.compat.Platform.arraycopy(array, start, res.array, 0, len)
     res
   }
 
   // --- overrided methods for performance
 
   override 
-  def head: A = {
+  final def head: A = {
     if (isEmpty) throw new NoSuchElementException
     else apply(0)
   }
 
   override 
-  def last: A = {
+  final def last: A = {
     if (isEmpty) throw new NoSuchElementException
     else apply(size - 1)
   }
 
   override 
-  def reverse: ArrayList[A] = {
+  final def reverse: ArrayList[A] = {
     val reversed = new ArrayList[A](this.size)
     var i = 0
     while (i < size) {

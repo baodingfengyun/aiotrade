@@ -113,7 +113,7 @@ object SyncUtil {
       println("Finished!")
       System.exit(0)
     } catch {
-      case ex => 
+      case ex: Throwable => 
         ex.printStackTrace
         println("Error! see aiotrade.log at project root for more information.")
         System.exit(-1)
@@ -288,13 +288,13 @@ object SyncUtil {
       
         log.info("Extract data to " + destPath + " in " + (System.currentTimeMillis - t0) + "ms")
       } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
       } finally {
         if (jarFile != null) {
           try {
             jarFile.close
           } catch {
-            case _ =>
+            case _: Throwable =>
           }
         }
       }

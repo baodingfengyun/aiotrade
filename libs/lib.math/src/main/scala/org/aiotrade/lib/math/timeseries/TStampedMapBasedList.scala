@@ -140,7 +140,8 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     array
   }
     
-  override def copyToArray[B >: A](xs: Array[B], start: Int) {
+  override 
+  def copyToArray[B >: A](xs: Array[B], start: Int) {
     val length = timestamps.size
     var i = 0
     while (i < length) {
@@ -148,8 +149,6 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
       xs(i) = timeToElementData.get(time).asInstanceOf[B]
       i += 1
     }
-        
-    xs
   }
     
   def add(time: Long, elem:A): Boolean = {

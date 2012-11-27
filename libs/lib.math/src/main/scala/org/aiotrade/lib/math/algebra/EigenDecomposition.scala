@@ -458,7 +458,7 @@ object EigenDecomposition {
    */
   def apply(main: Array[Double], secondary: Array[Double], splitTolerance: Double): EigenDecomposition = {
     val size = main.length
-    val householder = new Array[Array[Double]](size, size)
+    val householder = Array.ofDim[Double](size, size)
     var i = 0
     while (i < size) {
       householder(i)(i) = 1.0
@@ -522,8 +522,8 @@ object EigenDecomposition {
       }
 
       val nColB = b.numCols
-      val bp = new Array[Array[Double]](m, nColB)
-      val tmpCol = new Array[Double](m)
+      val bp = Array.ofDim[Double](m, nColB)
+      val tmpCol = Array.ofDim[Double](m)
       var k = 0
       while (k < nColB) {
         var i = 0
@@ -583,7 +583,7 @@ object EigenDecomposition {
       }
 
       val m = realEigenvalues.length
-      val invData = new Array[Array[Double]](m, m)
+      val invData = Array.ofDim[Double](m, m)
 
       var i = 0
       while (i < m) {

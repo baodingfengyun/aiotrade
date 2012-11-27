@@ -151,7 +151,7 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
       }
       newone
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); null 
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); null 
     }
   }
 

@@ -26,7 +26,7 @@ object GwoyeuRomatzyhConverter {
   } catch {
     case ex: FileNotFoundException => throw ex
     case ex: IOException => throw ex
-    case ex => throw ex
+    case ex: Throwable => throw ex
   }
 
   /**
@@ -55,7 +55,7 @@ object GwoyeuRomatzyhConverter {
       }
 
     } catch {
-      case ex => ex.printStackTrace
+      case ex: Throwable => ex.printStackTrace
     }
 
     gwoyeuStr

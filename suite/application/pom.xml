@@ -164,6 +164,12 @@
         </dependency>
         <dependency>
             <groupId>org.aiotrade</groupId>
+            <artifactId>org-apache-avro</artifactId>
+            <version>${project.version}</version>
+            <type>nbm</type>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
             <artifactId>org-apache-commons</artifactId>
             <version>${project.version}</version>
             <type>nbm</type>

@@ -83,7 +83,7 @@ object AMQPRelay {
       publisher.connect
 
       //Check the publisher's connection firstly to avoid losing the message on master
-      try{ Thread.sleep(5000) } catch {case e =>}
+      try{ Thread.sleep(5000) } catch {case e: Throwable =>}
       if(!publisher.isConnected) {
         log.severe("AMQPRelay consumer cannot establish connection, please check the conection configuration. Existing...")
         System.exit(1)

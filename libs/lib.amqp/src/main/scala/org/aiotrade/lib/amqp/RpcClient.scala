@@ -184,7 +184,7 @@ class RpcClient($factory: ConnectionFactory, $reqExchange: String) extends AMQPD
     try {
       checkConsumer
     } catch {
-      case ex =>
+      case ex: Throwable =>
         log.warning(ex.getMessage)
         syncVar.set(Evt.Error(ex.getMessage))
         return syncVar

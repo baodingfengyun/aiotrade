@@ -174,7 +174,7 @@ class RealTimeWatchListPanel extends JPanel with Reactor {
     }
     // default sort order and precedence
     val sortKeys = new java.util.ArrayList[RowSorter.SortKey]
-    sortKeys.add(new RowSorter.SortKey(colKeys.findIndexOf(_ == PERCENT), javax.swing.SortOrder.DESCENDING))
+    sortKeys.add(new RowSorter.SortKey(colKeys.indexWhere(_ == PERCENT), javax.swing.SortOrder.DESCENDING))
     sorter.setSortKeys(sortKeys)
     // @Note sorter.setSortsOnUpdates(true) almost work except that the cells behind sort key
     // of selected row doesn't refresh, TableRowSorter.sort manually

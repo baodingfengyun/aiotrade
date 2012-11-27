@@ -5088,7 +5088,7 @@ protected object FastMathLiteralArrays {
    * 
    * @Note: To evade the 64K byte-code size limit on a method, I have to write the code as it:
    */
-  private val LN_MANT = new Array[Array[Double]](1024, 2) 
+  private val LN_MANT = Array.ofDim[Double](1024, 2) 
   private var i = -1
   load_LN_MANT_0
   load_LN_MANT_1

@@ -43,7 +43,6 @@ abstract class RichInfoHisDataServer extends DataServer[RichInfo] {
         case _ =>
       }
     }
-    updatedEvents
     
     var lastTime = Long.MinValue
     updatedEvents foreach {

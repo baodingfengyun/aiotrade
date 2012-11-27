@@ -481,8 +481,6 @@ object TStampsFactory {
         
     override def isEmpty = delegateTimestamps.isEmpty
         
-    override def elements = delegateTimestamps.elements
-
     override def iterator = delegateTimestamps.iterator
 
     override def toArray[B >: Long](implicit m: ClassManifest[B]): Array[B] = delegateTimestamps.toArray(m)
@@ -503,7 +501,7 @@ object TStampsFactory {
 
     def insert(n:Int, elems: Long) = delegateTimestamps.insert(n, elems)
 
-    override def insertAll(n: Int, seq: Traversable[Long]) = {delegateTimestamps.insertAll(n, seq); this}
+    override def insertAll(n: Int, seq: Traversable[Long]) = {delegateTimestamps.insertAll(n, seq)}
         
     override def clear = delegateTimestamps.clear
         

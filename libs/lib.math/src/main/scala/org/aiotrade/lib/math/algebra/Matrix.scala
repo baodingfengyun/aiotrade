@@ -441,7 +441,7 @@ object Matrix {
   def toArray(m: Matrix): Array[Array[Double]] = {
     checkSquare(m)
     val n = m.numCols
-    val V = new Array[Array[Double]](n, n)
+    val V = Array.ofDim[Double](n, n)
     for (slice <- m) {
       val row = slice.index
       for (element <- slice.vector) {

@@ -128,7 +128,7 @@ class IndicatorGroupDescriptor extends GroupDescriptor[IndicatorDescriptor] {
           descriptor.lookupAction(classOf[ViewAction]) foreach {_.execute}
         }
       } catch {
-        case ex => log.log(Level.WARNING, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
       }
             
     }

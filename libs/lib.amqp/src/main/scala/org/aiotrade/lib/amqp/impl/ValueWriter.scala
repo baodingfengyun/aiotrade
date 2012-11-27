@@ -97,7 +97,7 @@ class ValueWriter(out: DataOutputStream) {
 
   /** Public API - encodes a table. */
   @throws(classOf[IOException])
-  final def writeTable(table: Map[String, _]) {
+  final def writeTable(table: Map[String, Any]) {
     if (table == null) {
       // Convenience.
       out.writeInt(0)
@@ -145,8 +145,7 @@ class ValueWriter(out: DataOutputStream) {
         writeOctet(v.scale)
         val unscaled = v.unscaledValue
         if(unscaled.bitLength > 32) /*Integer.SIZE in Java 1.5*/
-          throw new IllegalArgumentException
-        ("BigDecimal too large to be encoded")
+          throw new IllegalArgumentException("BigDecimal too large to be encoded")
         writeLong(v.unscaledValue().intValue)
       case v: Date =>
         writeOctet('T')

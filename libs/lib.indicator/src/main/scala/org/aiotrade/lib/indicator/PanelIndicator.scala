@@ -163,7 +163,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
 object PanelIndicator extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private val idToIndicator = new ConcurrentHashMap[Id[_ <: PanelIndicator[_]], PanelIndicator[_]]
+  private val idToIndicator = new ConcurrentHashMap[Id[_ <: PanelIndicator[_ <: Indicator]], PanelIndicator[_ <: Indicator]]
 
   private val runtime = Runtime.getRuntime
   private case object PanelHeartBeat
@@ -198,7 +198,7 @@ object PanelIndicator extends Publisher {
     Id(klass, sectorKey, args: _*)
   }
   
-  def apply[T <: PanelIndicator[_]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): (T, Boolean) = {
+  def apply[T <: PanelIndicator[_ <: Indicator]](klass: Class[T], sectorKey: String, freq: TFreq, factors: Factor*): (T, Boolean) = {
     val id = idOf(klass, sectorKey, freq, factors: _*)
     
     idToIndicator.get(id) match {
@@ -214,7 +214,7 @@ object PanelIndicator extends Publisher {
           log.info("Started panel indicator: " + indicator.descriptor + ", indicators count: " + indicatorCount)
           (indicator, true)
         } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex); (null.asInstanceOf[T], false)
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); (null.asInstanceOf[T], false)
         }
       case x => (x.asInstanceOf[T], false)
     }

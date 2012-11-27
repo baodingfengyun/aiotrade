@@ -59,7 +59,7 @@ class RpcClientPool(factory: ConnectionFactory, exchange: String, maxIdle: Int, 
     try {
       client.connect
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     client

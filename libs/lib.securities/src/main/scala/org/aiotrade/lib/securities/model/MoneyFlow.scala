@@ -352,7 +352,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
 
       mfs
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -386,7 +386,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
 
       mfs
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
   
@@ -403,7 +403,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res foreach {x => exists.put(x.time, x)}
 
@@ -417,7 +417,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
 
       this.insertBatch_!(inserts.toArray)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
   
@@ -430,7 +430,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
         (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
       ) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res foreach {x => exists.put(x.sec, x)}
 
@@ -456,7 +456,7 @@ abstract class MoneyFlows extends Table[MoneyFlow] with TableEx{
         this.insertBatch_!(inserts.toArray)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 }
@@ -479,7 +479,7 @@ object MoneyFlows1d extends MoneyFlows {
             (this.time EQ dailyRoundedTime)
           ) list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         }
         res foreach {x =>
           if (x.amountNet >= 0){
@@ -523,7 +523,7 @@ object MoneyFlows1d extends MoneyFlows {
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res headOption match {
       case Some(one) =>
@@ -581,7 +581,7 @@ object MoneyFlows1m extends MoneyFlows {
             (this.time EQ minuteRoundedTime)
           ) list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
         res foreach {x =>
           if (x.amountNet >= 0){
@@ -625,7 +625,7 @@ object MoneyFlows1m extends MoneyFlows {
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res headOption match {
       case Some(one) =>
@@ -717,7 +717,7 @@ abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
         (this.sector.field EQ Sectors.idOf(sector)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res foreach {x => exists.put(x.time, x)}
 
@@ -731,7 +731,7 @@ abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
 
       this.insertBatch_!(inserts.toArray)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 
@@ -744,7 +744,7 @@ abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
         (this.time EQ atSameTime) AND (this.sector.field GT 0) AND (this.sector.field LT CRCLongId.MaxId )
       ) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res foreach {x => exists.put(x.sec, x)}
 
@@ -770,7 +770,7 @@ abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
         this.insertBatch_!(inserts.toArray)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 
@@ -784,7 +784,7 @@ abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
 
       mfs
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -806,7 +806,7 @@ abstract class SectorMoneyFlows extends Table[MoneyFlow] with TableEx{
 
       mfs
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -919,7 +919,7 @@ object MoneyFlow {
         mfs += mf
       }
     } catch {
-      case ex => log.warning(ex.getMessage)
+      case ex: Throwable => log.warning(ex.getMessage)
     }
 
     mfs.toArray

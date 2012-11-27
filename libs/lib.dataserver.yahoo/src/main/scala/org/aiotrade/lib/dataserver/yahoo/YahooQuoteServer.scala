@@ -233,7 +233,7 @@ object YahooQuoteServer extends QuoteServer with Singleton {
   override def icon: Option[Image] = {
     try {
       Option(ImageIO.read(new File("org/aiotrade/lib/dataserver/yahoo/resources/favicon_yahoo.png")))
-    } catch {case _ => None}
+    } catch {case _: Throwable => None}
   }
 
   val displayName = "Yahoo! Finance Internet"

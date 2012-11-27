@@ -244,7 +244,7 @@ abstract class Quotes extends Table[Quote] with TableEx {
       list1 foreach{ x => x.lastModify = x.time}
       list1
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -264,7 +264,7 @@ abstract class Quotes extends Table[Quote] with TableEx {
       list1 foreach{ x => x.lastModify = x.time}
       list1
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -281,7 +281,7 @@ abstract class Quotes extends Table[Quote] with TableEx {
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time GE frTime) AND (this.time LE toTime)
       ) ORDER_BY (this.time) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res foreach {x => exists.put(x.time, x)}
 
@@ -295,7 +295,7 @@ abstract class Quotes extends Table[Quote] with TableEx {
 
       this.insertBatch_!(inserts.toArray)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
   
@@ -308,7 +308,7 @@ abstract class Quotes extends Table[Quote] with TableEx {
         (this.time EQ atSameTime) AND (this.sec.field GT 0) AND (this.sec.field LT CRCLongId.MaxId )
       ) list()
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
     res foreach {x => exists.put(x.sec, x)}
 
@@ -334,7 +334,7 @@ abstract class Quotes extends Table[Quote] with TableEx {
         this.insertBatch_!(inserts.toArray)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 }
@@ -348,7 +348,7 @@ object Quotes1d extends Quotes {
     val res = try {
       SELECT (this.*) FROM (this) WHERE (this.sec.field EQ Secs.idOf(sec)) ORDER_BY (this.time DESC) LIMIT (1) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     res foreach{ x => x.lastModify = x.time}
@@ -369,7 +369,7 @@ object Quotes1d extends Quotes {
             (this.time EQ dailyRoundedTime)
           ) list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
         res foreach {x => x.lastModify = x.time; map.put(x.sec, x)}
 
@@ -402,7 +402,7 @@ object Quotes1d extends Quotes {
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ dailyRoundedTime)
       ) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res.headOption match {
       case Some(one) =>
@@ -436,7 +436,7 @@ object Quotes1d extends Quotes {
       list1 foreach{ x => x.lastModify = x.time}
       list1
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -450,7 +450,7 @@ object Quotes1d extends Quotes {
       list1 foreach{ x => x.lastModify = x.time}
       list1
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -474,7 +474,7 @@ object Quotes1m extends Quotes {
       list1 foreach{ x => x.lastModify = x.time}
       list1
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -500,7 +500,7 @@ object Quotes1m extends Quotes {
             (this.time EQ minuteRoundedTime)
           ) list
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
         } 
         res foreach {x => x.lastModify = x.time; map.put(x.sec, x)}
 
@@ -532,7 +532,7 @@ object Quotes1m extends Quotes {
         (this.sec.field EQ Secs.idOf(sec)) AND (this.time EQ minuteRoundedTime)
       ) list
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     } 
     res match {
       case Seq(one) =>
@@ -590,7 +590,7 @@ object Quote {
         }
       }
     } catch {
-      case ex => log.warning(ex.getMessage)
+      case ex: Throwable => log.warning(ex.getMessage)
     }
 
     quotes.toArray

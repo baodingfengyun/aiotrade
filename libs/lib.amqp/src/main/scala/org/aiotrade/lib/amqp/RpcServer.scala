@@ -51,7 +51,7 @@ object RpcServer {
 
       conn.close
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
   }
 

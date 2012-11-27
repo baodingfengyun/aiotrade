@@ -66,9 +66,9 @@ object Avro {
       
       out.toByteArray
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array[Byte]()
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); Array[Byte]()
     } finally {
-      if (out != null) try {out.close} catch {case _ =>}
+      if (out != null) try {out.close} catch {case _: Throwable =>}
     }
   }
   
@@ -94,9 +94,9 @@ object Avro {
         case value => Some(value)
       }
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); None
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
     } finally {
-      if (in != null) try {in.close} catch {case _ =>}
+      if (in != null) try {in.close} catch {case _: Throwable =>}
     }
   }
 }

@@ -22,11 +22,19 @@
     
     <name>lib-io</name>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-aiotrade-lib-util</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
                 <configuration>
                     <launchers>
                         <!-- mvn scala:run -Dlauncher=watcher -->

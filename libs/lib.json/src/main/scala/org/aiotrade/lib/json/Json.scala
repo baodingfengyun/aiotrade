@@ -97,7 +97,7 @@ object Json {
       jsonout.jsonWrite(x)
       jsonout.close
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
     }
 
     out.toByteArray

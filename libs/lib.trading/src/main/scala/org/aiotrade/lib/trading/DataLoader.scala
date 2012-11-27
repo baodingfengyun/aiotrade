@@ -17,8 +17,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
  * 
  * @author Caoyuan Deng
  */
-class DataLoader(val sec: Sec, 
-                 quoteFreqs: List[TFreq], indFreqs: List[TFreq],
+class DataLoader(val sec: Sec, quoteFreqs: List[TFreq], indFreqs: List[TFreq],
                  quoteServerClass: String = NullQuoteServer.getClass.getName, 
                  tickerServerClass: String = NullTickerServer.getClass.getName
 ) {

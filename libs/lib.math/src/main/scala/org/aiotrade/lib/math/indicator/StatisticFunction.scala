@@ -334,7 +334,7 @@ object StatisticFunction {
     val begIdx1 = if (fromIdx < 0) 0 else fromIdx
 
     val interval = (max - min) / ((nIntervals - 1) * 1.0)
-    val mass = new Array[Array[Double]](2, nIntervals)
+    val mass = Array.ofDim[Double](2, nIntervals)
     var i = 0
     while (i < nIntervals) {
       mass(VALUE)(i) = min + i * interval
@@ -382,7 +382,7 @@ object StatisticFunction {
     val min = maxmin1(MIN)
     val nIntervals = (((max - min) / interval) + 1).toInt
     val period1 = period(fromIdx, toIdx).toDouble
-    val mass = new Array[Array[Double]](2, nIntervals)
+    val mass = Array.ofDim[Double](2, nIntervals)
     var i = 0
     while (i < nIntervals) {
       mass(VALUE)(i) = min + i * interval

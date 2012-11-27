@@ -26,13 +26,13 @@ class SingularValueDecomposition(arg: Matrix) {
     } else {
       (arg.numRows, arg.numCols)
     }
-  val a = new Array[Array[Double]](m, n)
+  val a = Array.ofDim[Double](m, n)
 
   /** Array for internal storage of singular values. */
-  private val s = new Array[Double](math.min(m + 1, n))
+  private val s = Array.ofDim[Double](math.min(m + 1, n))
   /** Arrays for internal storage of U and V. */
-  private val u = new Array[Array[Double]](m, math.min(m, n))
-  private val v = new Array[Array[Double]](n, n)
+  private val u = Array.ofDim[Double](m, math.min(m, n))
+  private val v = Array.ofDim[Double](n, n)
   
   /** To handle the case where numRows < numCols and to use the fact that SVD(A')=VSU'=> SVD(A')'=SVD(A)**/
   private var transpositionNeeded = false
@@ -49,8 +49,8 @@ class SingularValueDecomposition(arg: Matrix) {
     }
     
     val nu = math.min(m, n)
-    val e = new Array[Double](n)
-    val work = new Array[Double](m)
+    val e = Array.ofDim[Double](n)
+    val work = Array.ofDim[Double](m)
     var wantu = true
     var wantv = true
     
@@ -550,7 +550,7 @@ class SingularValueDecomposition(arg: Matrix) {
    * @return the diagonal matrix of singular values.
    */
   def getS: Matrix = {
-    val s = new Array[Array[Double]](n, n)
+    val s = Array.ofDim[Double](n, n)
     var i = 0
     while (i < n) {
       var j = 0

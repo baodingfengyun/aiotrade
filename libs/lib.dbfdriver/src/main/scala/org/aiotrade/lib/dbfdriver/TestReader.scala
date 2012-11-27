@@ -22,7 +22,7 @@ object TestReader {
     
       System.exit(0)
     } catch {
-      case ex => ex.printStackTrace; System.exit(-1)
+      case ex: Throwable => ex.printStackTrace; System.exit(-1)
     }
   }
 

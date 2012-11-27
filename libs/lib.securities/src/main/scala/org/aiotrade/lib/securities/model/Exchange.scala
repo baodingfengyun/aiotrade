@@ -477,7 +477,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
             doClosing(freq, quotesToClose, mfsToClose, sectorMfsToClose, pdsToClose, alsoSave)
           }
         } catch {
-          case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
         }
       }
     }
@@ -592,7 +592,7 @@ final class Exchange extends CRCLongId with Ordered[Exchange] {
         log.info(this.code + " doClosing: committed.")
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
     
     if (freq == TFreq.DAILY) {
@@ -695,7 +695,7 @@ object Exchange extends Publisher {
 
       log.info("Reset search table in " + (System.currentTimeMillis - t0) + "ms.")
     } catch {
-      case ex => log.severe(ex.getMessage)
+      case ex: Throwable => log.severe(ex.getMessage)
     }
   }
 
@@ -922,7 +922,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         SELECT (Secs.*) FROM (AVRO(Secs)) list() filter (x => x.exchange.code == exchange.code)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     log.info("Secs number of " + exchange.code + "(id=" + exchangeId + ") is " + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -942,7 +942,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list() filter (x => x.sec != null && x.sec.exchange.code == exchange.code)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
   }
 
@@ -957,7 +957,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         SELECT (Secs.*) FROM (AVRO(Secs)) list()
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     log.info("Secs number is "  + secs.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -976,7 +976,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         SELECT (SecInfos.*) FROM (AVRO(SecInfos)) list()
       } filter {x => x.uniSymbol != null && x.uniSymbol.trim != ""}
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     log.info("SecInfos number " +  " is " + secInfos.size + ", loaded in " + (System.currentTimeMillis - t0) + " ms")
@@ -992,7 +992,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
     val res = try {
       SELECT (Secs.*, SecInfos.*) FROM (Secs JOIN SecInfos) WHERE (SecInfos.uniSymbol EQ uniSymbol) unique
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); None
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); None
     }
     res map (_._1)
   }
@@ -1006,7 +1006,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         SELECT (SecDividends.*) FROM (AVRO(SecDividends)) list() filter (div => div.sec eq sec)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     log.info("Got %s div records for %s".format(divs.length, sec.uniSymbol))
@@ -1024,7 +1024,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         SELECT (SecInfos.*) FROM (AVRO(SecInfos)) ORDER_BY(SecInfos.validFrom) list() filter (info => info.sec eq sec)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     val cal = util.calendarOf(sec.exchange.timeZone)
@@ -1059,7 +1059,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
         log.info("Committed: sec_infos" + name)
       }
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
     }
 
     sec
@@ -1087,7 +1087,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
       COMMIT
       log.info("Committed: sec_infos" + name)
     } catch {
-      case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+      case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
     }
 
     secInfo
@@ -1136,7 +1136,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
 
       secsA
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array()
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); Array()
     }
 
   }
@@ -1178,7 +1178,7 @@ object Exchanges extends CRCLongPKTable[Exchange] {
 
       secInfosA
     } catch {
-      case ex => log.log(Level.WARNING, ex.getMessage, ex); Array()
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); Array()
     }
   }
 

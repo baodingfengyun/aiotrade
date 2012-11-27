@@ -166,7 +166,7 @@ object Signal extends Publisher {
 
       System.exit(0)
     } catch {
-      case ex => ex.printStackTrace; System.exit(1)
+      case ex: Throwable => ex.printStackTrace; System.exit(1)
     }
   }
 

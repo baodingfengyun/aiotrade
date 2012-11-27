@@ -24,14 +24,6 @@
 
     <name>AIOTrade Org Libs</name>
 
-    <licenses>
-        <license>
-            <name>BSD</name>
-            <url>http://www.opensource.org/licenses/bsd-license.php</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -39,7 +31,19 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
-            <artifactId>scala-swing</artifactId>
+            <artifactId>scala-reflect</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_${scala.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-actors</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-actors-migration_${scala.version}</artifactId>
         </dependency>
 
         <!-- testing -->
@@ -51,7 +55,7 @@
         <dependency>
             <groupId>org.scala-tools.testing</groupId>
             <artifactId>specs_2.8.1</artifactId>
-            <version>1.6.6</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     
@@ -70,17 +74,20 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <configuration>
+                    <reportPlugins>
+                        <plugin>
+                            <groupId>net.alchim31.maven</groupId>
+                            <artifactId>scala-maven-plugin</artifactId>
+                        </plugin>
+                    </reportPlugins>
+                </configuration>   
+            </plugin>     
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.scala-tools</groupId>
-                <artifactId>maven-scala-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </reporting>
 
     <modules>
         <module>lib.util</module>
@@ -99,17 +106,9 @@
         <module>lib.avro</module>
         <module>helper.test</module>
         <module>lib.sevenzip</module>
+        <module>lib.trading</module>
         <module>../../configgy</module>
         <module>../../circumflex/circumflex-orm</module>
     </modules>
     
-    <profiles>
-        <profile>
-            <id>javafx</id>
-            <modules>
-                <module>lib.trading</module>
-            </modules>
-        </profile>
-    </profiles>
-
 </project>

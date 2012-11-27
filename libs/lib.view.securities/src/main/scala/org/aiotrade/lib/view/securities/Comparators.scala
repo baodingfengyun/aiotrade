@@ -23,7 +23,7 @@ object Comparators {
             val d2 = s12.toDouble
             if (d1 > d2) 1 else if (d1 < d2) -1 else 0
           } catch {
-            case _ => s1 compareTo s2
+            case _: Throwable => s1 compareTo s2
           }
         case _ => 0
       }

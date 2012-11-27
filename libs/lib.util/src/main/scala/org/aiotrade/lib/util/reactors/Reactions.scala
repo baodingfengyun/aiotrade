@@ -27,7 +27,7 @@ object Reactions {
       try {
         for (p <- parts if p isDefinedAt e) p(e)
       } catch {
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
       }
     }
   }

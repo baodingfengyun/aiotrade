@@ -161,7 +161,7 @@ object Frame {
   /** Computes the AMQP wire-protocol length of protocol-encoded table entries.
    */
   @throws(classOf[UnsupportedEncodingException])
-  def tableSize(table: Map[String, _]): Long = {
+  def tableSize(table: Map[String, Any]): Long = {
     var acc = 0L
     for ((key, value) <- table) {
       acc += shortStrSize(key)
@@ -213,7 +213,7 @@ object Frame {
 
   /** Computes the AMQP wire-protocol length of an encoded field-array */
   @throws(classOf[UnsupportedEncodingException])
-  def arraySize(values: List[_]): Long = {
+  def arraySize(values: List[Any]): Long = {
     var acc = 0L
     for (value <- values) {
       acc += fieldValueSize(value)

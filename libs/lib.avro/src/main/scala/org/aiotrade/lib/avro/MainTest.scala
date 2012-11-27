@@ -95,7 +95,7 @@ object MainTest {
     try {
       println(getSchema(v.getClass))
     } catch {
-      case ex => println("Error: " + ex.getMessage)
+      case ex: Throwable => println("Error: " + ex.getMessage)
     }
     
     println(getSchema(classOf[(String, Long)]))

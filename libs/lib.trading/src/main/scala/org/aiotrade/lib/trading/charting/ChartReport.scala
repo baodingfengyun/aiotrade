@@ -55,7 +55,7 @@ class ChartReport(
       }
       dir
     } catch {
-      case ex => throw(ex)
+      case ex: Throwable => throw(ex)
     }
   }
   private val fileDf = new SimpleDateFormat("yyMMddHHmm")
@@ -238,7 +238,7 @@ object ChartReport {
       ImageIO.write(toBufferedImage(container, boundbox), ext, file)
       println("=== Image saved ===")
     } catch {
-      case ex =>
+      case ex: Throwable =>
         log.log(Level.WARNING, ex.getMessage, ex)
         JOptionPane.showMessageDialog(null, "The image couldn't be saved", "Error", JOptionPane.ERROR_MESSAGE)
     }
