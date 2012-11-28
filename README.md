@@ -5,25 +5,10 @@ AIOTrade
 ### Requirement
     
 * Java 1.7+ (Java 1.6 is not supported any more)
-* JavaFX 2.0
+* JavaFX 2.2.3+
 * Maven 2.x/3.x
-* NetBeans 7.1
-
-### Setting javafx.home property for maven
-
-Make sure you've installed JavaFX 2.0. Then set 'javafx.home' property in your maven settings.xml (.m2/settings.xml) to point to this installation. For example:
-
-    <profiles>
-        <profile>
-            <id>javafx</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <javafx.home>${user.home}/myapps/javafx-sdk2.1.0-beta/rt</javafx.home>
-            </properties>
-        </profile>
-    </profiles>
+* NetBeans 7.1+
+* Scala 2.10.0 (Will be downloaded automatically by maven)
 
 ### Source code --- Git
 
