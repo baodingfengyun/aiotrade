@@ -5,12 +5,13 @@ import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 
-@serializable @SerialVersionUID(1L)
-class WeakIdentityHashMap[A, B](
+@SerialVersionUID(1L)
+final class WeakIdentityHashMap[A, B](
   protected implicit val m: Manifest[A]
 ) extends Map[A, B]
      with MapLike[A, B, WeakIdentityHashMap[A, B]]
-     with WeakIdentityHashTable[A, B] {
+     with WeakIdentityHashTable[A, B]
+     with Serializable {
 
   override def empty: WeakIdentityHashMap[A, B] = new WeakIdentityHashMap[A, B]
   override def clear() = clearTable

@@ -303,9 +303,7 @@ object TStampsFactory {
 
     override 
     def clone: TStamps = {
-      val res = new TStampsOnOccurred(this.size)
-      res ++= this
-      res
+      new TStampsOnOccurred(this.size) ++= this
     }
 
     class ItrOnOccurred(freq: TFreq, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TStampsIterator {
@@ -402,6 +400,30 @@ object TStampsFactory {
         cursorRow - 1
       }
     }
+    
+    // --- methods inherited from traits
+
+    def result: TStampsOnOccurred = this
+
+    override 
+    def reverse: TStampsOnOccurred = {
+      val reversed = new TStampsOnOccurred(size)
+      var i = 0
+      while (i < size) {
+        reversed(i) = apply(size - 1 - i)
+        i += 1
+      }
+      reversed
+    }
+
+    /**
+     * @todo
+     */
+    @deprecated
+    override 
+    def partition(p: Long => Boolean): (TStampsOnOccurred, TStampsOnOccurred) = {
+      throw new UnsupportedOperationException()
+    }
   }
     
     
@@ -477,45 +499,64 @@ object TStampsFactory {
         
     def lastOccurredTime = delegateTimestamps.lastOccurredTime
 
-    override def size = delegateTimestamps.size
+    override
+    def size = delegateTimestamps.size
         
-    override def isEmpty = delegateTimestamps.isEmpty
+    override
+    def isEmpty = delegateTimestamps.isEmpty
         
-    override def iterator = delegateTimestamps.iterator
+    override
+    def iterator = delegateTimestamps.iterator
 
-    override def toArray[B >: Long](implicit m: ClassManifest[B]): Array[B] = delegateTimestamps.toArray(m)
+    override
+    def toArray[B >: Long](implicit m: ClassManifest[B]): Array[B] = delegateTimestamps.toArray(m)
         
-    override def toArray: Array[Long] = delegateTimestamps.toArray
+    override
+    def toArray: Array[Long] = delegateTimestamps.toArray
     
-    override def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
+    override 
+    def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
 
-    override def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)
+    override 
+    def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)
         
-    override def +(elem: Long) = {delegateTimestamps + elem; this}
+    override 
+    def +(elem: Long) = {delegateTimestamps + elem; this}
         
-    override def remove(idx: Int) = delegateTimestamps.remove(idx)
+    override 
+    def remove(idx: Int) = delegateTimestamps.remove(idx)
         
-    override def contains(elem: Any) = delegateTimestamps.contains(elem)
+    override 
+    def contains(elem: Any) = delegateTimestamps.contains(elem)
         
-    override def ++(xs: TraversableOnce[Long]) = {delegateTimestamps ++ xs; this}
+    override 
+    def ++(xs: TraversableOnce[Long]) = {delegateTimestamps ++ xs; this}
 
     def insert(n:Int, elems: Long) = delegateTimestamps.insert(n, elems)
 
-    override def insertAll(n: Int, seq: Traversable[Long]) = {delegateTimestamps.insertAll(n, seq)}
+    override 
+    def insertAll(n: Int, seq: Traversable[Long]) = {delegateTimestamps.insertAll(n, seq)}
         
-    override def clear = delegateTimestamps.clear
+    override 
+    def clear = delegateTimestamps.clear
         
-    override def equals(o: Any) = delegateTimestamps.equals(o)
+    override 
+    def equals(o: Any) = delegateTimestamps.equals(o)
         
-    override def hashCode = delegateTimestamps.hashCode
+    override 
+    def hashCode = delegateTimestamps.hashCode
         
-    override def apply(index: Int) = delegateTimestamps.apply(index)
+    override 
+    def apply(index: Int) = delegateTimestamps.apply(index)
         
-    override def update(index: Int, element: Long) = delegateTimestamps.update(index, element)
+    override 
+    def update(index: Int, element: Long) = delegateTimestamps.update(index, element)
                 
-    override def indexOf[B >: Long](o: B) = delegateTimestamps.indexOf(o)
+    override 
+    def indexOf[B >: Long](o: B) = delegateTimestamps.indexOf(o)
         
-    override def lastIndexOf[B >: Long](o: B) = delegateTimestamps.lastIndexOf(o)
+    override 
+    def lastIndexOf[B >: Long](o: B) = delegateTimestamps.lastIndexOf(o)
                         
     def iterator(freq: TFreq): TStampsIterator = {
       new ItrOnCalendar(freq)
@@ -526,10 +567,11 @@ object TStampsFactory {
     }
 
     @transient @volatile
-    protected var modCount:Long = 0
+    protected
+    var modCount: Long = 0
 
-
-    override def clone: TStampsOnCalendar = {
+    override 
+    def clone: TStampsOnCalendar = {
       new TStampsOnCalendar(delegateTimestamps.clone)
     }
 
@@ -622,6 +664,24 @@ object TStampsFactory {
       def previousRow: Int = {cursorRow - 1}
     }
         
+    
+    // --- methods inherited from traits
+
+    def result: TStampsOnCalendar = this
+
+    override 
+    def reverse: TStampsOnCalendar = {
+      new TStampsOnCalendar(delegateTimestamps.reverse.asInstanceOf[TStamps])
+    }
+
+    /**
+     * @todo
+     */
+    @deprecated
+    override 
+    def partition(p: Long => Boolean): (TStampsOnCalendar, TStampsOnCalendar) = {
+      throw new UnsupportedOperationException()
+    }
   }
 }
 

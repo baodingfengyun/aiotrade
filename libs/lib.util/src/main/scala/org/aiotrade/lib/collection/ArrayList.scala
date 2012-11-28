@@ -31,12 +31,86 @@ import scala.collection.parallel.mutable.ParArray
  *  
  *  @author  Matthias Zenger
  *  @author  Martin Odersky
- *  @author  Caoyuan Deng
  *  @version 2.8
  *  @since   1
  *  
+ *  @author  Caoyuan Deng
  *  @note Don't add @specialized in front of A, which will generate a shadow array and waste memory
  */
+
+@SerialVersionUID(1529165946227428979L)
+final class ArrayList[A](  
+  _initialSize: Int, 
+  _elementClass: Class[A] = null
+)(implicit _m: Manifest[A]) extends AbstractArrayList[A](_initialSize, _elementClass)(_m) 
+                               with GenericTraversableTemplate[A, ArrayList]
+                               with BufferLike[A, ArrayList[A]]
+                               with IndexedSeqOptimized[A, ArrayList[A]]
+                               with Builder[A, ArrayList[A]] {
+
+  def this()(implicit m: Manifest[A]) = this(16, null)
+  
+  /**
+   * We have to override this seq method to bypass issues like:
+   * error: overriding method seq in trait Seq of type => scala.collection.mutable.Seq[A];
+   * method seq in trait IndexedSeq of type => IndexedSeq[A] has incompatible type
+   */
+  override 
+  def companion: GenericCompanion[ArrayList] = ArrayList
+  override 
+  def seq: ArrayList[A] = this
+  
+  def result: ArrayList[A] = this
+
+  override 
+  def reverse: ArrayList[A] = {
+    val reversed = new ArrayList[A](size)
+    var i = 0
+    while (i < size) {
+      reversed(i) = apply(size - 1 - i)
+      i += 1
+    }
+    reversed
+  }
+
+  override 
+  def partition(p: A => Boolean): (ArrayList[A], ArrayList[A]) = {
+    val l, r = new ArrayList[A]
+    for (x <- this) (if (p(x)) l else r) += x
+    (l, r)
+  }
+
+  /** Return a clone of this buffer.
+   *
+   *  @return an <code>ArrayList</code> with the same elements.
+   */
+  override 
+  def clone(): ArrayList[A] = new ArrayList[A](size) ++= this
+  
+  def sliceToArrayList(start: Int, len: Int): ArrayList[A] = {
+    val res = new ArrayList(len)
+    scala.compat.Platform.arraycopy(array, start, res.array, 0, len)
+    res
+  }
+}
+
+
+/** Factory object for <code>ArrayBuffer</code> class.
+ *
+ *  @author  Martin Odersky
+ *  @version 2.8
+ *  @since   2.8
+ */
+object ArrayList extends SeqFactory[ArrayList] {
+  implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, ArrayList[A]] = new GenericCanBuildFrom[A]
+  /**
+   * we implement newBuilder for extending SeqFactory only. Since it's with no manifest arg,
+   * we can only create a ArrayList[Any] instead of ArrayList[A], but we'll define another
+   * apply method to create ArrayList[A]
+   */
+  def newBuilder[A]: Builder[A, ArrayList[A]] = new ArrayList[Any]().asInstanceOf[ArrayList[A]]
+  def apply[A: Manifest]() = new ArrayList[A]
+}
 
 /** Explicit instantiation of the `Buffer` trait to reduce class file size in subclasses. */
 private[collection] abstract class collectionAbstractTraversable[+A] extends scala.collection.Traversable[A]
@@ -45,30 +119,29 @@ private[collection] abstract class collectionAbstractSeq[+A] extends collectionA
 private[collection] abstract class AbstractSeq[A] extends collectionAbstractSeq[A] with Seq[A]
 private[collection] abstract class AbstractBuffer[A] extends AbstractSeq[A] with Buffer[A]
 
-@SerialVersionUID(1529165946227428979L)
-class ArrayList[A](override protected val initialSize: Int, protected val elementClass: Class[A] = null
+abstract class AbstractArrayList[A](
+  override
+  protected val initialSize: Int, 
+  protected val elementClass: Class[A]
 )(protected implicit val m: Manifest[A]) extends AbstractBuffer[A]
                                             with Buffer[A]
-                                            with GenericTraversableTemplate[A, ArrayList]
-                                            with BufferLike[A, ArrayList[A]]
-                                            with IndexedSeqOptimized[A, ArrayList[A]]
-                                            with Builder[A, ArrayList[A]]
+                                            with GenericTraversableTemplate[A, AbstractArrayList]
+                                            with BufferLike[A, AbstractArrayList[A]]
+                                            with IndexedSeqOptimized[A, AbstractArrayList[A]]
+                                            with Builder[A, AbstractArrayList[A]]
                                             with ResizableArray[A] 
                                             with CustomParallelizable[A, ParArray[A]] 
                                             with Serializable {
   
   /**
-   * We have to override this seq method to fix:
+   * We have to override this seq method to bupass issues like:
    * error: overriding method seq in trait Seq of type => scala.collection.mutable.Seq[A];
    * method seq in trait IndexedSeq of type => IndexedSeq[A] has incompatible type
    */
   override 
-  def seq: ArrayList[A] = this
-  
+  def companion: GenericCompanion[AbstractArrayList] = AbstractArrayList
   override 
-  def companion: GenericCompanion[ArrayList] = ArrayList
-
-  def this()(implicit m: Manifest[A]) = this(16)
+  def seq: AbstractArrayList[A] = this
 
   def clear() {
     reduceToSize(0)
@@ -246,15 +319,6 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
     result
   }
 
-  /** Return a clone of this buffer.
-   *
-   *  @return an <code>ArrayList</code> with the same elements.
-   */
-  override 
-  def clone(): ArrayList[A] = new ArrayList[A](this.size) ++= this
-
-  def result: ArrayList[A] = this
-
   /** Defines the prefix of the string representation.
    */
   override 
@@ -278,69 +342,36 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
     res
   }
   
-  override 
-  def copyToArray[B >: A](xs: Array[B], start: Int, len: Int) {
-    scala.compat.Platform.arraycopy(array, 0, xs, start, len)
-  }
-
   def sliceToArray(start: Int, len: Int): Array[A] = {
     val res = makeArray(len)
     scala.compat.Platform.arraycopy(array, start, res, 0, len)
     res
   }
 
-  def sliceToArrayList(start: Int, len: Int): ArrayList[A] = {
-    val res = new ArrayList(len)
-    scala.compat.Platform.arraycopy(array, start, res.array, 0, len)
-    res
-  }
-
   // --- overrided methods for performance
 
   override 
-  final def head: A = {
+  def head: A = {
     if (isEmpty) throw new NoSuchElementException
     else apply(0)
   }
 
   override 
-  final def last: A = {
+  def last: A = {
     if (isEmpty) throw new NoSuchElementException
     else apply(size - 1)
   }
 
-  override 
-  final def reverse: ArrayList[A] = {
-    val reversed = new ArrayList[A](this.size)
-    var i = 0
-    while (i < size) {
-      reversed(i) = apply(size - 1 - i)
-      i += 1
-    }
-    reversed
-  }
-
-  override 
-  def partition(p: A => Boolean): (ArrayList[A], ArrayList[A]) = {
-    val l, r = new ArrayList[A]
-    for (x <- this) (if (p(x)) l else r) += x
-    (l, r)
-  }
 }
 
-/** Factory object for <code>ArrayBuffer</code> class.
- *
- *  @author  Martin Odersky
- *  @version 2.8
- *  @since   2.8
- */
-object ArrayList extends SeqFactory[ArrayList] {
-  implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, ArrayList[A]] = new GenericCanBuildFrom[A]
+object AbstractArrayList extends SeqFactory[AbstractArrayList] {
+  implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, AbstractArrayList[A]] = new GenericCanBuildFrom[A]
   /**
    * we implement newBuilder for extending SeqFactory only. Since it's with no manifest arg,
-   * we can only create a ArrayList[AnyRef] instead of ArrayList[A], but we'll define another
+   * we can only create a ArrayList[Any] instead of ArrayList[A], but we'll define another
    * apply method to create ArrayList[A]
    */
-  def newBuilder[A]: Builder[A, ArrayList[A]] = new ArrayList[AnyRef].asInstanceOf[ArrayList[A]]
-  def apply[A: Manifest]() = new ArrayList[A]
+  def newBuilder[A]: Builder[A, AbstractArrayList[A]] = new ArrayList[Any]().asInstanceOf[ArrayList[A]]
 }
+
+

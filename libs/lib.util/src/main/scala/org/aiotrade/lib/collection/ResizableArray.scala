@@ -34,12 +34,13 @@ trait ResizableArray[A] extends IndexedSeq[A]
   
   protected val elementClass: Class[A]
   
-  override def companion: GenericCompanion[ResizableArray] = ResizableArray
+  override 
+  def companion: GenericCompanion[ResizableArray] = ResizableArray
 
   protected def initialSize: Int = 16
   protected[collection] var array: Array[A] = makeArray(initialSize)
 
-  final protected def makeArray(size: Int) = {
+  protected def makeArray(size: Int) = {
     if (elementClass != null) {
       java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
     } else {
@@ -109,7 +110,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
   }
 
   /** ensure that the internal array has at n cells */
-  final protected def ensureSize(n: Int) {
+  protected def ensureSize(n: Int) {
     if (n > array.length) {
       // make sure newsize is not 0 by math.max(array.length, 1)
       var newsize = math.max(array.length, 1) * 2 
@@ -138,5 +139,5 @@ trait ResizableArray[A] extends IndexedSeq[A]
 
 object ResizableArray extends SeqFactory[ResizableArray] {
   implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, ResizableArray[A]] = new GenericCanBuildFrom[A]
-  def newBuilder[A]: Builder[A, ResizableArray[A]] = new ArrayList[AnyRef].asInstanceOf[ArrayList[A]]
+  def newBuilder[A]: Builder[A, ResizableArray[A]] = new ArrayList[Any].asInstanceOf[ArrayList[A]]
 }

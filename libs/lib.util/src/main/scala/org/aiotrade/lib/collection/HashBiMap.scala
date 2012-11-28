@@ -9,10 +9,11 @@ import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 import scala.collection.JavaConversions._
 
-@serializable @SerialVersionUID(1L)
+@SerialVersionUID(1L)
 class HashBiMap[A, B](forward: ConcurrentHashMap[A, B], backward: ConcurrentHashMap[B, A]
 ) extends Map[A, B]
-     with MapLike[A, B, HashBiMap[A, B]] {
+     with MapLike[A, B, HashBiMap[A, B]] 
+     with Serializable {
 
   def this() = this(new ConcurrentHashMap[A, B], new ConcurrentHashMap[B, A])
 

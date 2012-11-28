@@ -30,7 +30,8 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.collection.ArrayList
+import java.util.{Calendar, GregorianCalendar, TimeZone}
+import org.aiotrade.lib.collection.AbstractArrayList
 
 /**
  *
@@ -48,9 +49,11 @@ import org.aiotrade.lib.collection.ArrayList
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
-class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
+final class TStampsLog(initialSize: Int) extends AbstractArrayList[Short](initialSize, null) {
   import TStampsLog._
 
+  def this() = this(16)
+  
   private var _logCursor = -1
   private var _logTime = System.currentTimeMillis
 
@@ -172,6 +175,32 @@ class TStampsLog(initialSize: Int) extends ArrayList[Short](initialSize) {
     }
     sb.toString
   }
+  
+  
+  // --- methods inherited from traits
+
+  def result: TStampsLog = this
+
+  override 
+  def reverse: TStampsLog = {
+    val reversed = new TStampsLog(size)
+    var i = 0
+    while (i < size) {
+      reversed(i) = apply(size - 1 - i)
+      i += 1
+    }
+    reversed
+  }
+
+  override 
+  def partition(p: Short => Boolean): (TStampsLog, TStampsLog) = {
+    val l, r = new TStampsLog()
+    for (x <- this) (if (p(x)) l else r) += x
+    (l, r)
+  }
+
+  override 
+  def clone(): TStampsLog = new TStampsLog(size) ++= this  
 }
 
 object TStampsLog {
@@ -184,14 +213,12 @@ object TStampsLog {
   val NUMBER = 0xC000 // 1100 0000 0000 0000
 }
 
-import java.util.{Calendar,GregorianCalendar,TimeZone}
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 @cloneable
-abstract class TStamps(initialSize: Int) extends ArrayList[Long](initialSize) {
+abstract class TStamps(initialSize: Int) extends AbstractArrayList[Long](initialSize, null) {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
-  private val readWriteLock = new ReentrantReadWriteLock
+  private val readWriteLock = new java.util.concurrent.locks.ReentrantReadWriteLock
   val readLock  = readWriteLock.readLock
   val writeLock = readWriteLock.writeLock
 

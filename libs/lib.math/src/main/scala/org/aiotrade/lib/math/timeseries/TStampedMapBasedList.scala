@@ -30,8 +30,12 @@
  */
 package org.aiotrade.lib.math.timeseries
 
-import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.collection.AbstractArrayList
+import scala.collection.generic._
 import scala.collection.mutable
+import scala.collection.mutable.BufferLike
+import scala.collection.mutable.Builder
+import scala.collection.mutable.IndexedSeqOptimized
 
 /**
  * A package class that implements timestamped Map based List, used to store
@@ -123,17 +127,24 @@ import scala.collection.mutable
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A] {
+final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends AbstractArrayList[A](16, null) 
+                                                                      with GenericTraversableTemplate[A, TStampedMapBasedList]
+                                                                      with BufferLike[A, TStampedMapBasedList[A]]
+                                                                      with IndexedSeqOptimized[A, TStampedMapBasedList[A]]
+                                                                      with Builder[A, TStampedMapBasedList[A]] {
     
   private val timeToElementData = mutable.Map[Long, A]()
 
-  override def size: Int = timestamps.size
+  override 
+  def size: Int = timestamps.size
 
-  override def isEmpty: Boolean = timestamps.isEmpty
+  override 
+  def isEmpty: Boolean = timestamps.isEmpty
     
-  override def contains(o: Any): Boolean = timeToElementData.valuesIterator.contains(o)
+  override 
+  def contains(o: Any): Boolean = timeToElementData.valuesIterator.contains(o)
     
- override def toArray[B >: A : ClassManifest]: Array[B] = {
+  def toArray[B >: A: Manifest]: Array[B] = {
     val length = timestamps.size
     val array = new Array[B](length)
     copyToArray(array, 0)
@@ -177,43 +188,46 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     }
   }
     
-  /**
-   *
-   */
   @deprecated
-  override def +(elem: A): this.type = {
+  override 
+  def +(elem: A): this.type = {
     assert(false, "+(elem:A) is not supported by this collection! " +
            ", please use add(long time, E o)")
     this
   }
     
-  /**
-   * @deprecated
-   */
-  override def insert(n: Int, elems: A*): Unit = {
+  @deprecated
+  override 
+  def insert(n: Int, elems: A*): Unit = {
     assert(false, "insert(n: Int, elems:A*) is not supported by this collection! " +
            ", please use add(long time, E o)")
   }
                     
-  override def clear: Unit = timeToElementData.clear
+  override 
+  def clear {timeToElementData.clear}
     
-  override def equals(o: Any): Boolean = timeToElementData.equals(o)
+  override 
+  def equals(o: Any): Boolean = timeToElementData.equals(o)
     
-  override def hashCode: Int = timeToElementData.hashCode
+  override 
+  def hashCode: Int = timeToElementData.hashCode
 
-  override def apply(n: Int): A = {
+  override 
+  def apply(n: Int): A = {
     val time = timestamps(n)
     if (Null.not(time)) timeToElementData.get(time).get else null.asInstanceOf[A]
   }
     
-  override def update(n: Int, newelem: A) : Unit = {
+  override 
+  def update(n: Int, newelem: A) : Unit = {
     if (n >= 0 && n < timestamps.size) {
       val time = timestamps(n)
       timeToElementData.put(time, newelem)
     } else assert(false, "Index out of bounds! index = " + n)
   }
     
-  override def remove(n: Int): A = {
+  override 
+  def remove(n: Int): A = {
     if (n >= 0 && n < timestamps.size) {
       val time = timestamps(n)
       val e = timeToElementData.get(n).get
@@ -224,7 +238,8 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     }
   }
     
-  override def indexOf[B >: A](elem: B) : Int = {
+  override 
+  def indexOf[B >: A](elem: B) : Int = {
     val itr = timeToElementData.keysIterator
     while (itr.hasNext) {
       val time = itr.next
@@ -236,7 +251,8 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     return -1
   }
     
-  override def lastIndexOf[B >: A](elem: B) : Int = {
+  override 
+  def lastIndexOf[B >: A](elem: B) : Int = {
     var found = -1
     val itr = timeToElementData.keysIterator
     while (itr.hasNext) {
@@ -249,7 +265,8 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
     found
   }
     
-  private def binarySearch(time: Long, left: Int, right: Int) :Int = {
+  private 
+  def binarySearch(time: Long, left: Int, right: Int) :Int = {
     if (left == right) {
       if (timestamps(left) == time) left else -1
     } else {
@@ -261,7 +278,31 @@ class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends ArrayList[A
       }
     }
   }
-    
-    
+  
+  // --- methods inherited from traits
+  
+  @deprecated
+  override 
+  def companion: GenericCompanion[TStampedMapBasedList] = throw new UnsupportedOperationException()
+  
+  def result: TStampedMapBasedList[A] = this
+
+  override 
+  def reverse: TStampedMapBasedList[A] = {
+    new TStampedMapBasedList[A](timestamps.reverse.asInstanceOf[TStamps])
+  }
+
+  @deprecated
+  override 
+  def partition(p: A => Boolean): (TStampedMapBasedList[A], TStampedMapBasedList[A]) = {
+    throw new UnsupportedOperationException
+  }
+
+  /** Return a clone of this buffer.
+   *
+   *  @return an <code>ArrayList</code> with the same elements.
+   */
+  override 
+  def clone(): TStampedMapBasedList[A] = new TStampedMapBasedList[A](timestamps.clone)
 }
 

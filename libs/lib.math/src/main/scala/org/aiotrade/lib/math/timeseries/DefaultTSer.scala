@@ -443,7 +443,8 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
     def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new InnerTVar[V](name, plot)
   }
   
-  protected class InnerTVar[V: Manifest](name: String, plot: Plot
+  protected class InnerTVar[V: Manifest](
+    name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
     var values = new ArrayList[V](INIT_CAPACITY)
@@ -505,7 +506,9 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
  
   }
 
-  protected class SparseTVar[V: Manifest](name: String, plot: Plot
+  //@todo SparseTVar
+  /* protected class SparseTVar[V: Manifest](
+    name: String, plot: Plot
   ) extends AbstractInnerTVar[V](name, plot) {
 
     // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
@@ -550,7 +553,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
     override def update(idx: Int, value: V) {
       super.update(idx, value)
     }
-  }
+  } */
 
   /**
    * Define inner Var class
@@ -564,7 +567,8 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerTVar[V: Manifest](name: String, plot: Plot
+  abstract class AbstractInnerTVar[V: Manifest](
+    name: String, plot: Plot
   ) extends AbstractTVar[V](name, plot) {
 
     addVar(this.asInstanceOf[TVar[Any]])

@@ -6,10 +6,11 @@ import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 
-@serializable @SerialVersionUID(1L)
-class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends Map[A, B]
-                                                                            with MapLike[A, B, WeakIdentityBiHashMap[A, B]]
-                                                                            with WeakIdentityBiHashTable[A, B] {
+@SerialVersionUID(1L)
+final class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends Map[A, B]
+                                                                                  with MapLike[A, B, WeakIdentityBiHashMap[A, B]]
+                                                                                  with WeakIdentityBiHashTable[A, B]
+                                                                                  with Serializable {
 
   private val readWriteLock = new ReentrantReadWriteLock
   val readLock  = readWriteLock.readLock

@@ -10,13 +10,15 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
 
-class WeakValue[A, B](val key: A, val value: B, q: ReferenceQueue[B]) extends WeakReference(value, q) {
+final class WeakValue[A, B](val key: A, val value: B, q: ReferenceQueue[B]) extends WeakReference(value, q) {
   // We need to store the hash code separately since the referent could be removed by the GC.
   private val hash = value.hashCode
 
-  override def hashCode: Int = hash
+  override 
+  def hashCode: Int = hash
 
-  override def equals(o: Any): Boolean = {
+  override 
+  def equals(o: Any): Boolean = {
     if (this eq o.asInstanceOf[AnyRef]) return true
 
     if (!o.isInstanceOf[WeakValue[A, B]]) return false
@@ -31,10 +33,11 @@ class WeakValue[A, B](val key: A, val value: B, q: ReferenceQueue[B]) extends We
   }
 }
 
-@serializable @SerialVersionUID(1L)
-class WeakHashBiMap[A, B](forward: HashMap[A, Reference[B]], backward: HashMap[Reference[B], A]
+@SerialVersionUID(1L)
+final class WeakHashBiMap[A, B](forward: HashMap[A, Reference[B]], backward: HashMap[Reference[B], A]
 ) extends Map[A, B]
-     with MapLike[A, B, WeakHashBiMap[A, B]] {
+     with MapLike[A, B, WeakHashBiMap[A, B]]
+     with Serializable {
 
   def this() = this(new HashMap[A, Reference[B]], new HashMap[Reference[B], A])
 
