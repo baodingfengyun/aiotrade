@@ -44,7 +44,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
   
   private var _isOnCalendarMode = false
     
-  attach(TStampsFactory.createInstance(INIT_CAPACITY))
+  attach(TStamps(INIT_CAPACITY))
 
   def serProvider = _serProvider
 
