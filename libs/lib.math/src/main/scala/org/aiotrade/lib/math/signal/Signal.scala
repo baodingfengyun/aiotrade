@@ -61,7 +61,9 @@ final class Sign private (time: => Long,
                           color: => Color
 ) extends Signal(time, kind, id, text, color) {
   def this() = this(0L, Side.EnterLong, 0, null, null) /* for serializable */
-  override def kind = super.kind.asInstanceOf[Side]
+
+  override 
+  def kind = super.kind.asInstanceOf[Side]
 }
 
 object Sign {
@@ -79,7 +81,9 @@ final class Mark private (time: => Long,
                           color: => Color
 ) extends Signal(time, kind, id, text, color) {
   def this() = this(0L, Corner.Lower, 0, null, null) /* for serializable */
-  override def kind = super.kind.asInstanceOf[Corner]
+  
+  override 
+  def kind = super.kind.asInstanceOf[Corner]
 }
 
 object Mark {
@@ -100,7 +104,8 @@ class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = nu
     
   def hasText = text != null
 
-  override def hashCode: Int = {
+  override 
+  def hashCode: Int = {
     var h = 17
     h = 37 * h + (time ^ (time >>> 32)).toInt
     h = 37 * h + kind.hashCode
@@ -110,14 +115,16 @@ class Signal(val time: Long, _kind: Kind, val id: Int = 0, val text: String = nu
     h
   }
   
-  override def equals(a: Any): Boolean = {
+  override 
+  def equals(a: Any): Boolean = {
     a match {
       case x: Signal => x.time == time && x.kind == kind && x.id == id && x.text == text && x.color == color
       case _ => false
     }
   }
   
-  override def toString = {
+  override 
+  def toString = {
     val sb = new StringBuilder()
     sb.append(this.getClass.getSimpleName).append("(")
     sb.append(time).append(",").append(kind).append(",").append(id).append(",").append(text).append(",").append(color)

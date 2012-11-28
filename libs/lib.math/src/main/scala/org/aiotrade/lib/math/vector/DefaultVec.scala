@@ -94,7 +94,8 @@ class DefaultVec(source: Array[Double]) extends Vec {
     }
   }
 
-  override def clone: DefaultVec = {
+  override 
+  def clone: DefaultVec = {
     new DefaultVec(this)
   }
     
@@ -259,7 +260,8 @@ class DefaultVec(source: Array[Double]) extends Vec {
     }
   }
 
-  override def toString :String = {
+  override 
+  def toString :String = {
     val result = new StringBuilder
 
     result.append("[")

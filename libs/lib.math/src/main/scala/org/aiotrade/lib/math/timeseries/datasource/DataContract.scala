@@ -71,13 +71,16 @@ abstract class DataContract[S: Manifest] extends Descriptor[S] {
    * All dataserver will be implemented as singleton
    * @param none args are needed.
    */
-  override def createServiceInstance(args: Any*): Option[S] = {
+  override 
+  def createServiceInstance(args: Any*): Option[S] = {
     lookupServiceTemplate(m.erasure.asInstanceOf[Class[S]], "DataServers")
   }
 
-  override def toString: String = displayName
+  override 
+  def toString: String = displayName
 
-  override def clone: DataContract[S] = {
+  override 
+  def clone: DataContract[S] = {
     try {
       super.clone.asInstanceOf[DataContract[S]]
     } catch {

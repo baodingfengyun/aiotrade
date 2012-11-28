@@ -140,7 +140,8 @@ class Content(var uniSymbol: String) extends WithActions with Cloneable {
     }
   }
   
-  override def clone: Content = {
+  override 
+  def clone: Content = {
     try {
       val newone = super.clone.asInstanceOf[Content]
       newone.withActionsHelper = new WithActionsHelper(newone)

@@ -139,7 +139,8 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
   var grids: Array[Double] = Array()
   var isOverlapping = false
 
-  override def toString: String = {
+  override 
+  def toString: String = {
     this.getClass.getSimpleName + "(" + freq + ")"
   }
 }

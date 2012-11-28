@@ -54,8 +54,7 @@ import java.util.TimeZone
  * @credits:
  *     stebridev@users.sourceforge.net - fix case of Week : beginTimeOfUnitThatInclude(long)
  */
-@serializable
-abstract class TUnit(val interval: Long) {
+abstract class TUnit(val interval: Long) extends Serializable {
   import TUnit._
 
   /**
@@ -232,14 +231,16 @@ abstract class TUnit(val interval: Long) {
     buffer.toString()
   }
 
-  override def equals(o: Any): Boolean = {
+  override 
+  def equals(o: Any): Boolean = {
     o match {
       case x: TUnit => x.interval == this.interval
       case _ => false
     }
   }
 
-  override def hashCode: Int = {
+  override 
+  def hashCode: Int = {
     /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
     (interval ^ (interval >>> 32)).toInt
   }

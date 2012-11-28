@@ -42,14 +42,17 @@ class Kind(_id: Int) {
   def isSide:   Boolean = id > 0
   def isCorner: Boolean = id < 0
   
-  override def hashCode = _id
+  override 
+  def hashCode = _id
   
-  override def equals(a: Any) = a match {
+  override 
+  def equals(a: Any) = a match {
     case x: Kind => x.id == _id
     case _ => false
   }
   
-  override def toString = id match {
+  override 
+  def toString = id match {
     case  1 => "Enter long"
     case  2 => "Exit long"
     case  3 => "Enter short"

@@ -3,8 +3,7 @@ package org.aiotrade.lib.math
 import java.math.BigInteger
 import java.util.Random
 
-@cloneable @serializable
-final class BitString private (private var data: Array[Int]) {
+final class BitString private (private var data: Array[Int]) extends Cloneable with Serializable {
 
   val length = data.length
 

@@ -111,7 +111,8 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     }
   }
 
-  override def clone: SparseVec = {
+  override 
+  def clone: SparseVec = {
     new SparseVec(this)
   }
     
@@ -441,16 +442,17 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   }
 
 
-  override def toString: String = {
-    val result = new StringBuffer()
+  override 
+  def toString: String = {
+    val sb = new StringBuffer()
         
-    result.append("[")
+    sb.append("[")
     for (i <- 0 until dimension) {
-      result.append(this(i)).append(ITEM_SEPARATOR)
+      sb.append(this(i)).append(ITEM_SEPARATOR)
     }
-    result.append("]")
+    sb.append("]")
         
-    result.toString
+    sb.toString
   }
     
     

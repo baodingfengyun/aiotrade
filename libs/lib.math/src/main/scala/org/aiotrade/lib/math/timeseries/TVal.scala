@@ -29,6 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.aiotrade.lib.math.timeseries
+
 /**
  * a value object with time field
  * 

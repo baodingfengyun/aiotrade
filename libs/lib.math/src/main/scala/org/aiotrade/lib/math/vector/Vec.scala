@@ -35,7 +35,6 @@ package org.aiotrade.lib.math.vector
  *
  * @author Caoyuan Deng
  */
-@cloneable
 trait Vec extends Cloneable {
     
   /**
@@ -178,5 +177,6 @@ trait Vec extends Cloneable {
     
   def checkValidation: Boolean
 
-  override def clone: Vec = super.clone.asInstanceOf[Vec]
+  override 
+  def clone: Vec = super.clone.asInstanceOf[Vec]
 }

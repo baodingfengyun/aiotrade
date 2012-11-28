@@ -397,7 +397,8 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
     }
   }
 
-  override def toString = {
+  override 
+  def toString = {
     val sb = new StringBuilder(20)
     
     sb.append(shortName).append("(").append(freq).append("): size=").append(size).append(", ")
@@ -429,13 +430,15 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
   }
 
   /** Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: */
-  override def equals(a: Any) = a match {
+  override 
+  def equals(a: Any) = a match {
     case x: TSer => this.getClass == x.getClass && this.hashCode == x.hashCode
     case _ => false
   }
 
   private val _hashCode = System.identityHashCode(this)
-  override def hashCode: Int = _hashCode
+  override 
+  def hashCode: Int = _hashCode
 
   object TVar {
     def apply[V: Manifest](): TVar[V] = new InnerTVar[V]("", Plot.None)
@@ -495,12 +498,14 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
     }
 
     // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
-    final override def apply(idx: Int): V = {
+    override 
+    final def apply(idx: Int): V = {
       super.apply(idx)
     }
 
     // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
-    override def update(idx: Int, value: V) {
+    override 
+    def update(idx: Int, value: V) {
       super.update(idx, value)
     }
  
@@ -508,52 +513,54 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
 
   //@todo SparseTVar
   /* protected class SparseTVar[V: Manifest](
-    name: String, plot: Plot
-  ) extends AbstractInnerTVar[V](name, plot) {
+   name: String, plot: Plot
+   ) extends AbstractInnerTVar[V](name, plot) {
 
-    // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
-    lazy val values = new TStampedMapBasedList[V](timestamps)
+   // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
+   lazy val values = new TStampedMapBasedList[V](timestamps)
 
-    def put(time: Long, value: V): Boolean = {
-      val idx = timestamps.indexOfOccurredTime(time)
-      if (idx >= 0) {
-        values.add(time, value)
-        true
-      } else {
-        assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
-        false
-      }
-    }
+   def put(time: Long, value: V): Boolean = {
+   val idx = timestamps.indexOfOccurredTime(time)
+   if (idx >= 0) {
+   values.add(time, value)
+   true
+   } else {
+   assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
+   false
+   }
+   }
 
-    def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
-      val idx = if (fromHeadOrTail) DefaultTSer.this.indexOfOccurredTimeFromHead(time) else DefaultTSer.this.indexOfOccurredTimeFromTail(time)
-      if (idx >= 0) {
-        values.add(time, value)
-        true
-      } else {
-        assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
-        false
-      }
-    }
+   def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
+   val idx = if (fromHeadOrTail) DefaultTSer.this.indexOfOccurredTimeFromHead(time) else DefaultTSer.this.indexOfOccurredTimeFromTail(time)
+   if (idx >= 0) {
+   values.add(time, value)
+   true
+   } else {
+   assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
+   false
+   }
+   }
 
-    def apply(time: Long): V = values(time)
+   def apply(time: Long): V = values(time)
 
-    def apply(time: Long, fromHeadOrTail: Boolean): V = values(time)
+   def apply(time: Long, fromHeadOrTail: Boolean): V = values(time)
 
-    def update(time: Long, value: V) {
-      values(time) = value
-    }
+   def update(time: Long, value: V) {
+   values(time) = value
+   }
 
-    // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
-    override def apply(idx: Int): V = {
-      super.apply(idx)
-    }
+   // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+   override 
+   def apply(idx: Int): V = {
+   super.apply(idx)
+   }
 
-    // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
-    override def update(idx: Int, value: V) {
-      super.update(idx, value)
-    }
-  } */
+   // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
+   override 
+   def update(idx: Int, value: V) {
+   super.update(idx, value)
+   }
+   } */
 
   /**
    * Define inner Var class

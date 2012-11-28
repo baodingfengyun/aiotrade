@@ -286,7 +286,8 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
 
   protected def cancelRequest(contract: C) {}
 
-  override def compare(another: DataServer[V]): Int = {
+  override 
+  def compare(another: DataServer[V]): Int = {
     if (this.displayName.equalsIgnoreCase(another.displayName)) {
       if (this.hashCode < another.hashCode) -1
       else if (this.hashCode == another.hashCode) 0
@@ -296,7 +297,8 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
     }
   }
 
-  override def toString: String = displayName
+  override 
+  def toString: String = displayName
 }
 
 object DataServer extends Publisher {

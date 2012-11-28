@@ -39,7 +39,7 @@ import org.aiotrade.lib.collection.ArrayList
  */
 object IndicatorFunction {
     
-  final def dmPlus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
+  def dmPlus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
     if (idx == 0) {
             
       Null.Double
@@ -71,7 +71,7 @@ object IndicatorFunction {
     }
   }
     
-  final def dmMinus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
+  def dmMinus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
     if (idx == 0) {
             
       Null.Double
@@ -103,7 +103,7 @@ object IndicatorFunction {
     }
   }
     
-  final def tr(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
+  def tr(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx == 0) {
             
       Null.Double
@@ -116,7 +116,7 @@ object IndicatorFunction {
     }
   }
     
-  final def diPlus(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
+  def diPlus(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < period - 1) {
             
       Null.Double
@@ -146,7 +146,7 @@ object IndicatorFunction {
     }
   }
     
-  final def diMinus(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
+  def diMinus(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < period - 1) {
             
       Null.Double
@@ -176,7 +176,7 @@ object IndicatorFunction {
     }
   }
     
-  final def dx(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
+  def dx(idx: Int, period: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < period - 1) {
             
       Null.Double
@@ -191,7 +191,7 @@ object IndicatorFunction {
     }
   }
     
-  final def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
+  def adx(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Null.Double
@@ -215,7 +215,7 @@ object IndicatorFunction {
     }
   }
     
-  final def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
+  def adxr(idx: Int, periodDI: Int, periodADX: Int, highs: ArrayList[Double], lows: ArrayList[Double], closes: ArrayList[Double]): Double = {
     if (idx < periodDI - 1 || idx < periodADX - 1) {
             
       Null.Double

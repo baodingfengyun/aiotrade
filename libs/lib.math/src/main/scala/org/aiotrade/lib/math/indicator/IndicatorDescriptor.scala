@@ -64,7 +64,8 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
     }
   }
 
-  override def set(serviceClassName: String, freq: TFreq): Unit = {
+  override 
+  def set(serviceClassName: String, freq: TFreq): Unit = {
     super.set(serviceClassName, freq)
 
     setFacsToDefault
@@ -94,7 +95,8 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
     }
   }
 
-  override def displayName: String = {
+  override 
+  def displayName: String = {
     val name = lookupServiceTemplate(classOf[Indicator], "Indicators") match {
       case Some(tpInstance) => tpInstance.shortName
       case None => serviceClassName
@@ -111,7 +113,8 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
    * those added-on modules.
    * @param baseSer for indicator
    */
-  override protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
+  override 
+  protected def createServiceInstance(args: Any*): Option[Indicator] = args match {
     case Seq(baseSerx: BaseTSer) => lookupServiceTemplate(classOf[Indicator], "Indicators") match {
         case Some(indx) =>
           // is this indicator from another symbol ?
@@ -152,7 +155,8 @@ class IndicatorDescriptor($serviceClassName: => String, $freq: => TFreq, $factor
     defaultFacs foreach {x => factors = x}
   }
 
-  override def createDefaultActions: Array[Action] = {
+  override 
+  def createDefaultActions: Array[Action] = {
     IndicatorDescriptorActionFactory().createActions(this)
   }
 

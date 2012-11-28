@@ -147,7 +147,8 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
    * All instances of TVar or extended classes will be equals if they have the
    * same values, this prevent the duplicated manage of values.
    */
-  override def equals(o: Any): Boolean = {
+  override 
+  def equals(o: Any): Boolean = {
     o match {
       case x: TVar[_] => this.values eq x.values
       case _ => false
@@ -158,7 +159,9 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
    * All instances of TVar or extended classes use identityHashCode as hashCode
    */
   private val _hashCode = System.identityHashCode(this)
-  override def hashCode: Int = _hashCode
+  override 
+  def hashCode: Int = _hashCode
 
-  override def toString = name
+  override 
+  def toString = name
 }

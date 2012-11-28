@@ -73,5 +73,6 @@ trait TVar[V] extends Plottable {
   val NullVal: V
 
   private val _hashCode = System.identityHashCode(this)
-  override def hashCode: Int = _hashCode
+  override 
+  def hashCode: Int = _hashCode
 }

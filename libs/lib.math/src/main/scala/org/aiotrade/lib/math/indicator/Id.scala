@@ -38,7 +38,8 @@ package org.aiotrade.lib.math.indicator
 
 final class Id[T](val klass: Class[T], val keyRef: AnyRef, val args: Any*) {
 
-  @inline final override def equals(o: Any): Boolean = {
+  @inline override 
+  def equals(o: Any): Boolean = {
     o match {
       case Id(klass, keyRef, args@_*) if
         (this.klass.getName == klass.getName) &&
@@ -57,7 +58,8 @@ final class Id[T](val klass: Class[T], val keyRef: AnyRef, val args: Any*) {
     }
   }
 
-  @inline final override def hashCode: Int = {
+  @inline override
+  def hashCode: Int = {
     var h = 17
     h = 37 * h + klass.hashCode
     h = 37 * h + keyRef.hashCode
@@ -80,7 +82,9 @@ final class Id[T](val klass: Class[T], val keyRef: AnyRef, val args: Any*) {
   }
 
   def keyString = "(" + klass.getSimpleName + "," + keyRef + "," + args.mkString(",") + ")"
-  override def toString = "Id(" + klass.getName + "," + keyRef + "," + args.mkString(",") + ")"
+
+  override 
+  def toString = "Id(" + klass.getName + "," + keyRef + "," + args.mkString(",") + ")"
 }
 
 object Id {

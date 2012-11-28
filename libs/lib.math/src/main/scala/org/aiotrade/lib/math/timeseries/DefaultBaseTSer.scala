@@ -204,7 +204,8 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
   /**
    * To use this method, should define proper assignValue(value)
    */
-  override def ++=[V <: TVal](values: Array[V]): TSer = {
+  override 
+  def ++=[V <: TVal](values: Array[V]): TSer = {
     if (values.length < 1) return this
     
     try {
@@ -250,10 +251,10 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
 
   def isOnCalendarMode = _isOnCalendarMode
   def toOnCalendarMode {
-    this._isOnCalendarMode = true
+    _isOnCalendarMode = true
   }
   def toOnOccurredMode {
-    this._isOnCalendarMode = false
+    _isOnCalendarMode = false
   }
         
   def indexOfTime(time: Long): Int = activeTimestamps.indexOfOccurredTime(time)
@@ -263,7 +264,8 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
   def timeOfRow(row: Int): Long = activeTimestamps.timeOfRow(row, freq)
   def lastOccurredRow: Int = activeTimestamps.lastRow(freq)
     
-  override def size: Int = activeTimestamps.sizeOf(freq)
+  override 
+  def size: Int = activeTimestamps.sizeOf(freq)
 
   private def activeTimestamps: TStamps = {
     try {

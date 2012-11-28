@@ -51,8 +51,7 @@ import org.aiotrade.lib.math.timeseries.TUnit._
  *
  * @author Caoyuan Deng
  */
-@serializable
-class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFreq] {
+class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFreq] with Serializable {
 
   def this() = this(TUnit.Day, 1)
   
@@ -128,19 +127,22 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
   val shortName:   String = nUnits + unit.shortName
   val compactName: String = nUnits + unit.compactName
 
-  override def equals(o: Any): Boolean = {
+  override 
+  def equals(o: Any): Boolean = {
     o match {
       case x: TFreq => this.interval == x.interval
       case _ => false
     }
   }
 
-  override def hashCode: Int = {
+  override 
+  def hashCode: Int = {
     /** should let the equaled frequencies have the same hashCode, just like a Primitive type */
     (interval ^ (interval >>> 32)).toInt
   }
 
-  override def clone: TFreq = {
+  override 
+  def clone: TFreq = {
     try {
       super.clone.asInstanceOf[TFreq]
     } catch {
@@ -148,7 +150,8 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
     }
   }
 
-  override def compare(another: TFreq): Int = {
+  override 
+  def compare(another: TFreq): Int = {
     if (this.unit.interval < another.unit.interval) {
       -1
     } else if (this.unit.interval > another.unit.interval) {
@@ -158,7 +161,8 @@ class TFreq(val unit: TUnit, val nUnits: Int) extends Cloneable with Ordered[TFr
     }
   }
 
-  override def toString: String = name
+  override 
+  def toString: String = name
 
   def writeToBean(doc: BeansDocument): Element = {
     val bean = doc.createBean(this)
