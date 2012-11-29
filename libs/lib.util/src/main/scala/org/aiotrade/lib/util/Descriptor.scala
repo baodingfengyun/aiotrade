@@ -34,5 +34,4 @@ package org.aiotrade.lib.util
  * 
  * @author Caoyuan Deng
  */
-trait Descriptor extends Cloneable {
-}
+trait Descriptor extends Cloneable
