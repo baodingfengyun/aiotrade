@@ -55,7 +55,6 @@ import org.aiotrade.neuralnetwork.machine.mlp.learner.RpropBpLearner
  */
 abstract class PerceptronNeuron extends Neuron {
     
-    
   private var _weight: Vec = _
     
   /** delta: dE/dnet, is a real value */
@@ -99,7 +98,7 @@ abstract class PerceptronNeuron extends Neuron {
    * always the same.
    */
   private def initWeight() {
-    this._weight = new DefaultVec(inputDimension)
+    _weight = new DefaultVec(inputDimension)
         
     if (_minInitWeightValue.isNaN && _maxInitWeightValue.isNaN) {
             
@@ -175,7 +174,7 @@ abstract class PerceptronNeuron extends Neuron {
     _weight = weight
   }
     
-  def getDelta = _delta
+  def delta = _delta
   
   def learner = _learner
   def learner_=(learner: AbstractBpLearner) {

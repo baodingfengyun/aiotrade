@@ -38,15 +38,14 @@ import org.aiotrade.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
  * 
  * @author Caoyuan Deng
  */
-abstract class MlpLayer(nextLayer: Layer, inputDimension: Int, nNeurons: Int, neuronClassName: String, hidden: Boolean = true
-) extends Layer(nextLayer, inputDimension) {
-    
+abstract class MlpLayer(_nextLayer: Layer, _inputDimension: Int, _nNeurons: Int, _neuronClassName: String, _isHidden: Boolean = true
+) extends Layer(_nextLayer, _inputDimension) {
         
   try {
     var i = 0
-    while (i < nNeurons) {
-      val neuron = Class.forName(neuronClassName).newInstance().asInstanceOf[PerceptronNeuron]
-      neuron.init(inputDimension, hidden)
+    while (i < _nNeurons) {
+      val neuron = Class.forName(_neuronClassName).newInstance().asInstanceOf[PerceptronNeuron]
+      neuron.init(_inputDimension, _isHidden)
       addNeuron(neuron)
         
       i += 1

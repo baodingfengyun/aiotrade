@@ -38,7 +38,7 @@ import javax.swing.event.ChangeEvent
  *
  * @author Caoyuan Deng
  */
-case class NetworkChangeEvent(_source: AnyRef, tpe: NetworkChangeEvent.Type, epoch: Long = -1, meanError: Double = -1) extends ChangeEvent(_source)
+case class NetworkChangeEvent(eventSource: AnyRef, tpe: NetworkChangeEvent.Type, epoch: Long = -1, meanError: Double = -1) extends ChangeEvent(eventSource)
 
 object NetworkChangeEvent {
   trait Type

@@ -37,8 +37,8 @@ import org.aiotrade.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
  *
  * @author Caoyuan Deng
  */
-class MlpOutputLayer(inputDimension: Int, nNeurons: Int, neuronClassName: String
-) extends MlpLayer(null, inputDimension, nNeurons, neuronClassName, false) {
+class MlpOutputLayer(_inputDimension: Int, _nNeurons: Int, _neuronClassName: String
+) extends MlpLayer(null, _inputDimension, _nNeurons, _neuronClassName, false) {
     
   protected def computeNeuronsDelta() {
     neurons foreach {case n: PerceptronNeuron => n.learner.computeDeltaAsOutputNeuron}

@@ -51,7 +51,7 @@ class MlpNetwork extends AbstractNetwork {
     
   protected var descriptor: MlpNetworkDescriptor = _
     
-  protected var layers = new ArrayList[MlpLayer]()
+  protected var _layers = new ArrayList[MlpLayer]()
     
   protected var _arg: MlpNetwork.Arg = _
     
@@ -61,7 +61,7 @@ class MlpNetwork extends AbstractNetwork {
         
     /** setup the network layers */
         
-    layers.clear
+    _layers.clear
         
     val firstLayerDescriptor = this.descriptor.layerDescriptors(0)
     val firstLayer = new MlpHiddenLayer(
@@ -70,7 +70,7 @@ class MlpNetwork extends AbstractNetwork {
       firstLayerDescriptor.numNeurons,
       firstLayerDescriptor.neuronClassName)
         
-    layers += firstLayer
+    _layers += firstLayer
         
     val n = descriptor.numLayers
     var i = 1
@@ -80,7 +80,7 @@ class MlpNetwork extends AbstractNetwork {
       val currLayer = if (i == n - 1) {
         /** output layer */
         new MlpOutputLayer(
-          layers(i - 1).numNeurons,
+          _layers(i - 1).numNeurons,
           currLayerDescriptor.numNeurons,
           currLayerDescriptor.neuronClassName)
                 
@@ -88,15 +88,15 @@ class MlpNetwork extends AbstractNetwork {
         /** hidden layer */
         new MlpHiddenLayer(
           null,
-          layers(i - 1).numNeurons,
+          _layers(i - 1).numNeurons,
           currLayerDescriptor.numNeurons,
           currLayerDescriptor.neuronClassName)
                 
       }
             
-      layers += currLayer
+      _layers += currLayer
             
-      val backLayer = layers(i - 1)
+      val backLayer = _layers(i - 1)
       backLayer.connectTo(currLayer)
       
       i += 1
@@ -110,14 +110,21 @@ class MlpNetwork extends AbstractNetwork {
     _arg = arg
   }
     
-  def getLayers = layers
+  def layers = _layers
+  def layers_=(layers: ArrayList[MlpLayer]) {
+    _layers = layers
+  }
+    
+  def removeLayer(idx: Int) {
+    _layers.remove(idx)
+  }
     
   val neuralNetworkName= "Multi-Layer Perceptron"
     
-  def inputDimension  = layers.head.inputDimension
-  def outputDimension = layers.last.numNeurons
+  def inputDimension  = _layers.head.inputDimension
+  def outputDimension = _layers.last.numNeurons
     
-  def numLayers = layers.length
+  def numLayers = _layers.length
     
   def predict(input: Vec): Vec = {
     propagate(input)
@@ -126,20 +133,20 @@ class MlpNetwork extends AbstractNetwork {
   }
     
   protected def output: Vec = {
-    val outputLayer = layers.last
+    val outputLayer = _layers.last
         
     outputLayer.neuronsOutput
   }
     
   protected def propagate(input: Vec) {
-    val firstLayer = layers.head
+    val firstLayer = _layers.head
         
     firstLayer.setInputToNeurons(input);
     
-    val n = layers.length - 1
+    val n = _layers.length - 1
     var i = 0
     while (i < n) {
-      layers(i).propagateToNextLayer
+      _layers(i).propagateToNextLayer
       i += 1
     }
   }
@@ -149,13 +156,13 @@ class MlpNetwork extends AbstractNetwork {
    * Compute delta etc and do adapt
    */
   protected def backPropagate(expectedOutput: Vec) {
-    val outputLayer = layers.last.asInstanceOf[MlpOutputLayer]
+    val outputLayer = _layers.last.asInstanceOf[MlpOutputLayer]
         
     outputLayer.setExpectedOutputToNeurons(expectedOutput)
     
-    var i = layers.length - 1
+    var i = _layers.length - 1
     while (i >= 0) {
-      layers(i).backPropagateFromNextLayerOrExpectedOutput
+      _layers(i).backPropagateFromNextLayerOrExpectedOutput
       i -= 1
     }
         
@@ -186,15 +193,6 @@ class MlpNetwork extends AbstractNetwork {
     /** 5. return error */
     error
   }
-    
-  def removeLayer(idx: Int) {
-    layers.remove(idx)
-  }
-    
-  def setlayers_=(layers: ArrayList[MlpLayer]) {
-    this.layers = layers
-  }
-    
     
   def train(iops: InputOutputPointSet) {
     //trainSerialMode(iops)
@@ -277,7 +275,7 @@ class MlpNetwork extends AbstractNetwork {
   }
     
   private def adapt() {
-    layers foreach (_.adapt(arg.learningRate, arg.momentumRate))
+    _layers foreach (_.adapt(arg.learningRate, arg.momentumRate))
   }
     
   def cloneDescriptor(): NetworkDescriptor = {

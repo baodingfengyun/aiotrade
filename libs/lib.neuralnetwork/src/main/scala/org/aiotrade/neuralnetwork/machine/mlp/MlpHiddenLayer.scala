@@ -38,8 +38,8 @@ import org.aiotrade.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
  * 
  * @author Caoyuan Deng
  */
-class MlpHiddenLayer(nextLayer: Layer, _inputDimension: Int, nNeurons: Int, neuronClassName: String
-) extends MlpLayer(nextLayer, _inputDimension, nNeurons, neuronClassName, true) {
+class MlpHiddenLayer(_nextLayer: Layer, _inputDimension: Int, _nNeurons: Int, _neuronClassName: String
+) extends MlpLayer(_nextLayer, _inputDimension, _nNeurons, _neuronClassName, true) {
     
   /** 
    * algorithm for hidden layer. 

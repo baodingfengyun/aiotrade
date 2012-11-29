@@ -54,7 +54,7 @@ abstract class AbstractBpLearner(val neuron: PerceptronNeuron, val mode: Mode) e
   /** 
    * differential coefficient of error to weight: (dE / dW), ie. gradient of E(W) 
    */
-  private var _sumGradient: Vec = _
+  private lazy val _sumGradient: Vec = new DefaultVec(neuron.inputDimension)
   protected def sumGradient = _sumGradient
     
   /**
@@ -72,10 +72,6 @@ abstract class AbstractBpLearner(val neuron: PerceptronNeuron, val mode: Mode) e
    * @param delta, (dE / dnet_ij)
    */
   def computeGradientAndSumIt() {
-    if (_sumGradient == null) {
-      _sumGradient = new DefaultVec(neuron.inputDimension)
-    }
-        
     /** compute and get neuron's gradient vector */
     val gradient = neuron.gradient
         
