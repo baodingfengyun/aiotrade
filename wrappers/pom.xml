@@ -69,6 +69,7 @@
         <module>lib.io</module>
         <module>lib.json</module>
         <module>lib.math</module>
+        <module>lib.neuralnetwork</module>
         <module>lib.securities</module>
         <module>lib.sevenzip</module>
         <module>lib.util</module>
