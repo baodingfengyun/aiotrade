@@ -46,24 +46,23 @@ import org.aiotrade.lib.util.Argument
  * @author Caoyuan Deng
  */
 class MlpNetwork extends AbstractNetwork {
-    
   private val log = Logger.getLogger(getClass.getName)
-    
-  protected var descriptor: MlpNetworkDescriptor = _
-    
-  protected var _layers = new ArrayList[MlpLayer]()
-    
-  protected var _arg: MlpNetwork.Arg = _
+
+  val neuralNetworkName= "Multi-Layer Perceptron"
+
+  private var _descriptor: MlpNetworkDescriptor = _
+  private var _layers = new ArrayList[MlpLayer]()
+  private var _arg: MlpNetwork.Arg = _
     
   @throws(classOf[Exception])
   def init(descriptor: NetworkDescriptor) {
-    this.descriptor = descriptor.asInstanceOf[MlpNetworkDescriptor]
+    _descriptor = descriptor.asInstanceOf[MlpNetworkDescriptor]
         
     /** setup the network layers */
         
     _layers.clear
         
-    val firstLayerDescriptor = this.descriptor.layerDescriptors(0)
+    val firstLayerDescriptor = _descriptor.layerDescriptors(0)
     val firstLayer = new MlpHiddenLayer(
       null,
       descriptor.dataSource.inputDimension,
@@ -118,9 +117,7 @@ class MlpNetwork extends AbstractNetwork {
   def removeLayer(idx: Int) {
     _layers.remove(idx)
   }
-    
-  val neuralNetworkName= "Multi-Layer Perceptron"
-    
+        
   def inputDimension  = _layers.head.inputDimension
   def outputDimension = _layers.last.numNeurons
     
@@ -141,7 +138,7 @@ class MlpNetwork extends AbstractNetwork {
   protected def propagate(input: Vec) {
     val firstLayer = _layers.head
         
-    firstLayer.setInputToNeurons(input);
+    firstLayer.setInputToNeurons(input)
     
     val n = _layers.length - 1
     var i = 0
@@ -280,7 +277,7 @@ class MlpNetwork extends AbstractNetwork {
     
   def cloneDescriptor(): NetworkDescriptor = {
     /** @TODO */
-    return descriptor
+    _descriptor
   }
 }
 
