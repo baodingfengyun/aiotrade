@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,20 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.lib.neuralnetwork.machine.mlp
-
-import org.aiotrade.lib.neuralnetwork.core.descriptor.LayerDescriptor
+package org.aiotrade.lib.neuralnetwork.core.committee.function
 
 /**
- * 
+ *
  * @author Caoyuan Deng
  */
-class MlpLayerDescriptor extends LayerDescriptor
+class Average extends CommitteeFunction {
+  protected def piecewise(xs: Array[Double]): Double = {
+    var res = 0.0
+    var i = 0
+    while (i < xs.length) {
+      res += xs(i)
+      i += 1
+    }
+    res / xs.length
+  }
+}

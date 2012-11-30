@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 
 package org.aiotrade.lib.neuralnetwork.machine.mlp.neuron
 

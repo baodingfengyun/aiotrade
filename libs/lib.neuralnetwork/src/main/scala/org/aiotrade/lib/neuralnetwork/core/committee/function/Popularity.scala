@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,44 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.lib.neuralnetwork.core.descriptor
+package org.aiotrade.lib.neuralnetwork.core.committee.function
 
-import org.aiotrade.lib.util.Descriptor
+import org.aiotrade.lib.math.vector.Vec
+import scala.collection.mutable
 
 /**
  *
- *
  * @author Caoyuan Deng
  */
-case class LayerDescriptor(neuronClassName: String, numNeurons: Int) extends Descriptor
+class Popularity extends CommitteeFunction {
+    
+  protected def piecewise(x: Array[Double]): Double = {
+    throw new UnsupportedOperationException()
+  }
+    
+  override
+  def assamble(xs: Array[Vec]): Vec = {
+    val frecuencier = new mutable.HashMap[Vec, Int]()
+        
+    var i = 0
+    while (i < xs.length) {
+      val x = xs(i)
+      frecuencier.get(xs(i)) match {
+        case Some(v) => frecuencier(x) = v + 1
+        case None => frecuencier(x) = 1
+      }
+      i += 1
+    }
+        
+    var mostPopular: Vec  = null
+    var maxVote = Int.MinValue
+    for ((x, v) <- frecuencier) {
+      if (v > maxVote) {
+        maxVote = v
+        mostPopular = x
+      }
+    }
+
+    mostPopular
+  }
+}

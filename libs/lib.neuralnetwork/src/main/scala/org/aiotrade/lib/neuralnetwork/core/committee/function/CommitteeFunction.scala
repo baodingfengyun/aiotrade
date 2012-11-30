@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,48 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.lib.neuralnetwork.core.descriptor
+package org.aiotrade.lib.neuralnetwork.core.committee.function
 
-import org.aiotrade.lib.util.Descriptor
+import org.aiotrade.lib.math.vector.DefaultVec
+import org.aiotrade.lib.math.vector.Vec
+
 
 /**
  *
- *
  * @author Caoyuan Deng
  */
-case class LayerDescriptor(neuronClassName: String, numNeurons: Int) extends Descriptor
+abstract class CommitteeFunction {
+  /**
+   * Builds a committe response from an array of outputs. For each feature of
+   * the output <code>piecewise()</code> is called.
+   *
+   * @param x
+   *            outputs of the committe members
+   * @return the output of the committe
+   */
+  def assamble(xs: Array[Vec]): Vec = {
+    val dim = xs(0).dimension
+    val res = new DefaultVec(dim)
+    var i = 0
+    while (i < dim) {
+      val piece = Array.ofDim[Double](xs.length)
+      var j = 0
+      while (j < xs.length) {
+        piece(j) = xs(j)(i)
+        j += 1
+      }
+      res(i) = piecewise(piece)
+      i += 1
+    }
+    res
+  }
+    
+  /**
+   * Computes the value of an output feature of a committe.
+   *
+   * @param x
+   *            the feature of each each committe member's output
+   * @return the resulting output feature
+   */
+  protected def piecewise(xs: Array[Double]): Double
+}

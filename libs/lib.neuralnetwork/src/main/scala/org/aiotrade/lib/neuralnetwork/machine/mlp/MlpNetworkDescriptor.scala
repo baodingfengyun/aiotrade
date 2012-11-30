@@ -32,6 +32,7 @@
 package org.aiotrade.lib.neuralnetwork.machine.mlp
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.neuralnetwork.core.descriptor.LayerDescriptor
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
 
 /**
@@ -40,16 +41,16 @@ import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
  */
 class MlpNetworkDescriptor extends NetworkDescriptor {
     
-  private var _layerDescriptors = new ArrayList[MlpLayerDescriptor]
+  private var _layerDescriptors = new ArrayList[LayerDescriptor]
     
   def numLayers = _layerDescriptors.length
     
-  def addHiddenLayerDescriptor(le: MlpLayerDescriptor) {
+  def addHiddenLayerDescriptor(le: LayerDescriptor) {
     _layerDescriptors += le
   }
     
   def layerDescriptors = _layerDescriptors
-  def layerDescriptors_=(layerDescriptors: ArrayList[MlpLayerDescriptor]) {
+  def layerDescriptors_=(layerDescriptors: ArrayList[LayerDescriptor]) {
     _layerDescriptors = layerDescriptors
   }
 

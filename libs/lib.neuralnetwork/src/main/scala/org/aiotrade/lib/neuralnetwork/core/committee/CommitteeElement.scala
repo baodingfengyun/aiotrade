@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,16 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.lib.neuralnetwork.core.descriptor
+package org.aiotrade.lib.neuralnetwork.core.committee
 
+import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
 import org.aiotrade.lib.util.Descriptor
 
 /**
  *
- *
  * @author Caoyuan Deng
+ * 
+ * @TODO
+ * LayerDescriptor will be a subclass of This class?
  */
-case class LayerDescriptor(neuronClassName: String, numNeurons: Int) extends Descriptor
+case class CommitteeElement(networkDescriptor: NetworkDescriptor, var amount: Int) extends Descriptor
