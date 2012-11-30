@@ -29,86 +29,87 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.core.model
+package org.aiotrade.lib.neuralnetwork.core.model
 
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.vector.DefaultVec
 import org.aiotrade.lib.math.vector.Vec
 
 /**
- * 
+ * Neuron.
+ *
  * @author Caoyuan Deng
+ * 
+ * @param  inputDimension
+ * @param  If true, hidden node, if false, output node
+
  */
-class Layer(private var _nextLayer: Layer, private var _inputDimension: Int) {
-    
-  private var _neurons = new ArrayList[Neuron]()
-  protected var _isInAdapting: Boolean = _
-    
-  def connectTo(nextLayer: Layer) {
-    _nextLayer = nextLayer
-    neurons foreach (_.connectTo(nextLayer.neurons))
+abstract class Neuron(_inputDimension: Int, private var _isHidden: Boolean = true) {
+  def this() = this(0, true)
+  
+  private var _connectedNeurons = new ArrayList[Neuron]()
+  private var _expectedOutput: Double = _
+  protected var _input: Vec = _ 
+
+  if (_inputDimension != 0) {
+    init(_inputDimension, _isHidden)
+  } else {
+    // do nothing, need to call init() before use it
   }
     
-  protected def neuronsActivation: Vec = {
-    val result = new DefaultVec(numNeurons)
+  def init(inputDimension: Int, hidden: Boolean) {
+    _input = new DefaultVec(inputDimension)
+    _isHidden = hidden
+  }
+    
+  def inputDimension: Int = _input.dimension
+    
+  /**
+   * reset the current activation. Such as: remove the current input.
+   */
+  def reset {
+    _input = null
+  }
+    
+  def setInput(idx: Int, value: Double) {
+    _input(idx) = value
+  }
+    
+  def input = _input
+  def input_=(source: Vec) {
+    if (_input == null || _input.dimension != source.dimension) {
+      _input = new DefaultVec(source.dimension)
+    }
         
-    var i = 0
-    while (i < numNeurons) {
-      result(i) = _neurons(i).output
-      i += 1
-    }
-    result
+    /**
+     * As input may be modified by this neuron (such as setInput(int, double)),
+     * other class may not know about this, so we'd better to just copy it.
+     */
+    _input.copy(source)
+  }
+
+  def expectedOutput = _expectedOutput
+  def expectedOutput_=(expectedOutput: Double) {
+    _expectedOutput = expectedOutput
+  }
+
+  def output: Double = activation
+    
+  def isHidden = _isHidden
+  def isHidden_=(b: Boolean) {
+    _isHidden = b
   }
     
-  def inputDimension = _inputDimension
-  protected def inputDimension_=(inputDimension: Int) {
-    _inputDimension = inputDimension
+  def connectTo(neurons: ArrayList[Neuron]) {
+    neurons foreach connectTo
   }
     
-  def neurons = _neurons
-  def neurons_=(neurons: ArrayList[Neuron]) {
-    _neurons = neurons
+  def connectTo(neuron: Neuron) {
+    _connectedNeurons += neuron
   }
     
-  def nextLayer = _nextLayer
-  def nextLayer_=(nextLayer: Layer) {
-    _nextLayer = nextLayer
-  }
+  def connectedNeurons = _connectedNeurons
+  def numConnectedNeurons = _connectedNeurons.size
     
-    
-  def isInAdapting = _isInAdapting
-  def isInAdapting_=(b: Boolean) {
-    _isInAdapting = b
-  }
-    
-  def neuronsOutput: Vec = neuronsActivation
-    
-  def propagateToNextLayer {
-    if (_nextLayer != null) {
-      _nextLayer.setInputToNeurons(neuronsOutput)
-    }
-  }
-    
-  def reset() {
-    neurons foreach (_.reset)
-  }
-    
-  def setInputToNeurons(input: Vec) {
-    neurons foreach (_.input = input)
-  }
-    
-  def setExpectedOutputToNeurons(expectedOutput: Vec) {
-    var i = 0
-    while (i < neurons.length) {
-      neurons(i).expectedOutput = expectedOutput(i)
-      i += 1
-    }
-  }
-    
-  def numNeurons: Int = _neurons.length
-    
-  def addNeuron(neuron: Neuron) {
-    _neurons += neuron
-  }
-    
+  protected def activation: Double
 }

@@ -29,59 +29,47 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.machine.mlp
+package org.aiotrade.lib.neuralnetwork.core.model
 
-import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.neuralnetwork.core.descriptor.NetworkDescriptor
+import java.io.Serializable
+import javax.swing.event.EventListenerList
+
+import org.aiotrade.lib.neuralnetwork.core.NetworkChangeListener
+import org.aiotrade.lib.neuralnetwork.core.NetworkChangeEvent
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class MlpNetworkDescriptor extends NetworkDescriptor {
+abstract class AbstractNetwork extends Network with Serializable {
     
-  private var _layerDescriptors = new ArrayList[MlpLayerDescriptor]
+  private val networkChangeEventListenerList = new EventListenerList()
     
-  def numLayers = _layerDescriptors.length
+  private var _inAdapting: Boolean = _
     
-  def addHiddenLayerDescriptor(le: MlpLayerDescriptor) {
-    _layerDescriptors += le
+  def isInAdapting = _inAdapting
+  def isInAdapting_=(b: Boolean) {
+    _inAdapting = b
   }
     
-  def layerDescriptors = _layerDescriptors
-  def layerDescriptors_=(layerDescriptors: ArrayList[MlpLayerDescriptor]) {
-    _layerDescriptors = layerDescriptors
+  def addNetWorkChangeListener(listener: NetworkChangeListener) {
+    networkChangeEventListenerList.add(classOf[NetworkChangeListener], listener)
   }
-
-  @throws(classOf[Exception])
-  protected def checkValidation() {
-    for (layerDescriptor <- _layerDescriptors) {
-      if (layerDescriptor.numNeurons < 1) {
-        throw new Exception(layerDescriptor.toString)
+    
+  def removeNetworkChangeListener(listener: NetworkChangeListener) {
+    networkChangeEventListenerList.remove(classOf[NetworkChangeListener], listener)
+  }
+    
+  def fireNetworkChangeEvent(evt: NetworkChangeEvent) {
+    val listeners = networkChangeEventListenerList.getListenerList
+    /** Each listener occupies two elements - the first is the listener class */
+    var i = 0
+    while (i < listeners.length) {
+      if (listeners(i) == classOf[NetworkChangeListener]) {
+        listeners(i + 1).asInstanceOf[NetworkChangeListener].networkChanged(evt)
       }
-            
-      val neuronClass = try {
-        Class.forName(layerDescriptor.neuronClassName)
-      } catch {
-        case ex: ClassNotFoundException => throw new Exception(layerDescriptor.toString)
-      }
-    }
-
-    if (_layerDescriptors.length == 0) {
-      throw new Exception("no layers defined")
-    }
-        
-    val param = arg.asInstanceOf[MlpNetwork.Arg]
-    if (param.learningRate < 0) {
-      throw new Exception("learning rate must > 0")
-    }
-    if (param.maxEpoch < 0) {
-      throw new Exception("max epoch must be > 0")
-    }
-    if (param.predictionError <= 0) {
-      throw new Exception("prediction error must > 0")
+          
+      i += 2
     }
   }
-    
-  def serviceClass = classOf[MlpNetwork]
 }

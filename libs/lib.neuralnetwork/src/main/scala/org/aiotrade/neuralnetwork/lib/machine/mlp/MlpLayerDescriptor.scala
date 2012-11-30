@@ -29,22 +29,12 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.core
+package org.aiotrade.neuralnetwork.machine.mlp
 
-import javax.swing.event.ChangeEvent
-
+import org.aiotrade.lib.neuralnetwork.core.descriptor.LayerDescriptor
 
 /**
- *
+ * 
  * @author Caoyuan Deng
  */
-case class NetworkChangeEvent(eventSource: AnyRef, tpe: NetworkChangeEvent.Type, epoch: Long = -1, meanError: Double = -1) extends ChangeEvent(eventSource)
-
-object NetworkChangeEvent {
-  trait Type
-  object Type {
-    case object Updated extends Type
-    case object FinishedTraining extends Type
-  }
-}
-
+class MlpLayerDescriptor extends LayerDescriptor

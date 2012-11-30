@@ -31,10 +31,50 @@
 
 package org.aiotrade.neuralnetwork.machine.mlp
 
-import org.aiotrade.neuralnetwork.core.descriptor.LayerDescriptor
+import org.aiotrade.lib.neuralnetwork.core.model.Layer
+import org.aiotrade.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
 
 /**
  * 
  * @author Caoyuan Deng
  */
-class MlpLayerDescriptor extends LayerDescriptor
+abstract class MlpLayer(_nextLayer: Layer, _inputDimension: Int, _nNeurons: Int, _neuronClassName: String, _isHidden: Boolean = true
+) extends Layer(_nextLayer, _inputDimension) {
+        
+  try {
+    var i = 0
+    while (i < _nNeurons) {
+      val neuron = Class.forName(_neuronClassName).newInstance().asInstanceOf[PerceptronNeuron]
+      neuron.init(_inputDimension, _isHidden)
+      addNeuron(neuron)
+        
+      i += 1
+    }
+  } catch {
+    case ex: ClassNotFoundException => throw new RuntimeException(ex)
+    case ex: InstantiationException => throw new RuntimeException(ex)
+    case ex: IllegalAccessException => throw new RuntimeException(ex)
+  }
+    
+  def backPropagateFromNextLayerOrExpectedOutput {
+    computeNeuronsDelta
+    computeNeuronsGradientAndSumIt
+  }
+    
+  /** 
+   * For hidden layer @see MlpHiddenLayer#computeNeuronsDelta()
+   * For output layer @see MlpOutputLayer#computeNeuronsDelta()
+   */
+  protected def computeNeuronsDelta()
+    
+  def computeNeuronsGradientAndSumIt() {
+    neurons foreach {case n: PerceptronNeuron => n.learner.computeGradientAndSumIt}
+  }
+    
+  def adapt(learningRate: Double, momentumRate: Double) {
+    neurons foreach {case n: PerceptronNeuron => n.adapt(learningRate, momentumRate)}
+  }
+    
+  override 
+  def nextLayer: MlpLayer = super.nextLayer.asInstanceOf[MlpLayer]
+}

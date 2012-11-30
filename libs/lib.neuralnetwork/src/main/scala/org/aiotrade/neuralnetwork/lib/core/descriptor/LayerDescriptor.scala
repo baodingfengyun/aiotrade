@@ -29,18 +29,16 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.aiotrade.lib.neuralnetwork.core.descriptor
 
-package org.aiotrade.neuralnetwork.core
-
-import java.util.EventListener
+import org.aiotrade.lib.util.Descriptor
 
 /**
  *
+ *
  * @author Caoyuan Deng
  */
-trait NetworkChangeListener extends EventListener {
-    def networkChanged(evt: NetworkChangeEvent)
+class LayerDescriptor extends Descriptor {
+  var neuronClassName: String = _
+  var numNeurons: Int = _
 }
-
-
-

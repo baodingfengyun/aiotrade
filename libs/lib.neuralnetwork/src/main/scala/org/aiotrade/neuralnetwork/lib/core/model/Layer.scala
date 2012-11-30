@@ -29,52 +29,86 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.machine.mlp
+package org.aiotrade.lib.neuralnetwork.core.model
 
-import org.aiotrade.neuralnetwork.core.model.Layer
-import org.aiotrade.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
+import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.vector.DefaultVec
+import org.aiotrade.lib.math.vector.Vec
 
 /**
  * 
  * @author Caoyuan Deng
  */
-abstract class MlpLayer(_nextLayer: Layer, _inputDimension: Int, _nNeurons: Int, _neuronClassName: String, _isHidden: Boolean = true
-) extends Layer(_nextLayer, _inputDimension) {
+class Layer(private var _nextLayer: Layer, private var _inputDimension: Int) {
+    
+  private var _neurons = new ArrayList[Neuron]()
+  protected var _isInAdapting: Boolean = _
+    
+  def connectTo(nextLayer: Layer) {
+    _nextLayer = nextLayer
+    neurons foreach (_.connectTo(nextLayer.neurons))
+  }
+    
+  protected def neuronsActivation: Vec = {
+    val result = new DefaultVec(numNeurons)
         
-  try {
     var i = 0
-    while (i < _nNeurons) {
-      val neuron = Class.forName(_neuronClassName).newInstance().asInstanceOf[PerceptronNeuron]
-      neuron.init(_inputDimension, _isHidden)
-      addNeuron(neuron)
-        
+    while (i < numNeurons) {
+      result(i) = _neurons(i).output
       i += 1
     }
-  } catch {
-    case ex: ClassNotFoundException => throw new RuntimeException(ex)
-    case ex: InstantiationException => throw new RuntimeException(ex)
-    case ex: IllegalAccessException => throw new RuntimeException(ex)
+    result
   }
     
-  def backPropagateFromNextLayerOrExpectedOutput {
-    computeNeuronsDelta
-    computeNeuronsGradientAndSumIt
+  def inputDimension = _inputDimension
+  protected def inputDimension_=(inputDimension: Int) {
+    _inputDimension = inputDimension
   }
     
-  /** 
-   * For hidden layer @see MlpHiddenLayer#computeNeuronsDelta()
-   * For output layer @see MlpOutputLayer#computeNeuronsDelta()
-   */
-  protected def computeNeuronsDelta()
-    
-  def computeNeuronsGradientAndSumIt() {
-    neurons foreach {case n: PerceptronNeuron => n.learner.computeGradientAndSumIt}
+  def neurons = _neurons
+  def neurons_=(neurons: ArrayList[Neuron]) {
+    _neurons = neurons
   }
     
-  def adapt(learningRate: Double, momentumRate: Double) {
-    neurons foreach {case n: PerceptronNeuron => n.adapt(learningRate, momentumRate)}
+  def nextLayer = _nextLayer
+  def nextLayer_=(nextLayer: Layer) {
+    _nextLayer = nextLayer
   }
     
-  override 
-  def nextLayer: MlpLayer = super.nextLayer.asInstanceOf[MlpLayer]
+    
+  def isInAdapting = _isInAdapting
+  def isInAdapting_=(b: Boolean) {
+    _isInAdapting = b
+  }
+    
+  def neuronsOutput: Vec = neuronsActivation
+    
+  def propagateToNextLayer {
+    if (_nextLayer != null) {
+      _nextLayer.setInputToNeurons(neuronsOutput)
+    }
+  }
+    
+  def reset() {
+    neurons foreach (_.reset)
+  }
+    
+  def setInputToNeurons(input: Vec) {
+    neurons foreach (_.input = input)
+  }
+    
+  def setExpectedOutputToNeurons(expectedOutput: Vec) {
+    var i = 0
+    while (i < neurons.length) {
+      neurons(i).expectedOutput = expectedOutput(i)
+      i += 1
+    }
+  }
+    
+  def numNeurons: Int = _neurons.length
+    
+  def addNeuron(neuron: Neuron) {
+    _neurons += neuron
+  }
+    
 }

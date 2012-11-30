@@ -29,47 +29,22 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.core.model
+package org.aiotrade.lib.neuralnetwork.core
 
-import java.io.Serializable
-import javax.swing.event.EventListenerList
+import javax.swing.event.ChangeEvent
 
-import org.aiotrade.neuralnetwork.core.NetworkChangeListener
-import org.aiotrade.neuralnetwork.core.NetworkChangeEvent
 
 /**
- * 
+ *
  * @author Caoyuan Deng
  */
-abstract class AbstractNetwork extends Network with Serializable {
-    
-  private val networkChangeEventListenerList = new EventListenerList()
-    
-  private var _inAdapting: Boolean = _
-    
-  def isInAdapting = _inAdapting
-  def isInAdapting_=(b: Boolean) {
-    _inAdapting = b
-  }
-    
-  def addNetWorkChangeListener(listener: NetworkChangeListener) {
-    networkChangeEventListenerList.add(classOf[NetworkChangeListener], listener)
-  }
-    
-  def removeNetworkChangeListener(listener: NetworkChangeListener) {
-    networkChangeEventListenerList.remove(classOf[NetworkChangeListener], listener)
-  }
-    
-  def fireNetworkChangeEvent(evt: NetworkChangeEvent) {
-    val listeners = networkChangeEventListenerList.getListenerList
-    /** Each listener occupies two elements - the first is the listener class */
-    var i = 0
-    while (i < listeners.length) {
-      if (listeners(i) == classOf[NetworkChangeListener]) {
-        listeners(i + 1).asInstanceOf[NetworkChangeListener].networkChanged(evt)
-      }
-          
-      i += 2
-    }
+case class NetworkChangeEvent(eventSource: AnyRef, tpe: NetworkChangeEvent.Type, epoch: Long = -1, meanError: Double = -1) extends ChangeEvent(eventSource)
+
+object NetworkChangeEvent {
+  trait Type
+  object Type {
+    case object Updated extends Type
+    case object FinishedTraining extends Type
   }
 }
+

@@ -32,9 +32,9 @@
 package org.aiotrade.neuralnetwork.machine.mlp
 
 import java.util.logging.Logger
-import org.aiotrade.neuralnetwork.core.NetworkChangeEvent
-import org.aiotrade.neuralnetwork.core.descriptor.NetworkDescriptor
-import org.aiotrade.neuralnetwork.core.model.AbstractNetwork
+import org.aiotrade.lib.neuralnetwork.core.NetworkChangeEvent
+import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
+import org.aiotrade.lib.neuralnetwork.core.model.AbstractNetwork
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec

@@ -29,67 +29,59 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.core.descriptor
+package org.aiotrade.neuralnetwork.machine.mlp
 
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.neuralnetwork.core.model.Network
-import org.aiotrade.neuralnetwork.datasource.DataSource
-import org.aiotrade.lib.util.Descriptor
-import org.aiotrade.lib.util.Argument
+import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
 
 /**
+ * 
  * @author Caoyuan Deng
  */
-
-abstract class NetworkDescriptor protected () extends Descriptor {
+class MlpNetworkDescriptor extends NetworkDescriptor {
     
-  private var _arg: Argument = _
-  protected var _dataSource: DataSource = _
+  private var _layerDescriptors = new ArrayList[MlpLayerDescriptor]
     
-  def numLayers: Int
+  def numLayers = _layerDescriptors.length
     
-  def layerDescriptors: ArrayList[_ <: LayerDescriptor]
-    
-  def arg = _arg
-  def arg_=(arg: Argument) {
-    _arg = arg
+  def addHiddenLayerDescriptor(le: MlpLayerDescriptor) {
+    _layerDescriptors += le
   }
     
-  /**
-   * A factory of configured and ready to train neural networks.
-   *
-   * @return configured network.
-   */
-  def createServiceInstance: Network = {
-    var networkInstance: Network = null
-        
-    try {
-      networkInstance = serviceClass.newInstance.asInstanceOf[Network]
-            
-      if (networkInstance != null) {
-        networkInstance.init(this)
+  def layerDescriptors = _layerDescriptors
+  def layerDescriptors_=(layerDescriptors: ArrayList[MlpLayerDescriptor]) {
+    _layerDescriptors = layerDescriptors
+  }
+
+  @throws(classOf[Exception])
+  protected def checkValidation() {
+    for (layerDescriptor <- _layerDescriptors) {
+      if (layerDescriptor.numNeurons < 1) {
+        throw new Exception(layerDescriptor.toString)
       }
-    } catch {
-      case ex: Throwable =>  throw new RuntimeException(ex)
+            
+      val neuronClass = try {
+        Class.forName(layerDescriptor.neuronClassName)
+      } catch {
+        case ex: ClassNotFoundException => throw new Exception(layerDescriptor.toString)
+      }
+    }
+
+    if (_layerDescriptors.length == 0) {
+      throw new Exception("no layers defined")
     }
         
-    networkInstance
+    val param = arg.asInstanceOf[MlpNetwork.Arg]
+    if (param.learningRate < 0) {
+      throw new Exception("learning rate must > 0")
+    }
+    if (param.maxEpoch < 0) {
+      throw new Exception("max epoch must be > 0")
+    }
+    if (param.predictionError <= 0) {
+      throw new Exception("prediction error must > 0")
+    }
   }
     
-  def serviceClass: Class[_]
-  def serviceClass_=(clazz: Class[_]) {}
-    
-  def dataSource = _dataSource
-  def dataSource_=(dataSource: DataSource) {
-    _dataSource = dataSource
-  }
-    
-  @throws(classOf[CloneNotSupportedException])
-  override 
-  def clone: NetworkDescriptor = {
-    /** 
-     * @TODO 
-     */
-    super.clone.asInstanceOf[NetworkDescriptor]
-  }
+  def serviceClass = classOf[MlpNetwork]
 }

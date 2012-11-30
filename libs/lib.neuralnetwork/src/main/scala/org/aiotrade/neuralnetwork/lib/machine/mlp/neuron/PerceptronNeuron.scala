@@ -32,7 +32,7 @@
 
 package org.aiotrade.neuralnetwork.machine.mlp.neuron
 
-import org.aiotrade.neuralnetwork.core.model.Neuron
+import org.aiotrade.lib.neuralnetwork.core.model.Neuron
 import org.aiotrade.lib.math.vector.DefaultVec
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.neuralnetwork.machine.mlp.learner.AbstractBpLearner

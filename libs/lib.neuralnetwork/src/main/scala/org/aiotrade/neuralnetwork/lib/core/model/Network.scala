@@ -29,22 +29,63 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.machine.mlp
+package org.aiotrade.lib.neuralnetwork.core.model
 
-import org.aiotrade.neuralnetwork.core.model.Layer
-import org.aiotrade.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
+import org.aiotrade.lib.math.vector.InputOutputPointSet
+import org.aiotrade.lib.math.vector.Vec
+import org.aiotrade.lib.neuralnetwork.core.NetworkChangeEvent
+import org.aiotrade.lib.neuralnetwork.core.NetworkChangeListener
+import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
 
 /**
+ * A neural network
  * 
  * @author Caoyuan Deng
  */
-class MlpHiddenLayer(_nextLayer: Layer, _inputDimension: Int, _nNeurons: Int, _neuronClassName: String
-) extends MlpLayer(_nextLayer, _inputDimension, _nNeurons, _neuronClassName, true) {
+trait Network {
     
-  /** 
-   * algorithm for hidden layer. 
+  @throws(classOf[Exception])
+  def init(descriptor: NetworkDescriptor)
+    
+  /**
+   * one learning step to learn one of the training points.
+   *
+   * @param input  The input vector.
+   * @param output The desired output vector.
+   *
+   * @return the error of this learning step.
    */
-  protected def computeNeuronsDelta() {
-    neurons foreach {case n: PerceptronNeuron => n.learner.computeDeltaAsHiddenNeuron}
-  }
+  def learnOnePoint(input: Vec, output: Vec): Double
+    
+  /**
+   * Compute a network prediction
+   *
+   * @param input The input to propagate.
+   * @return the network output.
+   */
+  def predict(input: Vec): Vec
+    
+  /**
+   * Train the network until the stop criteria is met.
+   *
+   * @param iop  The training set to be learned.
+   */
+  def train(iops: InputOutputPointSet)
+    
+  def inputDimension: Int
+    
+  def outputDimension: Int
+    
+  def cloneDescriptor: NetworkDescriptor
+    
+  def neuralNetworkName: String
+    
+  def isInAdapting: Boolean
+  def isInAdapting_=(b: Boolean)
+    
+  def addNetWorkChangeListener(listener: NetworkChangeListener)
+    
+  def removeNetworkChangeListener(listener: NetworkChangeListener)
+    
+  def fireNetworkChangeEvent(evt: NetworkChangeEvent)
 }

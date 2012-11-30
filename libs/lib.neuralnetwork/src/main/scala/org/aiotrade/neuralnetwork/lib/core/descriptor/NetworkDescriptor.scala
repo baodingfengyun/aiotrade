@@ -29,16 +29,67 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.core.descriptor
+package org.aiotrade.lib.neuralnetwork.core.descriptor
 
+import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.neuralnetwork.core.model.Network
+import org.aiotrade.neuralnetwork.datasource.DataSource
 import org.aiotrade.lib.util.Descriptor
+import org.aiotrade.lib.util.Argument
 
 /**
- *
- *
  * @author Caoyuan Deng
  */
-class LayerDescriptor extends Descriptor {
-  var neuronClassName: String = _
-  var numNeurons: Int = _
+
+abstract class NetworkDescriptor protected () extends Descriptor {
+    
+  private var _arg: Argument = _
+  protected var _dataSource: DataSource = _
+    
+  def numLayers: Int
+    
+  def layerDescriptors: ArrayList[_ <: LayerDescriptor]
+    
+  def arg = _arg
+  def arg_=(arg: Argument) {
+    _arg = arg
+  }
+    
+  /**
+   * A factory of configured and ready to train neural networks.
+   *
+   * @return configured network.
+   */
+  def createServiceInstance: Network = {
+    var networkInstance: Network = null
+        
+    try {
+      networkInstance = serviceClass.newInstance.asInstanceOf[Network]
+            
+      if (networkInstance != null) {
+        networkInstance.init(this)
+      }
+    } catch {
+      case ex: Throwable =>  throw new RuntimeException(ex)
+    }
+        
+    networkInstance
+  }
+    
+  def serviceClass: Class[_]
+  def serviceClass_=(clazz: Class[_]) {}
+    
+  def dataSource = _dataSource
+  def dataSource_=(dataSource: DataSource) {
+    _dataSource = dataSource
+  }
+    
+  @throws(classOf[CloneNotSupportedException])
+  override 
+  def clone: NetworkDescriptor = {
+    /** 
+     * @TODO 
+     */
+    super.clone.asInstanceOf[NetworkDescriptor]
+  }
 }
