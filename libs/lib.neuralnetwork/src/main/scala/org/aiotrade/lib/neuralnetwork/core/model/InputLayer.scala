@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
 
 package org.aiotrade.lib.neuralnetwork.core.model
 
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.vector.DefaultVec
 import org.aiotrade.lib.math.vector.Vec
 
@@ -39,76 +38,28 @@ import org.aiotrade.lib.math.vector.Vec
  * 
  * @author Caoyuan Deng
  */
-class Layer(private var _nextLayer: Layer, private var _inputDimension: Int) {
+
+class InputLayer(_nextLayer: Layer, _inputDimension: Int) extends Layer(_nextLayer, _inputDimension) {
     
-  private var _neurons = new ArrayList[Neuron]()
-  protected var _isInAdapting: Boolean = _
+  protected val input = new DefaultVec(_inputDimension)
     
-  def connectTo(nextLayer: Layer) {
-    _nextLayer = nextLayer
-    neurons foreach (_.connectTo(nextLayer.neurons))
+    
+//  protected InputLayer() {
+//    super();
+//    input = null;
+//  }
+    
+  override
+  def setInputToNeurons(p: Vec) {
+    input.copy(p)
   }
     
+  override
   protected def neuronsActivation: Vec = {
-    val result = new DefaultVec(numNeurons)
-        
-    var i = 0
-    while (i < numNeurons) {
-      result(i) = _neurons(i).output
-      i += 1
-    }
-    result
+    input
   }
     
-  def inputDimension = _inputDimension
-  protected def inputDimension_=(inputDimension: Int) {
-    _inputDimension = inputDimension
+  def propagateToNeuron(idx: Int) {
+    _nextLayer.neurons(idx).input = input
   }
-    
-  def neurons = _neurons
-  def neurons_=(neurons: ArrayList[Neuron]) {
-    _neurons = neurons
-  }
-    
-  def nextLayer = _nextLayer
-  def nextLayer_=(nextLayer: Layer) {
-    _nextLayer = nextLayer
-  }
-    
-    
-  def isInAdapting = _isInAdapting
-  def isInAdapting_=(b: Boolean) {
-    _isInAdapting = b
-  }
-    
-  def neuronsOutput: Vec = neuronsActivation
-    
-  def propagateToNextLayer {
-    if (_nextLayer != null) {
-      _nextLayer.setInputToNeurons(neuronsOutput)
-    }
-  }
-    
-  def reset() {
-    neurons foreach (_.reset)
-  }
-    
-  def setInputToNeurons(input: Vec) {
-    neurons foreach (_.input = input)
-  }
-    
-  def setExpectedOutputToNeurons(expectedOutput: Vec) {
-    var i = 0
-    while (i < neurons.length) {
-      neurons(i).expectedOutput = expectedOutput(i)
-      i += 1
-    }
-  }
-    
-  def numNeurons: Int = _neurons.length
-    
-  def addNeuron(neuron: Neuron) {
-    _neurons += neuron
-  }
-    
 }
