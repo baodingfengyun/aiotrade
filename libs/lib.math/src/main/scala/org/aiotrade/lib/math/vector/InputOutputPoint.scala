@@ -37,11 +37,9 @@ import java.util.Random
  *
  * @author Caoyuan Deng
  */
-class InputOutputPoint(inputDimension: Int, outputDimension: Int) {
-    
-  val input:  Vec = new DefaultVec(inputDimension)
-  val output: Vec = new DefaultVec(outputDimension)
-    
+case class InputOutputPoint(input: Vec, output: Vec) {
+  def this(inputDimension: Int, outputDimension: Int) = 
+    this(new DefaultVec(inputDimension), new DefaultVec(outputDimension))
 }
 
 object InputOutputPoint {

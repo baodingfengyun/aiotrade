@@ -42,7 +42,7 @@ import org.aiotrade.lib.math.timeseries.Null
 class DefaultVec(source: Array[Double]) extends Vec {
   import DefaultVec._
     
-  private var values: Array[Double] = source
+  private var _values: Array[Double] = source
     
   /**
    * Create a zero values <code>DefaultVec</code>.
@@ -70,24 +70,24 @@ class DefaultVec(source: Array[Double]) extends Vec {
     this(source.toDoubleArray)
   }
     
-  def add(value: Double): Unit = {
-    val size = if (values == null) 0 else values.length
+  def add(value: Double) {
+    val size = if (_values == null) 0 else _values.length
         
     val newValues = new Array[Double](size + 1)
         
     if (size > 0) {
-      System.arraycopy(values, 0, newValues, 0, size)
+      System.arraycopy(_values, 0, newValues, 0, size)
     }
     newValues(newValues.length - 1) = value
         
-    values = newValues
+    _values = newValues
   }
     
   def toDoubleArray: Array[Double] = {
-    values
+    _values
   }
     
-  def checkDimensionEquality(comp: Vec): Unit = {
+  def checkDimensionEquality(comp: Vec) {
     if (comp.dimension != this.dimension) {
       throw new ArrayIndexOutOfBoundsException(
         "Doing operations with DefaultVec instances of different sizes.");
@@ -100,7 +100,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
   }
     
   def metric(other: Vec): Double = {
-    this.minus(other).normTwo
+    minus(other).normTwo
   }
     
   def equals(other: Vec): Boolean = {
@@ -120,54 +120,62 @@ class DefaultVec(source: Array[Double]) extends Vec {
   }
     
   def apply(dimensionIdx: Int): Double = {
-    values(dimensionIdx)
+    _values(dimensionIdx)
   }
     
-  def update(dimensionIdx: Int, value: Double): Unit = {
-    values(dimensionIdx) = value
+  def update(dimensionIdx: Int, value: Double) {
+    _values(dimensionIdx) = value
   }
     
-  def setAll(value: Double): Unit = {
-    for (i <- 0 until values.size) values(i) = value
+  def setAll(value: Double) {
+    val n = _values.length
+    var i = 0
+    while (i < n) {
+      _values(i) = value
+      i += 1
+    }
   }
     
-  def copy(src: Vec): Unit = {
+  def copy(src: Vec) {
     checkDimensionEquality(src)
-    System.arraycopy(src.toDoubleArray, 0, values, 0, values.length)
+    System.arraycopy(src.toDoubleArray, 0, _values, 0, _values.length)
   }
     
-  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int): Unit = {
-    System.arraycopy(src.toDoubleArray, srcPos, values, destPos, length)
+  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int) {
+    System.arraycopy(src.toDoubleArray, srcPos, _values, destPos, length)
   }
     
-    
-  def setValues(values: Array[Double]): Unit = {
-    this.values = values
+  def setValues(values: Array[Double]) {
+    _values = values
   }
     
   def dimension: Int = {
-    values.length
+    _values.length
   }
     
   def plus(operand: Vec): Vec = {
     checkDimensionEquality(operand)
 
     val result = new DefaultVec(dimension)
-        
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result(i) =  apply(i) + operand(i)
+      i += 1
     }
-        
+    
     result
   }
     
   def plus(operand: Double): Vec = {
     val result = new DefaultVec(dimension)
-        
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result(i) = apply(i) + operand
+      i += 1
     }
-        
+    
     result
   }
     
@@ -175,101 +183,119 @@ class DefaultVec(source: Array[Double]) extends Vec {
     checkDimensionEquality(operand)
         
     val result = new DefaultVec(dimension)
-        
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result(i) = apply(i) - operand(i)
+      i += 1
     }
-        
+    
     result
   }
     
   def innerProduct(operand: Vec): Double = {
     checkDimensionEquality(operand)
         
-    var result = 0d
-        
-    for (i <- 0 until dimension) {
+    var result = 0.0
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result += apply(i) * operand(i)
+      i += 1
     }
-        
+    
     result
   }
     
   def square: Double = {
-    var result = 0d
-        
-    for (i <- 0 until dimension) {
+    var result = 0.0
+    val n = dimension
+    var i = 0
+    while (i < n) {
       val value = apply(i)
       result += value * value
+      i += 1
     }
-        
+    
     result
   }
     
-    
   def times(operand: Double): Vec = {
     val result = new DefaultVec(dimension)
-        
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result(i) = apply(i) * operand
+      i += 1
     }
-        
+    
     result
   }
     
   def normOne: Double = {
-    var result = 0d
-        
-    for (i <- 0 until dimension) {
+    var result = 0.0
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result += math.abs(apply(i))
+      i += 1
     }
-        
+    
     result
   }
     
   def normTwo: Double = {
-    var result = 0d
-        
-    for (i <- 0 until dimension) {
+    var result = 0.0
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result += math.pow(apply(i), 2.0)
+      i += 1
     }
-    result = math.sqrt(result)
-        
-    result
+    
+    math.sqrt(result)
   }
     
   def checkValidation: Boolean = {
-    for (i <- 0 until dimension) {
-      if (Null.is(values(i))) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
+      if (Null.is(_values(i))) {
         return false
       }
+      i += 1
     }
-        
+
     true
   }
 
-  def randomize(min: Double, max: Double): Unit = {
+  def randomize(min: Double, max: Double) {
     val source = new Random(System.currentTimeMillis + Runtime.getRuntime.freeMemory)
 
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       /**
        * @NOTICE
        * source.nextDouble() returns a pseudorandom value between 0.0 and 1.0
        */
       update(i, source.nextDouble * (max - min) + min)
+      i += 1
     }
   }
 
   override 
-  def toString :String = {
+  def toString: String = {
     val result = new StringBuilder
-
     result.append("[")
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result.append(apply(i)).append(ITEM_SEPARATOR)
+      i += 1
     }
     result.append("]")
-
+    
     result.toString
   }
 }
@@ -289,13 +315,14 @@ object DefaultVec {
     val st = new StringTokenizer(str, ITEM_SEPARATOR)
 
     val dimension = st.countTokens
-
     val result = new DefaultVec(dimension)
-
-    for (i <- 0 until dimension) {
+    val n = dimension
+    var i = 0
+    while (i < n) {
       result(i) = st.nextToken.toDouble
+      i += 1
     }
-
+    
     result
   }
 
