@@ -30,7 +30,7 @@
  */
 
 
-package org.aiotrade.neuralnetwork.machine.mlp.neuron
+package org.aiotrade.lib.neuralnetwork.machine.mlp.neuron
 
 /**
  *

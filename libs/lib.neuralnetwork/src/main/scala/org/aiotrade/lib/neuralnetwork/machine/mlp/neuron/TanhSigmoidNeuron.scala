@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.machine.mlp.neuron
+package org.aiotrade.lib.neuralnetwork.machine.mlp.neuron
 
 /**
  * The double-polarity sigmoid neuron

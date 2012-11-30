@@ -33,7 +33,7 @@ package org.aiotrade.lib.neuralnetwork.core.descriptor
 
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.neuralnetwork.core.model.Network
-import org.aiotrade.neuralnetwork.datasource.DataSource
+import org.aiotrade.lib.neuralnetwork.datasource.DataSource
 import org.aiotrade.lib.util.Descriptor
 import org.aiotrade.lib.util.Argument
 

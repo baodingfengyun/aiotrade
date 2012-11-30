@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.datasource
+package org.aiotrade.lib.neuralnetwork.datasource
 
 import org.aiotrade.lib.math.vector.InputOutputPoint
 import org.aiotrade.lib.math.vector.InputOutputPointSet

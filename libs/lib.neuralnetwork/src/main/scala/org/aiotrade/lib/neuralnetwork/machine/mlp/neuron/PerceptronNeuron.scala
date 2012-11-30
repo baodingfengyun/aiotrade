@@ -30,13 +30,13 @@
  */
 
 
-package org.aiotrade.neuralnetwork.machine.mlp.neuron
+package org.aiotrade.lib.neuralnetwork.machine.mlp.neuron
 
 import org.aiotrade.lib.neuralnetwork.core.model.Neuron
 import org.aiotrade.lib.math.vector.DefaultVec
 import org.aiotrade.lib.math.vector.Vec
-import org.aiotrade.neuralnetwork.machine.mlp.learner.AbstractBpLearner
-import org.aiotrade.neuralnetwork.machine.mlp.learner.RpropBpLearner
+import org.aiotrade.lib.neuralnetwork.machine.mlp.learner.AbstractBpLearner
+import org.aiotrade.lib.neuralnetwork.machine.mlp.learner.RpropBpLearner
 
 /**
  * Perceptron Neuron

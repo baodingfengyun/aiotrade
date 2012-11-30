@@ -29,7 +29,7 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.aiotrade.neuralnetwork.machine.mlp
+package org.aiotrade.lib.neuralnetwork.machine.mlp
 
 import java.util.logging.Logger
 import org.aiotrade.lib.neuralnetwork.core.NetworkChangeEvent
