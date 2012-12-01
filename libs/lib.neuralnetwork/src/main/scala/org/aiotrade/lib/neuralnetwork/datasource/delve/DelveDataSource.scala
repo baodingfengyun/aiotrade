@@ -228,16 +228,16 @@ class DelveDataSource extends DataSource {
       var i = 0
       while (i < results.length) {
         var str = ""
-        if ((results(i) == null) || (results(i).toDoubleArray == null)) { // if
+        if ((results(i) == null) || (results(i).values == null)) { // if
           // pattern == null
           // means an "i don't know" answer
           var j = 0
-          while (((results(j) == null) || (results(j).toDoubleArray == null)) && (j < results.length)) {
+          while (((results(j) == null) || (results(j).values == null)) && (j < results.length)) {
             // guessing the dimension of the pattern to be written
             j += 1
           }
           // System.out.println("Located pattern "+j);
-          if ((results(j) != null) && (results(j).toDoubleArray != null)) {
+          if ((results(j) != null) && (results(j).values != null)) {
             var k = 0
             while (k < results(j).dimension) {
               str = str + "? "

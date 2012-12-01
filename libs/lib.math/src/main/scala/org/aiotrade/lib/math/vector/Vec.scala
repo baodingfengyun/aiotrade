@@ -36,6 +36,13 @@ package org.aiotrade.lib.math.vector
  * @author Caoyuan Deng
  */
 trait Vec extends Cloneable {
+  /**
+   * The elements of this <code>Vec</code> as an <code>Array[double]</code>.
+   *
+   * @return the <code>Array[double]</code>
+   */
+  def values: Array[Double]
+  def values_=(values: Array[Double])
     
   /**
    * Element-wise addition.
@@ -63,14 +70,7 @@ trait Vec extends Cloneable {
    *
    * @param value   the value of the element to add
    */
-  def add(value: Double): Unit
-    
-  /**
-   * The elements of this <code>Vec</code> as a <code>double[]</code>.
-   *
-   * @return the <code>double[]</code>
-   */
-  def toDoubleArray: Array[Double]
+  def add(value: Double)
     
   /**
    * Compute an Euclidean metric (or distance) from this <code>Vec</code> to
@@ -122,36 +122,34 @@ trait Vec extends Cloneable {
   /**
    * Returns the <i>idx </i>-nary element of the <code>Vec</code>.
    *
-   * @param dimensionIdx   the index of the desired element
+   * @param idx   the index of the desired element
    * @return the value of the element
    */
-  def apply(dimensionIdx: Int): Double
+  def apply(idx: Int): Double
     
   /**
    * Sets element of index <code>i</code> to <code>value</code>.
    *
-   * @param dimensionIdx   index of the element to set
+   * @param idx   index of the element to set
    * @param value    the value to set
    */
-  def update(dimensionIdx: Int, value: Double): Unit
+  def update(idx: Int, value: Double)
     
   /**
    * Sets all <code>Vec</code> elements to <code>value</code>.
    *
    * @param value   the value to set
    */
-  def setAll(value: Double): Unit
+  def setAll(value: Double)
     
   /**
    * Sets elements to the ones of <code>orig</code>.
    *
    * @param orig   the <code>Vec</code> with the elements to set
    */
-  def copy(orig: Vec): Unit
+  def copy(orig: Vec)
     
-  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int): Unit
-    
-  def setValues(values: Array[Double]): Unit
+  def copy(src: Vec, srcPos: Int, destPos: Int, length: Int)
     
   /**
    * @return the dimension of this <code>Vec</code>
@@ -166,14 +164,14 @@ trait Vec extends Cloneable {
    * @param min   lower bound
    * @param max   upper bound
    */
-  def randomize(min: Double, max: Double): Unit
+  def randomize(min: Double, max: Double)
     
   /**
    * Checks if a <code>Vec</code> has equal dimension of this <code>Vec</code>.
    *
    * @param comp   <code>Vec</code> to test with
    */
-  def checkDimensionEquality(comp: Vec): Unit
+  def checkDimensionEquality(comp: Vec)
     
   def checkValidation: Boolean
 

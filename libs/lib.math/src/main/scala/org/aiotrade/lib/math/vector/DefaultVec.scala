@@ -47,7 +47,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
   /**
    * Create a zero values <code>DefaultVec</code>.
    */
-  def this() {
+  def this() = {
     this(new Array[Double](0))
   }
     
@@ -56,7 +56,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
    *
    * @param dimension   the dimension of the new <code>DefaultVec</code>
    */
-  def this(dimension: Int) {
+  def this(dimension: Int) = {
     this(new Array[Double](dimension))
   }
     
@@ -67,7 +67,7 @@ class DefaultVec(source: Array[Double]) extends Vec {
    * @param source   the <code>DefaultVec</code> to be used as source
    */
   def this(source: Vec) {
-    this(source.toDoubleArray)
+    this(source.values)
   }
     
   def add(value: Double) {
@@ -83,8 +83,9 @@ class DefaultVec(source: Array[Double]) extends Vec {
     _values = newValues
   }
     
-  def toDoubleArray: Array[Double] = {
-    _values
+  def values = _values
+  def values_=(values: Array[Double]) {
+    _values = values
   }
     
   def checkDimensionEquality(comp: Vec) {
@@ -138,15 +139,11 @@ class DefaultVec(source: Array[Double]) extends Vec {
     
   def copy(src: Vec) {
     checkDimensionEquality(src)
-    System.arraycopy(src.toDoubleArray, 0, _values, 0, _values.length)
+    System.arraycopy(src.values, 0, _values, 0, _values.length)
   }
     
   def copy(src: Vec, srcPos: Int, destPos: Int, length: Int) {
-    System.arraycopy(src.toDoubleArray, srcPos, _values, destPos, length)
-  }
-    
-  def setValues(values: Array[Double]) {
-    _values = values
+    System.arraycopy(src.values, srcPos, _values, destPos, length)
   }
     
   def dimension: Int = {

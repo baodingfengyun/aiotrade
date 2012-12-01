@@ -41,6 +41,3 @@ import java.util.EventListener
 trait NetworkChangeListener extends EventListener {
     def networkChanged(evt: NetworkChangeEvent)
 }
-
-
-
