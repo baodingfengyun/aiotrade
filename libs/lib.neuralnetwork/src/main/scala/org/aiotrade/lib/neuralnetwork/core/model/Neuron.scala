@@ -49,7 +49,7 @@ abstract class Neuron(_inputDimension: Int, private var _isHidden: Boolean = tru
   
   private var _connectedNeurons = new ArrayList[Neuron]()
   private var _expectedOutput: Double = _
-  protected var _input: Vec = _ 
+  private var _input: Vec = _ 
 
   if (_inputDimension != 0) {
     init(_inputDimension, _isHidden)

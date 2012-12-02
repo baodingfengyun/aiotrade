@@ -72,15 +72,17 @@ class MlpNetworkDescriptor extends NetworkDescriptor {
       throw new Exception("no layers defined")
     }
         
-    val param = arg.asInstanceOf[MlpNetwork.Arg]
-    if (param.learningRate < 0) {
-      throw new Exception("learning rate must > 0")
-    }
-    if (param.maxEpoch < 0) {
-      throw new Exception("max epoch must be > 0")
-    }
-    if (param.predictionError <= 0) {
-      throw new Exception("prediction error must > 0")
+    arg match {
+      case MlpNetwork.Arg(maxEpoch, learningRate, momentumRate, predictionError) =>
+        if (learningRate < 0) {
+          throw new Exception("learning rate must > 0")
+        }
+        if (maxEpoch < 0) {
+          throw new Exception("max epoch must be > 0")
+        }
+        if (predictionError <= 0) {
+          throw new Exception("prediction error must > 0")
+        }
     }
   }
     

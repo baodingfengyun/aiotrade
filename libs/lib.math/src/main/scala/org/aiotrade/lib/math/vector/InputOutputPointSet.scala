@@ -35,37 +35,35 @@ import java.util.Random
 /**
  * @author Caoyuan Deng
  */
-class InputOutputPointSet(iops: Array[InputOutputPoint]) {
+class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
 
-  private val inputOutputPoints = iops
+  private val inputDimension = inputOutputPoints(0).input.dimension
+  private var inputMeans = Array.ofDim[Double](inputDimension)
+  private var inputStdDeviations = Array.ofDim[Double](inputDimension)
+  private var inputNormalized = Array.ofDim[Boolean](inputDimension)
 
-  private val inputDimension = iops(0).input.dimension
-  private var inputMeans = new Array[Double](inputDimension)
-  private var inputStdDeviations = new Array[Double](inputDimension)
-  private var inputNormalized = new Array[Boolean](inputDimension)
-
-  private val outputDimension = iops(0).output.dimension
-  private var outputMeans = new Array[Double](outputDimension)
-  private var outputStdDeviations = new Array[Double](outputDimension)
-  private var outputNormalized = new Array[Boolean](outputDimension)
+  private val outputDimension = inputOutputPoints(0).output.dimension
+  private var outputMeans = Array.ofDim[Double](outputDimension)
+  private var outputStdDeviations = Array.ofDim[Double](outputDimension)
+  private var outputNormalized = Array.ofDim[Boolean](outputDimension)
     
   def toArray: Array[InputOutputPoint] = {
     inputOutputPoints
   }
     
-  def  apply(idx: Int): InputOutputPoint = {
+  def apply(idx: Int): InputOutputPoint = {
     inputOutputPoints(idx)
   }
     
-  def update(idx: Int, iop: InputOutputPoint): Unit = {
+  def update(idx: Int, iop: InputOutputPoint) {
     inputOutputPoints(idx) = iop
   }
     
-  def size: Int =  {
+  def size: Int = {
     inputOutputPoints.length
   }
     
-  def randomizeOrder: Unit =  {
+  def randomizeOrder {
     val size1 = size
         
     val random = new Random(System.currentTimeMillis)
@@ -82,21 +80,21 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
   def cloneWithRandomizedOrder: InputOutputPointSet = {
     val size1 = size
         
-    val newPoints = new Array[InputOutputPoint](size1)
-    System.arraycopy(inputOutputPoints, 0, newPoints, 0, size)
+    val newPoints = Array.ofDim[InputOutputPoint](size1)
+    System.arraycopy(inputOutputPoints, 0, newPoints, 0, size1)
         
     val newSet = new InputOutputPointSet(newPoints)
         
-    newSet.inputMeans = new Array[Double](inputMeans.length)
+    newSet.inputMeans = Array.ofDim[Double](inputMeans.length)
     System.arraycopy(inputMeans, 0, newSet.inputMeans, 0, inputMeans.length)
         
-    newSet.inputStdDeviations = new Array[Double](inputStdDeviations.length)
+    newSet.inputStdDeviations = Array.ofDim[Double](inputStdDeviations.length)
     System.arraycopy(inputStdDeviations, 0, newSet.inputStdDeviations, 0, inputStdDeviations.length)
         
-    newSet.outputMeans = new Array[Double](outputMeans.length)
+    newSet.outputMeans = Array.ofDim[Double](outputMeans.length)
     System.arraycopy(outputMeans, 0, newSet.outputMeans, 0, outputMeans.length)
         
-    newSet.outputStdDeviations = new Array[Double](outputStdDeviations.length)
+    newSet.outputStdDeviations = Array.ofDim[Double](outputStdDeviations.length)
     System.arraycopy(outputStdDeviations, 0, newSet.outputStdDeviations, 0, outputStdDeviations.length)
         
     newSet.randomizeOrder
@@ -110,22 +108,26 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
    *   standard deviation: 1
    *   range: about [-1, 1]
    */
-  def normalizeInputs(dimensionIdx: Int): Unit = {
-    val num = inputOutputPoints.length
+  def normalizeInputs(dimensionIdx: Int) {
+    val n = inputOutputPoints.length
         
-    val values = new Array[Double](num)
-    for (i <- 0 until num) {
+    val values = Array.ofDim[Double](n)
+    var i = 0
+    while (i < n) {
       values(i) = inputOutputPoints(i).input(dimensionIdx)
+      i += 1
     }
         
     val normalized = normalize_ZScore(values)
-        
-    for (i <- 0 until num) {
+    
+    i = 0
+    while (i < n) {
       inputOutputPoints(i).input(dimensionIdx) = normalized(i)
+      i += 1
     }
         
-    inputMeans(dimensionIdx) = normalized(num)
-    inputStdDeviations(dimensionIdx) = normalized(num + 1)
+    inputMeans(dimensionIdx) = normalized(n)
+    inputStdDeviations(dimensionIdx) = normalized(n + 1)
     inputNormalized(dimensionIdx) = true
   }
     
@@ -150,24 +152,28 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
    *
    * Experience: If normalize ouput to [-1, 1], will cause a slower convergence.
    */
-  def normalizeOutputs(dimensionIdx: Int): Unit = {
-    val num = inputOutputPoints.length
+  def normalizeOutputs(dimensionIdx: Int) {
+    val n = inputOutputPoints.length
         
-    val values = new Array[Double](num)
-    for (i <- 0 until num) {
+    val values = Array.ofDim[Double](n)
+    var i = 0
+    while (i < n) {
       values(i) = inputOutputPoints(i).output(dimensionIdx)
+      i += 1
     }
         
     val normalized = normalize_ZScore(values)
-        
-    for (i <- 0 until num) {
+    
+    i = 0
+    while (i < n) {
       inputOutputPoints(i).output(dimensionIdx) = normalized(i)
+      i += 1
     }
         
-    val mu = normalized(num)
-    val sigma = normalized(num + 1)
-    outputMeans(dimensionIdx) = normalized(num)
-    outputStdDeviations(dimensionIdx) = normalized(num + 1)
+    val mu = normalized(n)
+    val sigma = normalized(n + 1)
+    outputMeans(dimensionIdx) = normalized(n)
+    outputStdDeviations(dimensionIdx) = normalized(n + 1)
     outputNormalized(dimensionIdx) = true
   }
     
@@ -177,19 +183,23 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
    *   standard deviation: 0.5
    *   range: about [0, 1]
    */
-  def normalizeOutputsPositively(dimensionIdx: Int): Unit = {
-    val num = inputOutputPoints.length
+  def normalizeOutputsPositively(dimensionIdx: Int) {
+    val n = inputOutputPoints.length
         
-    val values = new Array[Double](num)
-    for (i <- 0 until num) {
+    val values = Array.ofDim[Double](n)
+    var i = 0
+    while (i < n) {
       values(i) = inputOutputPoints(i).output(dimensionIdx)
+      i += 1
     }
         
-    val normalized = normalize_ZScore(values);
-        
-    for (i <- 0 until num) {
+    val normalized = normalize_ZScore(values)
+    
+    i = 0
+    while (i < n) {
       /** transform to mean: 0.5, standar deviation: 0.5 */
       inputOutputPoints(i).output(dimensionIdx) = normalized(i) * 0.5 + 0.5
+      i += 1
     }
         
     /**
@@ -206,46 +216,61 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
      *   mu' = mu - sigma
      *   sigma' = sigma / 0.5
      */
-    val mu = normalized(num)
-    val sigma = normalized(num + 1)
+    val mu = normalized(n)
+    val sigma = normalized(n + 1)
     outputMeans(dimensionIdx) = mu - sigma
     outputStdDeviations(dimensionIdx) = sigma / 0.5
     outputNormalized(dimensionIdx) = true
   }
     
-  def normalizeAllInputs: Unit = {
-    for (i <- 0 until apply(0).input.dimension) {
+  def normalizeAllInputs {
+    val n = apply(0).input.dimension
+    var i = 0
+    while (i < n) {
       normalizeInputs(i)
+      i += 1
     }
   }
     
-  def normalizeAllOutputs: Unit = {
-    for (i <- 0 until apply(0).output.dimension) {
+  def normalizeAllOutputs {
+    val n = apply(0).output.dimension
+    var i = 0
+    while (i < n) {
       normalizeOutputs(i)
+      i += 1
     }
   }
     
-  def normalizePositivelyAllOutputs: Unit = {
-    for (dimension <- 0 until apply(0).output.dimension) {
-      normalizeOutputsPositively(dimension)
+  def normalizePositivelyAllOutputs {
+    val n = apply(0).output.dimension
+    var i = 0
+    while (i < n) {
+      normalizeOutputsPositively(i)
+      i += 1
     }
   }
     
-  def normalizeInput(input: Vec): Unit = {
-    for (i <- 0 until input.dimension) {
+  def normalizeInput(input: Vec) {
+    val n = input.dimension
+    var i = 0
+    while (i < n) {
       val value = input(i)
       input(i) = normalizeInput(i, value)
+      i += 1
     }
   }
     
-  def normalizeOutput(output: Vec): Unit = {
-    for (i <- 0 until output.dimension) {
+  def normalizeOutput(output: Vec) {
+    val n = output.dimension
+    var i = 0
+    while (i < n) {
       val value = output(i)
       output(i) = normalizeOutput(i, value)
+      i += 1
     }
   }
     
-  def normalizePositivelyOutput(output: Vec): Unit =  {
+  def normalizePositivelyOutput(output: Vec) {
     /** as we have considered the mean and stdDeviation in positive case, it's same as: */
     normalizeOutput(output)
   }
@@ -273,21 +298,25 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
     normalizeOutput(dimensionIdx, value)
   }
     
-  def revertInput(input: Vec): Unit = {
-    for (i <- 0 until input.dimension) {
+  def revertInput(input: Vec) {
+    val n = input.dimension
+    var i = 0
+    while (i < n) {
       var value = input(i)
-            
       value = value * inputStdDeviations(i) + inputMeans(i)
       input(i) = value
+      i += 1
     }
   }
     
-  def revertOutput(output: Vec): Unit = {
-    for (i <- 0 until output.dimension) {
-      var value = output(i)
-            
+  def revertOutput(output: Vec) {
+    val n = output.dimension
+    var i = 0
+    while (i < n) {
+      var value = output(i)            
       value = value * outputStdDeviations(i) + outputMeans(i)
       output(i) = value
+      i += 1
     }
   }
     
@@ -308,25 +337,29 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
    *   range: about [-1, 1]
    */
   private def normalize_ZScore(values: Array[Double]): Array[Double] = {
-    val num = values.length
+    val n = values.length
         
     /** compute mean value */
-    var sum = 0d
-    for (i <- 0 until num) {
+    var sum = 0.0
+    var i = 0
+    while (i < n) {
       sum += values(i)
+      i += 1
     }
-    val mean = sum / (num * 1d)
+    val mean = sum / (n * 1d)
         
     /** compute standard deviation */
     var deviation_square_sum = 0d
-    for (i <- 0 until num) {
+    i = 0
+    while (i < n) {
       val deviation = values(i) - mean
       deviation_square_sum += deviation * deviation
+      i += 1
     }
         
-    var stdDeviation = math.sqrt(deviation_square_sum / (num * 1d))
+    var stdDeviation = math.sqrt(deviation_square_sum / (n * 1d))
         
-    System.out.println("Mean: " + mean + " Standard Deviation: " + stdDeviation)
+    //("Mean: " + mean + " Standard Deviation: " + stdDeviation)
         
     if (stdDeviation == 0) {
       stdDeviation = 1
@@ -336,13 +369,15 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
      * do 'Z Score' normalization.
      * 2 more dimensions are added to store mean and stdDeviation
      */
-    val normalized = new Array[Double](num + 2)
-    for (i <- 0 until num) {
+    val normalized = Array.ofDim[Double](n + 2)
+    i = 0
+    while (i < n) {
       normalized(i) = (values(i) - mean) / stdDeviation
+      i += 1
     }
         
-    normalized(num) = mean
-    normalized(num + 1) = stdDeviation
+    normalized(n) = mean
+    normalized(n + 1) = stdDeviation
         
     normalized
   }
@@ -352,12 +387,13 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
    *   = 0.8 / (xmax - xmin) * x + (0.9 - 0.8 / (xmax - xmin) * xmax)
    */
   private def normalizePositively_MinMax(values: Array[Double]): Array[Double] = {
-    val num = values.length
+    val n = values.length
         
     /** compute min max value */
-    var min = +Double.MaxValue
-    var max = -Double.MaxValue
-    for (i <- 0 until num) {
+    var min = Double.MaxValue
+    var max = Double.MinValue
+    var i = 0
+    while (i < n) {
       val value = values(i)
       if (value < min) {
         min = value
@@ -365,28 +401,31 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
       if (value > max) {
         max = value
       }
+      i += 1
     }
         
     val mean = min
         
     val stdDeviation = max - min
         
-    System.out.println("normOutput: " + mean + " deviationOutput: " + stdDeviation)
+    //println("normOutput: " + mean + " deviationOutput: " + stdDeviation)
         
     /** do 'min max' normalization */
-    val normalized = new Array[Double](num + 2)
-    for (i <- 0 until num) {
+    val normalized = Array.ofDim[Double](n + 2)
+    i = 0
+    while (i < n) {
       normalized(i) = (values(i) - mean) / stdDeviation
+      i += 1
     }
         
-    normalized(num) = mean
-    normalized(num + 1) = stdDeviation
+    normalized(n) = mean
+    normalized(n + 1) = stdDeviation
         
     normalized
   }
     
   private def normalizePositively_CustomMinMax(values: Array[Double]): Array[Double] = {
-    val num = values.length
+    val n = values.length
         
     /** compute max min value */
     val max = 30000
@@ -397,13 +436,15 @@ class InputOutputPointSet(iops: Array[InputOutputPoint]) {
     val stdDeviation = max - min
         
     /** do 'maxmin' standardization */
-    val normalized = new Array[Double](num + 2)
-    for (i <- 0 until num) {
+    val normalized = Array.ofDim[Double](n + 2)
+    var i = 0
+    while (i < n) {
       normalized(i) = (values(i) - mean) / stdDeviation
+      i += 1
     }
         
-    normalized(num) = mean
-    normalized(num + 1) = stdDeviation
+    normalized(n) = mean
+    normalized(n + 1) = stdDeviation
         
     normalized
   }

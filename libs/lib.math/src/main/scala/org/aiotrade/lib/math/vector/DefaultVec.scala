@@ -91,7 +91,8 @@ class DefaultVec(source: Array[Double]) extends Vec {
   def checkDimensionEquality(comp: Vec) {
     if (comp.dimension != this.dimension) {
       throw new ArrayIndexOutOfBoundsException(
-        "Doing operations with DefaultVec instances of different sizes.");
+        "Doing operations with DefaultVec instances of different sizes. this.dimension=%s, that.dimension=%s".format(this.dimension, comp.dimension)
+      )
     }
   }
 

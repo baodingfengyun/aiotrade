@@ -65,10 +65,9 @@ abstract class PerceptronNeuron extends Neuron {
     
   private var _learner: AbstractBpLearner = _
     
-  private var _minInitWeightValue = Double.NaN; //-0.05;
+  private var _minInitWeightValue = Double.NaN //-0.05
     
-  private var _maxInitWeightValue = Double.NaN; //0.05;
-    
+  private var _maxInitWeightValue = Double.NaN //0.05
     
   override
   def init(inputDimensionWithoutThreshold: Int, hidden: Boolean) {
