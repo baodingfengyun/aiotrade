@@ -138,7 +138,8 @@ abstract class PerceptronNeuron extends Neuron {
      */
   }
     
-  def setInput(inputWithoutThreshold: Vec) {
+  override
+  def input_=(inputWithoutThreshold: Vec) {
     /** add a dimension for threshold */
     val inputDimensionWithThreshold = inputWithoutThreshold.dimension + 1
         
@@ -159,7 +160,7 @@ abstract class PerceptronNeuron extends Neuron {
      * We assume the idx of threshold dimension in input vector is 0,
      * Don't change it to other value.
      *
-     * @see setInput(Vec inputWithoutThreshold)
+     * @see input_=(Vec inputWithoutThreshold)
      */
     0
   }
