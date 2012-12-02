@@ -239,7 +239,7 @@ abstract class PerceptronNeuron extends Neuron {
     var i = 0
     while (i < connectedNeurons.length) {
       val connectedNeuron = connectedNeurons(i).asInstanceOf[PerceptronNeuron]
-      buf_deltaOfConnectedNeurons(i) = connectedNeuron._delta
+      buf_deltaOfConnectedNeurons(i) = connectedNeuron.delta
       i += 1
     }
         
@@ -276,9 +276,9 @@ abstract class PerceptronNeuron extends Neuron {
       val connectedNeuron = connectedNeurons(i).asInstanceOf[PerceptronNeuron]
             
       val weightToConnectedNeuron = if (i < connectedNeuron.threholdDimensionIdx) {
-        connectedNeuron._weight(i)
+        connectedNeuron.weight(i)
       } else {
-        connectedNeuron._weight(i + 1)
+        connectedNeuron.weight(i + 1)
       }
             
       buf_weightToConnectedNeurons(i) = weightToConnectedNeuron

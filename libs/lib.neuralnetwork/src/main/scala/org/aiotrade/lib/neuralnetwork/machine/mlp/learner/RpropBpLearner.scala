@@ -32,7 +32,6 @@
 package org.aiotrade.lib.neuralnetwork.machine.mlp.learner
 
 import org.aiotrade.lib.math.vector.DefaultVec
-import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
 
 
@@ -46,12 +45,12 @@ import org.aiotrade.lib.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
  * summed gradient for a single epoch):
  *                | -delta_ij(t), if dE(t) / dW_ij > 0
  * deltaW_ij(t) = |  delta_ij(t), if dE(t) / dW_ij < 0
- *                |  0            otherwise
+ *                |  0          , otherwise
  *
  * The delta_ij values are updated as follows:
  *               | learningRatePlus  * delta_ij(t-1), if dE(t-1)/ dW_ij * dE(t)/ dW_ij > 0
  * delta_ij(t) = | learningRateMinus * delta_ij(t-1), if dE(t-1)/ dW_ij * dE(t)/ dW_ij < 0
- *               | delta_ij(t-1),                     otherwise
+ *               | delta_ij(t-1),                   , otherwise
  *
  * where 0 < learningRateMinus < 1 < learningRatePlus
  *
@@ -60,93 +59,92 @@ import org.aiotrade.lib.neuralnetwork.machine.mlp.neuron.PerceptronNeuron
  *
  * @author Caoyuan Deng
  */
- class RpropBpLearner(_neuron: PerceptronNeuron) extends AbstractBpLearner(_neuron, Mode.Batch) {
+class RpropBpLearner(_neuron: PerceptronNeuron) extends AbstractBpLearner(_neuron, Mode.Batch) {
     
-    /** weight updated value vector: deltaW_ij(t) */
-    private lazy val deltaWeight: Vec = new DefaultVec(neuron.inputDimension)
+  private val learningRatePlus  = 1.2
+  private val learningRateMinus = 0.5
+  private val initDeltaWeightValue = 0.1
+  private val maxDeltaWeightValue  = 50.0
+  private val minDelatWeightValue  = 0.000001
     
-    /** The summed gradient of the previous epoch (dE(t-1) / dW_ij) */
-    private lazy val prevSumGradient: Vec = new DefaultVec(neuron.inputDimension)
+  /** weight updated value vector: deltaW_ij(t) */
+  private lazy val deltaWeight = new DefaultVec(neuron.inputDimension)
     
-    /** weight update refering base vec: delta_ij(t) */
-    private lazy val deltaWeightBase: Vec = new DefaultVec(neuron.inputDimension)
+  /** The summed gradient of the previous epoch (dE(t-1) / dW_ij) */
+  private lazy val prevSumGradient = new DefaultVec(neuron.inputDimension)
     
-    private val learningRatePlus  = 1.2
-    private val learningRateMinus = 0.5
-    private var initDeltaWeightValue = 0.1
-    private var maxDeltaWeightValue  = 50.0
-    private var minDelatWeightValue  = 0.000001
-    
-    def adapt(args: Double*) {
-      val weight = neuron.weight
-      /**
-       * @NOTICE:
-       * dE/dw = (dE/de * de/dy * ...) *...
-       * de/dy = -1, however * -1 is neglected when compute gradientWeight, so
-       * gradientWeight has an opposite sign to dE/dw.
-       * we fix this here by times gradientWeight by -1.0
-       */
-      val gradient = sumGradient.times(-1.0)
-        
-        
-      // for each input's weight, do cycle:
-      val n =  neuron.inputDimension
-      var i = 0
-      while (i < n) {
-        val prevGW_i = prevSumGradient(i)
-        val currGW_i = gradient(i)
-            
-        val deltaWeight_i = 
-          if (prevGW_i * currGW_i > 0) {
-                
-            deltaWeightBase(i) = math.min(deltaWeightBase(i) * learningRatePlus, maxDeltaWeightValue)
-            prevSumGradient(i) = currGW_i
-        
-            -1.0 * math.signum(currGW_i) * deltaWeightBase(i)
-                
-          } else if (prevGW_i * currGW_i < 0) {
-                
-            /**
-             * gradient's sign changed -> the previous step was too large and
-             * the minimum that is looking for was missed, the previous
-             * weight update is reverted.
-             *
-             * And we should also minus deltaWeightBase by times the learningRateMinus(> 0 && < 1)
-             */
-            deltaWeightBase(i) = math.max(deltaWeightBase(i) * learningRateMinus, minDelatWeightValue)
-
-            /**
-             * due the backtracking step the derivative is supposed to change its sign
-             * again in the following step. To prevent double punishement we set the
-             * gradient to 0
-             */
-            prevSumGradient(i) = 0
-                
-            /** revert previous weight update */
-            -1.0 * deltaWeight(i)
-                
-          } else /** prevGW * currGW == 0 */ {
-                
-            prevSumGradient(i) = currGW_i
-                
-            /** no need to set a new deltaWeightBase */
-            -1.0 * math.signum(currGW_i) * deltaWeightBase(i)
-          }
-            
-        deltaWeight(i) + deltaWeight_i
-            
-        weight(i) = weight(i) + deltaWeight_i
-      
-        i += 1
-      }
-        
-      /** this learner should reset gradient to 0 after adapt() is called each time */
-      reset
-    }
-    
-    override 
-    val learnerName = "Resilient Backpropagation (RPROP) Leaner"
+  /** weight update refering base vec: delta_ij(t) */
+  private lazy val deltaWeightBase = {
+    val x = new DefaultVec(neuron.inputDimension)
+    x.setAll(initDeltaWeightValue)
+    x
   }
+    
+  def adapt(args: Double*) {
+    val weight = neuron.weight
+    /**
+     * @NOTICE:
+     * dE/dw = (dE/de * de/dy * ...) *...
+     * de/dy = -1, however * -1 is neglected when compute gradientWeight, so
+     * gradientWeight has an opposite sign to dE/dw.
+     * we fix this here by times gradientWeight by -1.0
+     */
+    val currSumGradient = sumGradient.times(-1.0)
+        
+    // for each input's weight, do cycle:
+    val n = neuron.inputDimension
+    var i = 0
+    while (i < n) {
+      val prevGW_i = prevSumGradient(i)
+      val currGW_i = currSumGradient(i)
+
+      if (prevGW_i * currGW_i > 0) {
+                
+        deltaWeightBase(i) = math.min(deltaWeightBase(i) * learningRatePlus, maxDeltaWeightValue)
+        deltaWeight(i) = -1.0 * math.signum(currGW_i) * deltaWeightBase(i)
+        prevSumGradient(i) = currGW_i
+                
+      } else if (prevGW_i * currGW_i < 0) {
+                
+        /**
+         * gradient's sign changed -> the previous step was too large and
+         * the minimum that is looking for was missed, the previous
+         * weight update is reverted.
+         *
+         * And we should also minus deltaWeightBase by times the learningRateMinus(> 0 && < 1)
+         */
+        deltaWeightBase(i) = math.max(deltaWeightBase(i) * learningRateMinus, minDelatWeightValue)
+
+        /** revert previous weight update */
+        deltaWeight(i) = -1.0 * deltaWeight(i)
+
+        /**
+         * due the backtracking step the derivative is supposed to change its sign
+         * again in the following step. To prevent double punishement we set the
+         * gradient to 0
+         */
+        prevSumGradient(i) = 0
+                
+      } else /** prevGW * currGW == 0 */ {
+                
+        /** no need to set a new deltaWeightBase */
+        deltaWeight(i) = -1.0 * math.signum(currGW_i) * deltaWeightBase(i)
+        prevSumGradient(i) = currGW_i
+                
+      }
+            
+      weight(i) = weight(i) + deltaWeight(i)
+      
+      i += 1
+    }
+        
+    /** this learner should reset gradient to 0 after adapt() is called each time */
+    reset
+  }
+    
+  override 
+  val learnerName = "Resilient Backpropagation (RPROP) Leaner"
+}
 
 
 
