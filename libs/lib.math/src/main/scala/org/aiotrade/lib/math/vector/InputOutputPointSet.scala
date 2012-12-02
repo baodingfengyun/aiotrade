@@ -302,8 +302,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
     val n = input.dimension
     var i = 0
     while (i < n) {
-      var value = input(i)
-      value = value * inputStdDeviations(i) + inputMeans(i)
+      val value = input(i) * inputStdDeviations(i) + inputMeans(i)
       input(i) = value
       i += 1
     }
@@ -313,8 +312,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
     val n = output.dimension
     var i = 0
     while (i < n) {
-      var value = output(i)            
-      value = value * outputStdDeviations(i) + outputMeans(i)
+      val value = output(i) * outputStdDeviations(i) + outputMeans(i)
       output(i) = value
       i += 1
     }

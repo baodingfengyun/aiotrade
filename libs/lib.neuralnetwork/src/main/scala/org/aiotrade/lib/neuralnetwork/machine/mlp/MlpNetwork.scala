@@ -221,7 +221,7 @@ class MlpNetwork extends AbstractNetwork {
           epochMeanError
         ))
             
-      println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError)
+      //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError)
             
       if (epochMeanError < arg.predictionError) {
         break = true
@@ -252,7 +252,7 @@ class MlpNetwork extends AbstractNetwork {
           epochMeanError
         ))
             
-      println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError);
+      //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError);
             
       if (epochMeanError < arg.predictionError) {
         break = true
