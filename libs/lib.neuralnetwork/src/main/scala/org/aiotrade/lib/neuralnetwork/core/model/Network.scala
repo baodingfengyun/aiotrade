@@ -33,17 +33,23 @@ package org.aiotrade.lib.neuralnetwork.core.model
 
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
-import org.aiotrade.lib.neuralnetwork.core.NetworkChangeEvent
-import org.aiotrade.lib.neuralnetwork.core.NetworkChangeListener
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
+import org.aiotrade.lib.util.actors.Publisher
 
 /**
  * A neural network
  * 
  * @author Caoyuan Deng
  */
-trait Network {
+trait Network extends Publisher with Serializable {
     
+  private var _inAdapting: Boolean = _
+    
+  def isInAdapting = _inAdapting
+  def isInAdapting_=(b: Boolean) {
+    _inAdapting = b
+  }
+  
   @throws(classOf[Exception])
   def init(descriptor: NetworkDescriptor)
     
@@ -78,14 +84,14 @@ trait Network {
     
   def cloneDescriptor: NetworkDescriptor
     
-  def neuralNetworkName: String
-    
-  def isInAdapting: Boolean
-  def isInAdapting_=(b: Boolean)
-    
-  def addNetWorkChangeListener(listener: NetworkChangeListener)
-    
-  def removeNetworkChangeListener(listener: NetworkChangeListener)
-    
-  def fireNetworkChangeEvent(evt: NetworkChangeEvent)
+  def name: String    
 }
+
+
+abstract trait NetworkChangeEvent {
+  def source: Network
+  def epoch: Long
+  def meanError: Double
+}
+case class NetworkUpdated(source: Network, epoch: Long = -1, meanError: Double = -1) extends NetworkChangeEvent
+case class NetworkTrainingFinished(source: Network, epoch: Long = -1, meanError: Double = -1) extends NetworkChangeEvent

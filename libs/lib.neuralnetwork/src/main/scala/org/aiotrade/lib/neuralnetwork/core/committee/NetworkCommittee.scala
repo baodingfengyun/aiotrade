@@ -36,7 +36,6 @@ import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.neuralnetwork.core.committee.function.CommitteeFunction
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
-import org.aiotrade.lib.neuralnetwork.core.model.AbstractNetwork
 import org.aiotrade.lib.neuralnetwork.core.model.Network
 import org.aiotrade.lib.util.Argument
 
@@ -47,8 +46,8 @@ import org.aiotrade.lib.util.Argument
  * @author Caoyuan
  */
 @SerialVersionUID(3256438123029147696L)
-class NetworkCommittee(private var _combinationFunction: CommitteeFunction) extends AbstractNetwork {
-  val neuralNetworkName = "Network Committe"
+class NetworkCommittee(private var _combinationFunction: CommitteeFunction) extends Network {
+  val name = "Network Committe"
 
   private var _committee = new ArrayList[Network]()
   private var _isSerialProcessing  = false

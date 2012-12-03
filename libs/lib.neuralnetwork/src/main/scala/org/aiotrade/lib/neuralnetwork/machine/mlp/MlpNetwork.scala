@@ -32,9 +32,9 @@
 package org.aiotrade.lib.neuralnetwork.machine.mlp
 
 import java.util.logging.Logger
-import org.aiotrade.lib.neuralnetwork.core.NetworkChangeEvent
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
-import org.aiotrade.lib.neuralnetwork.core.model.AbstractNetwork
+import org.aiotrade.lib.neuralnetwork.core.model.Network
+import org.aiotrade.lib.neuralnetwork.core.model.NetworkUpdated
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
@@ -45,10 +45,10 @@ import org.aiotrade.lib.util.Argument
  *
  * @author Caoyuan Deng
  */
-class MlpNetwork extends AbstractNetwork {
+class MlpNetwork extends Network {
   private val log = Logger.getLogger(getClass.getName)
 
-  val neuralNetworkName= "Multi-Layer Perceptron"
+  val name= "Multi-Layer Perceptron"
 
   private var _descriptor: MlpNetworkDescriptor = _
   private var _layers = new ArrayList[MlpLayer]()
@@ -214,12 +214,7 @@ class MlpNetwork extends AbstractNetwork {
             
       val epochMeanError = epochSumError / iops.size
             
-      fireNetworkChangeEvent(new NetworkChangeEvent(
-          this,
-          NetworkChangeEvent.Type.Updated,
-          epoch,
-          epochMeanError
-        ))
+      publish(NetworkUpdated(this, epoch, epochMeanError))
             
       //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError)
             
@@ -245,12 +240,7 @@ class MlpNetwork extends AbstractNetwork {
             
       val epochMeanError = epochSumError / iops.size
             
-      fireNetworkChangeEvent(new NetworkChangeEvent(
-          this,
-          NetworkChangeEvent.Type.Updated,
-          epoch,
-          epochMeanError
-        ))
+      publish(NetworkUpdated(this, epoch, epochMeanError))
             
       //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError);
             
