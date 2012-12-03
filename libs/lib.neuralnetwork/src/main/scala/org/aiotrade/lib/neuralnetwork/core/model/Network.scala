@@ -35,6 +35,7 @@ import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
 import org.aiotrade.lib.util.actors.Publisher
+import scala.concurrent.SyncVar
 
 /**
  * A neural network
@@ -88,10 +89,13 @@ trait Network extends Publisher with Serializable {
 }
 
 
-abstract trait NetworkChangeEvent {
-  def source: Network
-  def epoch: Long
-  def meanError: Double
-}
-case class NetworkUpdated(source: Network, epoch: Long = -1, meanError: Double = -1) extends NetworkChangeEvent
-case class NetworkTrainingFinished(source: Network, epoch: Long = -1, meanError: Double = -1) extends NetworkChangeEvent
+trait NetworkChangeEvent
+/**
+ * @param source of network
+ * @param epoch
+ * @param meanError
+ * @param syncVar For sync usage, you can lock the training process to freeze network status 
+ *                for a while by set this, and wait for it to be unlocked later.
+ */
+case class NetworkUpdated(network: Network, epoch: Long, meanError: Double, syncVar: SyncVar[Boolean]) extends NetworkChangeEvent
+case class NetworkTrained(network: Network, epoch: Long, meanError: Double, syncVar: SyncVar[Boolean]) extends NetworkChangeEvent

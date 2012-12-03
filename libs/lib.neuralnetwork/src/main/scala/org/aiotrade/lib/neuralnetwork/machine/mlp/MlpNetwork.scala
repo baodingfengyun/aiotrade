@@ -39,6 +39,7 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.util.Argument
+import scala.concurrent.SyncVar
 
 /**
  * Multi-Layer Perceptron network.
@@ -213,8 +214,11 @@ class MlpNetwork extends Network {
       }
             
       val epochMeanError = epochSumError / iops.size
-            
-      publish(NetworkUpdated(this, epoch, epochMeanError))
+
+      // @todo instead of syncVar, a better way may be contruct a machine that can compute input -> output and put in event?
+      val syncVar = new SyncVar[Boolean]
+      publish(NetworkUpdated(this, epoch, epochMeanError, syncVar))
+      syncVar.get
             
       //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError)
             
@@ -227,6 +231,7 @@ class MlpNetwork extends Network {
   }
     
   private def trainBatchMode(iops: InputOutputPointSet) {
+    val syncVar = new SyncVar[Boolean]
     var break = false
     var epoch = 1L
     while (epoch <= arg.maxEpoch && !break) {
@@ -240,7 +245,8 @@ class MlpNetwork extends Network {
             
       val epochMeanError = epochSumError / iops.size
             
-      publish(NetworkUpdated(this, epoch, epochMeanError))
+      publish(NetworkUpdated(this, epoch, epochMeanError, syncVar))
+      syncVar.take
             
       //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError);
             
