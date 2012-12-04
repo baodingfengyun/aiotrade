@@ -255,15 +255,13 @@ class SparseVec(src: Array[VecItem]) extends Vec {
 
     _items = src match {
       case x:SparseVec =>
-
-
         val srcItems = x._items
         val newItems = new Array[VecItem](srcItems.length)
         System.arraycopy(srcItems, 0, newItems, 0, srcItems.length)
 
         newItems
-      case _ =>
 
+      case _ =>
         val itemBuf = new ArrayList[VecItem]
         for (i <- 0 until src.dimension) {
           val value = src(i)
@@ -392,7 +390,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     _items.length
   }
     
-  def compactData :Array[VecItem] = {
+  def compactData: Array[VecItem] = {
     _items
   }
     
@@ -482,6 +480,4 @@ object SparseVec {
 
     result
   }
-
-
 }
