@@ -53,8 +53,34 @@
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-actors-migration_${scala.version}</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.aiotrade</groupId>
+                    <artifactId>lib-util</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.aiotrade</groupId>
+                    <artifactId>lib-math</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-aiotrade-lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org-aiotrade-lib-math</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>org-scala-lang</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -65,6 +91,8 @@
                 <configuration>
                     <publicPackages>
                         <publicPackage>libsvm</publicPackage>
+                        <publicPackage>org.aiotrade.lib.svm</publicPackage>
+                        <publicPackage>org.aiotrade.lib.svm.kernel</publicPackage>
                     </publicPackages>
                 </configuration>
             </plugin>

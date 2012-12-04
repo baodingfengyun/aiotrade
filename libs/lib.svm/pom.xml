@@ -21,6 +21,19 @@
     <version>1.0-SNAPSHOT</version> <!-- corresponding to libsvm-3.14, released on November 16, 2012-->
 
     <name>lib-svm</name>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>lib-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aiotrade</groupId>
+            <artifactId>lib-math</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -28,6 +41,13 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+<!--            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <configuration>
+                    <sendJavaToScalac>false</sendJavaToScalac>  libsvm's java code can not pass scalac 
+                </configuration>
+            </plugin>-->
         </plugins>
     </build>
 
