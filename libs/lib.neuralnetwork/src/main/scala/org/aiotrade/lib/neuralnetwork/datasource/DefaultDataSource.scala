@@ -270,7 +270,7 @@ class DefaultDataSource(_nNetworks: Int, _inputDimension: Int, _outputDimension:
     //return Math.pow(Math.E, value)
   }
     
-  final def revertOutput(normalizedOutput: Double): Double = {
+  final def reinstate(normalizedOutput: Double): Double = {
     mapToOrigin(normalizedOutput * deviationOutput + normOutput)
   }
     

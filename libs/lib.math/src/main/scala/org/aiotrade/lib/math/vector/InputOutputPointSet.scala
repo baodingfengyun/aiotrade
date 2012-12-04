@@ -298,7 +298,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
     normalizeOutput(dimensionIdx, value)
   }
     
-  def revertInput(input: Vec) {
+  def reinstateInput(input: Vec) {
     val n = input.dimension
     var i = 0
     while (i < n) {
@@ -308,7 +308,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
     }
   }
     
-  def revertOutput(output: Vec) {
+  def reinstateOutput(output: Vec) {
     val n = output.dimension
     var i = 0
     while (i < n) {
@@ -319,12 +319,12 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
   }
     
     
-  def revertInput(dimensionIdx: Int, value: Double): Double = {
+  def reinstateInput(dimensionIdx: Int, value: Double): Double = {
     value * inputStdDeviations(dimensionIdx) + inputMeans(dimensionIdx)
   }
     
     
-  def revertOutput(dimensionIdx: Int, value: Double): Double = {
+  def reinstateOutput(dimensionIdx: Int, value: Double): Double = {
     value * outputStdDeviations(dimensionIdx) + outputMeans(dimensionIdx)
   }
     
