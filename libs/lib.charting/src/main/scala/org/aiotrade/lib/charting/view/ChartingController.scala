@@ -280,17 +280,17 @@ object ChartingController {
 
     def isCursorCrossLineVisible = _isCursorCrossLineVisible
     def isCursorCrossLineVisible_=(b: Boolean) {
-      this._isCursorCrossLineVisible = b
+      _isCursorCrossLineVisible = b
     }
 
     def isMouseEnteredAnyChartPane = _isMouseEnteredAnyChartPane
     def isMouseEnteredAnyChartPane_=(b: Boolean) {
-      val oldValue = this._isMouseEnteredAnyChartPane
-      this._isMouseEnteredAnyChartPane = b
+      val oldValue = _isMouseEnteredAnyChartPane
+      _isMouseEnteredAnyChartPane = b
 
       if (!_isMouseEnteredAnyChartPane) {
         /** this cleanups mouse cursor */
-        if (this._isMouseEnteredAnyChartPane != oldValue) {
+        if (_isMouseEnteredAnyChartPane != oldValue) {
           notifyChanged(classOf[MouseCursorObserver])
           updateViews
         }
@@ -300,19 +300,19 @@ object ChartingController {
 
     def isAutoScrollToNewData = _isAutoScrollToNewData
     def isAutoScrollToNewData_=(autoScrollToNewData: Boolean) {
-      this._isAutoScrollToNewData = autoScrollToNewData
+      _isAutoScrollToNewData = autoScrollToNewData
     }
 
     def isFixedLeftSideTime = _fixedLeftSideTime != Long.MinValue
     def fixedLeftSideTime = _fixedLeftSideTime
     def fixedLeftSideTime_=(time: Long) {
-      this._fixedLeftSideTime = time
+      _fixedLeftSideTime = time
     }
 
     def isFixedNBars = _fixedNBars != 0
     def fixedNBars = _fixedNBars
     def fixedNBars_=(nBars: Int) {
-      this._fixedNBars = nBars
+      _fixedNBars = nBars
     }
 
     def growWBar(increment: Int) {
@@ -507,19 +507,19 @@ object ChartingController {
 
     private def internal_setReferCursorRow(row: Int, notify: Boolean = true) {
       val oldValue = this._referCursorRow
-      this._referCursorRow = row
+      _referCursorRow = row
       /** remember the lastRow for decision if need update cursor, see changeCursorByRow() */
-      this._lastOccurredRowOfBaseSer = baseSer.lastOccurredRow
-      if (this._referCursorRow != oldValue && notify) {
+      _lastOccurredRowOfBaseSer = baseSer.lastOccurredRow
+      if (_referCursorRow != oldValue && notify) {
         notifyChanged(classOf[ReferCursorObserver])
         notifyChanged(classOf[ChartValidityObserver])
       }
     }
 
     private def internal_setRightSideRow(row: Int, notify: Boolean = true) {
-      val oldValue = this._rightSideRow
-      this._rightSideRow = row
-      if (this._rightSideRow != oldValue && notify) {
+      val oldValue = _rightSideRow
+      _rightSideRow = row
+      if (_rightSideRow != oldValue && notify) {
         notifyChanged(classOf[ChartValidityObserver])
       }
     }
@@ -533,8 +533,8 @@ object ChartingController {
     }
 
     private def internal_setMouseCursorRow(row: Int) {
-      val oldValue = this._mouseCursorRow
-      this._mouseCursorRow = row
+      val oldValue = _mouseCursorRow
+      _mouseCursorRow = row
 
       /**
        * even mouseCursor row not changed, the mouse's y may has been changed,
@@ -565,7 +565,8 @@ object ChartingController {
       frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE)
       frame.addWindowListener(new WindowAdapter {
 
-          override def windowClosed(e: WindowEvent) {
+          override 
+          def windowClosed(e: WindowEvent) {
             removeKeyMouseListenersFrom(popupView)
             popupViewRefs.remove(popupView)
           }
@@ -575,7 +576,8 @@ object ChartingController {
     }
 
     @throws(classOf[Throwable])
-    override protected def finalize {
+    override 
+    protected def finalize {
       deafTo(baseSer)
 
       super.finalize
@@ -621,7 +623,8 @@ object ChartingController {
       private val LEFT  = -1
       private val RIGHT = 1
 
-      override def keyPressed(e: KeyEvent) {
+      override 
+      def keyPressed(e: KeyEvent) {
         val view = internal_getCorrespondingChartView(e)
         if (view == null || !view.isInteractive) {
           return
@@ -651,16 +654,18 @@ object ChartingController {
 
       }
 
-      override def keyReleased(e: KeyEvent) {
+      override 
+      def keyReleased(e: KeyEvent) {
         if (e.getKeyCode == KeyEvent.VK_SPACE) {
           _isCursorAccelerated = !_isCursorAccelerated
         }
       }
 
-      override def keyTyped(e: KeyEvent) {
-      }
+      override 
+      def keyTyped(e: KeyEvent) {}
 
-      private def moveCursorInDirection(fastSteps: Int, DIRECTION: Int) {
+      private 
+      def moveCursorInDirection(fastSteps: Int, DIRECTION: Int) {
         val steps = (if (isCursorAccelerated) fastSteps else 1) * DIRECTION
 
         scrollReferCursor(steps, true)

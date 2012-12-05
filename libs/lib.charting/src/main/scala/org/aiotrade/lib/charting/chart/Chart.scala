@@ -90,11 +90,11 @@ trait Chart extends Widget with Ordered[Chart] {
    * drawn on pane by calling render() initiatively (such as mouse cursor chart).
    * So, do not try to separate a setDatumPane(AbstractDatumPlane) method.
    */
-  def set(datumPlane: DatumPlane, ser: TSer, depth: Int): Unit
-  def set(datumPlane: DatumPlane, ser: TSer): Unit
+  def set(datumPlane: DatumPlane, ser: TSer, depth: Int)
+  def set(datumPlane: DatumPlane, ser: TSer)
     
   def isFirstPlotting: Boolean
-  def isFirstPlotting_=(b: Boolean): Unit
+  def isFirstPlotting_=(b: Boolean)
     
   def depth: Int
   def depth_=(depth: Int): Unit
@@ -102,13 +102,13 @@ trait Chart extends Widget with Ordered[Chart] {
   def ser: TSer
   def ser_=(ser: TSer): Unit
     
-  def setStrock(strockWidth: Int, strockType: StrockType): Unit
+  def setStrock(strockWidth: Int, strockType: StrockType)
   def strockWidth: Double
   def strockType: StrockType
     
   def isSelected: Boolean
-  def isSelected_=(b: Boolean): Unit
+  def isSelected_=(b: Boolean)
     
-  def reset: Unit
+  def reset
     
 }

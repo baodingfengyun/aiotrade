@@ -141,7 +141,7 @@ abstract class AbstractTSer(var freq: TFreq) extends TSer {
 
   override 
   def toString: String = {
-    this.getClass.getSimpleName + "(" + freq + ")"
+    getClass.getSimpleName + "(" + freq + ")"
   }
 }
 

@@ -44,47 +44,50 @@ import org.aiotrade.lib.math.signal.Signal
 object ChartFactory {
     
   def createVarChart(v: TVar[_], additionalVars: TVar[_]*): Chart = {
-    var chart: Chart = null
     v.plot match  {
       case Plot.Volume =>
-        chart = new VolumeChart
-        chart.asInstanceOf[VolumeChart].model.set(false)
+        val chart = new VolumeChart
+        chart.model.set(false)
+        chart
       case Plot.Line =>
-        chart = new PolyLineChart
-        chart.asInstanceOf[PolyLineChart].model.set(v.asInstanceOf[TVar[Double]])
+        val chart = new PolyLineChart
+        chart.model.set(v.asInstanceOf[TVar[Double]])
+        chart
       case Plot.Stick =>
-        chart = new StickChart
-        chart.asInstanceOf[StickChart].model.set(v.asInstanceOf[TVar[Double]])
+        val chart = new StickChart
+        chart.model.set(v.asInstanceOf[TVar[Double]])
+        chart
       case Plot.Dot =>
-        chart = new DotChart
-        chart.asInstanceOf[DotChart].model.set(v)
+        val chart = new DotChart
+        chart.model.set(v)
+        chart
       case Plot.Shade =>
-        chart = new GradientChart
-        chart.asInstanceOf[GradientChart].model.set(v, null)
+        val chart = new GradientChart
+        chart.model.set(v, null)
+        chart
       case Plot.Profile =>
-        chart = new ProfileChart
-        chart.asInstanceOf[ProfileChart].model.set(v)
+        val chart = new ProfileChart
+        chart.model.set(v)
+        chart
       case Plot.Zigzag =>
-        chart = new ZigzagChart
-        chart.asInstanceOf[ZigzagChart].model.set(v)
+        val chart = new ZigzagChart
+        chart.model.set(v)
+        chart
       case Plot.Signal =>
-        chart = new SignalChart
+        val chart = new SignalChart
         additionalVars.toList match {
           case List(var1: TVar[Double], var2: TVar[Double]) =>
-            chart.asInstanceOf[SignalChart].model.set(
-              v.asInstanceOf[TVar[List[Signal]]], var1, var2
-            )
-          case _ => chart.asInstanceOf[SignalChart].model.set(
-              v.asInstanceOf[TVar[List[Signal]]], null, null
-            )
+            chart.model.set(v.asInstanceOf[TVar[List[Signal]]], var1, var2)
+          case _ => chart.model.set(v.asInstanceOf[TVar[List[Signal]]], null, null)
         }
+        chart
       case Plot.Info =>
-        chart = new InfoPointChart
-        chart.asInstanceOf[InfoPointChart].model.set(v,additionalVars(1))
+        val chart = new InfoPointChart
+        chart.model.set(v,additionalVars(1))
+        chart
       case _ =>
+        null
     }
-        
-    chart
   }
     
     

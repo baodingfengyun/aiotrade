@@ -100,7 +100,7 @@ abstract class ChartViewContainer extends JPanel {
       view.isInteractive = b
     }
 
-    this._isInteractive = b
+    _isInteractive = b
   }
 
 
@@ -108,13 +108,13 @@ abstract class ChartViewContainer extends JPanel {
   def pin {
     masterView.pin
 
-    this._isPinned = true
+    _isPinned = true
   }
 
   def unPin {
     masterView.unPin
 
-    this._isPinned = false
+    _isPinned = false
   }
 
 
@@ -325,7 +325,7 @@ abstract class ChartViewContainer extends JPanel {
 
     val gImg = renderImage.createGraphics
     try {
-      paint(gImg);
+      paint(gImg)
     } catch {case ex: Exception => throw ex
     } finally {gImg.dispose}
 
@@ -333,7 +333,8 @@ abstract class ChartViewContainer extends JPanel {
   }
 
   @throws(classOf[Throwable])
-  override protected def finalize {
+  override 
+  protected def finalize {
     descriptorToSlaveView.clear
     super.finalize
   }

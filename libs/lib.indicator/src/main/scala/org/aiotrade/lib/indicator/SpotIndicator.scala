@@ -33,13 +33,6 @@ package org.aiotrade.lib.indicator
 import org.aiotrade.lib.math.timeseries.BaseTSer
 
 /**
- * Abstract Profile Indicator
- * The indicator's factor is time - mulitiple values (time, and values in z plane),
- * The series usually contains only one SerItem instance of requried time.
- * 
- * 
- * 
- * 
  * 
  * @author Caoyuan Deng
  */

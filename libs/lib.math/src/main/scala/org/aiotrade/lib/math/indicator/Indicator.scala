@@ -112,7 +112,7 @@ trait WithFactors {self: Indicator =>
     if (valueChanged) publish(FactorChanged)
   }
 
-  def factors: Array[Factor] = _factors
+  def factors = _factors
   def factors_=(factors: Array[Factor]) {
     if (factors != null) {
       val values = new Array[Double](factors.length)

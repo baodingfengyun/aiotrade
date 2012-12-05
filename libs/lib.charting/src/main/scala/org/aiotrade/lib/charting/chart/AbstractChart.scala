@@ -108,9 +108,9 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     set(datumPane, ser, this._depth)
   }
     
-  def isFirstPlotting: Boolean = _firstPlotting
+  def isFirstPlotting = _firstPlotting
   def isFirstPlotting_=(b: Boolean) {
-    this._firstPlotting = b
+    _firstPlotting = b
   }
     
     
@@ -119,14 +119,14 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * should call render(Graphics2D g) to render this chart upon g
    */
   protected def plotWidget {
-    this.baseSer = datumPlane.baseSer
-    this.nBars   = datumPlane.nBars
-    this.wBar    = datumPlane.wBar
+    baseSer = datumPlane.baseSer
+    nBars = datumPlane.nBars
+    wBar = datumPlane.wBar
         
-    this.wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
-    this.nSegs = (nBars * wBar / wSeg).toInt + 1
+    wSeg = math.max(wBar, Chart.MIN_SEGMENT_WIDTH).toInt
+    nSegs = (nBars * wBar / wSeg).toInt + 1
         
-    this.nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).toInt
+    nBarsCompressed = if (wBar >= 1) 1 else (1 / wBar).toInt
         
     reset
         
@@ -152,7 +152,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * For example: in the case of Line, objects it always contains nothing,
    * since a line contains no area.
    */
-  override protected def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean = {
+  protected def widgetIntersects(x: Double, y: Double, width: Double, height: Double): Boolean = {
     false
   }
     
@@ -172,9 +172,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     g.setStroke(stroke)
         
     if (isSelected) {
-      for (point <- markPoints) {
-        renderMarkAtPoint(g, point)
-      }
+      markPoints foreach (renderMarkAtPoint(g, _))
     }
   }
     
@@ -185,18 +183,18 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     
   def depth = _depth
   def depth_=(depth: Int) {
-    this._depth = depth
+    _depth = depth
   }
     
     
   def isSelected = _isSelected
   def isSelected_=(b: Boolean) {
-    this._isSelected = b
+    _isSelected = b
   }
     
   def setStrock(width: Int, tpe: Chart.StrockType) {
-    this._strockWidth = width
-    this._strockType = tpe
+    _strockWidth = width
+    _strockType = tpe
   }
     
   /**
@@ -207,7 +205,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
     
   def ser = _ser
   def ser_=(ser: TSer) {
-    this._ser = ser
+    _ser = ser
   }
     
     
@@ -217,7 +215,7 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * @param barIndex: index of bars, start from 1 to nBars
    */
   final protected def xb(barIndex: Int): Double = {
-    this.datumPlane.xb(barIndex)
+    datumPlane.xb(barIndex)
   }
 
   /**
@@ -225,26 +223,26 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * @param value
    */
   final protected def yv(value: Double): Double = {
-    this.datumPlane.yv(value)
+    datumPlane.yv(value)
   }
 
   final protected def bx(x: Double): Int = {
-    this.datumPlane.bx(x)
+    datumPlane.bx(x)
   }
 
   final protected def vy(y: Double): Double = {
-    this.datumPlane.vy(y)
+    datumPlane.vy(y)
   }
 
   /**
    * @return row in ser corresponding to barIndex
    */
   final protected def rb(barIndex: Int): Int = {
-    this.datumPlane.rb(barIndex)
+    datumPlane.rb(barIndex)
   }
 
   final protected def br(row: Int): Int = {
-    this.datumPlane.br(row)
+    datumPlane.br(row)
   }
 
   /**
@@ -262,11 +260,11 @@ abstract class AbstractChart extends AbstractWidget with Chart {
    * @param barIdx: index of bars, start from 1 to nBars
    */
   final protected def tb(barIdx: Int): Long = {
-    this.datumPlane.tb(barIdx)
+    datumPlane.tb(barIdx)
   }
 
   final protected def bt(time: Long): Int = {
-    this.datumPlane.bt(time)
+    datumPlane.bt(time)
   }
 
   protected def plotLine(xBase: Double, yBase: Double, k: Double,  path: GeneralPath) {

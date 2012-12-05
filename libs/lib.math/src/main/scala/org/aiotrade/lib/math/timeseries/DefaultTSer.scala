@@ -56,7 +56,7 @@ import scala.collection.mutable.ArrayBuffer
  *
  * @author Caoyuan Deng
  */
-class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
+class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   private val log = Logger.getLogger(getClass.getName)
 
   protected val INIT_CAPACITY = 100
@@ -106,7 +106,7 @@ class DefaultTSer($freq: => TFreq) extends AbstractTSer($freq) {
 
   def timestamps: TStamps = _timestamps
   def attach(timestamps: TStamps) {
-    this._timestamps = timestamps
+    _timestamps = timestamps
   }
 
   /**
