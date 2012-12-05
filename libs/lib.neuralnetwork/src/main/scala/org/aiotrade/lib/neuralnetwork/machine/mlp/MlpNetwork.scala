@@ -33,12 +33,12 @@ package org.aiotrade.lib.neuralnetwork.machine.mlp
 
 import java.util.logging.Logger
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
+import org.aiotrade.lib.neuralnetwork.core.model.Parameter
 import org.aiotrade.lib.neuralnetwork.core.model.Network
 import org.aiotrade.lib.neuralnetwork.core.model.NetworkUpdated
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
-import org.aiotrade.lib.util.Argument
 import scala.concurrent.SyncVar
 
 /**
@@ -53,7 +53,7 @@ class MlpNetwork extends Network {
 
   private var _descriptor: MlpNetworkDescriptor = _
   private var _layers = new ArrayList[MlpLayer]()
-  private var _arg: MlpNetwork.Arg = _
+  private var _param: MlpNetwork.Param = _
     
   @throws(classOf[Exception])
   def init(descriptor: NetworkDescriptor) {
@@ -102,12 +102,12 @@ class MlpNetwork extends Network {
       i += 1
     }
         
-    _arg = descriptor.arg.asInstanceOf[MlpNetwork.Arg]
+    _param = descriptor.param.asInstanceOf[MlpNetwork.Param]
   }
 
-  def arg = _arg
-  def arg_=(arg: MlpNetwork.Arg) {
-    _arg = arg
+  def param = _param
+  def param_=(param: MlpNetwork.Param) {
+    _param = param
   }
     
   def layers = _layers
@@ -200,7 +200,7 @@ class MlpNetwork extends Network {
   private def trainSerialMode(iops: InputOutputPointSet) {
     var break = false
     var epoch = 1L
-    while (epoch <= arg.maxEpoch && !break) {
+    while (epoch <= param.maxEpoch && !break) {
             
       /** re-randomize iops order each time */
       iops.randomizeOrder
@@ -222,7 +222,7 @@ class MlpNetwork extends Network {
             
       //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError)
             
-      if (epochMeanError < arg.predictionError) {
+      if (epochMeanError < param.predictionError) {
         break = true
       } else {
         epoch += 1
@@ -234,7 +234,7 @@ class MlpNetwork extends Network {
     val syncVar = new SyncVar[Boolean]
     var break = false
     var epoch = 1L
-    while (epoch <= arg.maxEpoch && !break) {
+    while (epoch <= param.maxEpoch && !break) {
       var epochSumError = 0.0
       var i = 0
       while (i < iops.size) {
@@ -250,7 +250,7 @@ class MlpNetwork extends Network {
             
       //println("Mean Error at the end of epoch " + epoch + ": " + epochMeanError);
             
-      if (epochMeanError < arg.predictionError) {
+      if (epochMeanError < param.predictionError) {
         break = true
       } else {
         epoch += 1
@@ -268,7 +268,7 @@ class MlpNetwork extends Network {
   }
     
   private def adapt() {
-    _layers foreach (_.adapt(arg.learningRate, arg.momentumRate))
+    _layers foreach (_.adapt(param.learningRate, param.momentumRate))
   }
     
   def cloneDescriptor(): NetworkDescriptor = {
@@ -278,10 +278,14 @@ class MlpNetwork extends Network {
 }
 
 object MlpNetwork {
-  case class Arg(
+  case class Param(
     maxEpoch: Long,
     learningRate: Double,
     momentumRate: Double,
     predictionError: Double
-  ) extends Argument  
+  ) extends Parameter {
+    assert(learningRate < 0, "learning rate must > 0")
+    assert(maxEpoch < 0, "max epoch must be > 0")
+    assert(predictionError <= 0, "prediction error must > 0")
+  }
 }

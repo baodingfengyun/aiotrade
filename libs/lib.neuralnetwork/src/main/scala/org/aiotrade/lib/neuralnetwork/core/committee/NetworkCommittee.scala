@@ -36,8 +36,8 @@ import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.neuralnetwork.core.committee.function.CommitteeFunction
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
+import org.aiotrade.lib.neuralnetwork.core.model.Parameter
 import org.aiotrade.lib.neuralnetwork.core.model.Network
-import org.aiotrade.lib.util.Argument
 
 /**
  * A committe or set of neural networks to be trained and used concurrently to
@@ -51,7 +51,7 @@ class NetworkCommittee(private var _combinationFunction: CommitteeFunction) exte
 
   private var _committee = new ArrayList[Network]()
   private var _isSerialProcessing  = false
-  private var _arg: Argument = _
+  private var _param: Parameter = _
     
   def addCommitteeMember(member: Network) {
     _committee += member
@@ -59,9 +59,9 @@ class NetworkCommittee(private var _combinationFunction: CommitteeFunction) exte
     
   def committe = _committee
 
-  def arg = _arg
-  def arg_=(arg: Argument) {
-    this._arg = arg
+  def param = _param
+  def param_=(param: Parameter) {
+    _param = param
   }
     
   def isSerialProcessing = _isSerialProcessing
@@ -111,7 +111,7 @@ class NetworkCommittee(private var _combinationFunction: CommitteeFunction) exte
   def init(descriptor: NetworkDescriptor) {
     val conf = descriptor.asInstanceOf[NetworkCommitteeConfig]
         
-    arg = descriptor.arg
+    param = descriptor.param
         
     try {
       combinationFunction = conf.combinationFunctionClass.newInstance

@@ -99,3 +99,5 @@ trait NetworkChangeEvent
  */
 case class NetworkUpdated(network: Network, epoch: Long, meanError: Double, syncVar: SyncVar[Boolean]) extends NetworkChangeEvent
 case class NetworkTrained(network: Network, epoch: Long, meanError: Double, syncVar: SyncVar[Boolean]) extends NetworkChangeEvent
+
+trait Parameter

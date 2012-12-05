@@ -45,8 +45,8 @@ class MlpNetworkDescriptor extends NetworkDescriptor {
     
   def numLayers = _layerDescriptors.length
     
-  def addHiddenLayerDescriptor(le: LayerDescriptor) {
-    _layerDescriptors += le
+  def addHiddenLayerDescriptor(layerDesc: LayerDescriptor) {
+    _layerDescriptors += layerDesc
   }
     
   def layerDescriptors = _layerDescriptors
@@ -70,19 +70,6 @@ class MlpNetworkDescriptor extends NetworkDescriptor {
 
     if (_layerDescriptors.length == 0) {
       throw new Exception("no layers defined")
-    }
-        
-    arg match {
-      case MlpNetwork.Arg(maxEpoch, learningRate, momentumRate, predictionError) =>
-        if (learningRate < 0) {
-          throw new Exception("learning rate must > 0")
-        }
-        if (maxEpoch < 0) {
-          throw new Exception("max epoch must be > 0")
-        }
-        if (predictionError <= 0) {
-          throw new Exception("prediction error must > 0")
-        }
     }
   }
     

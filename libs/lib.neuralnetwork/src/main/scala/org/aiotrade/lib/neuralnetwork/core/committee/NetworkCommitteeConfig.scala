@@ -102,9 +102,7 @@ class NetworkCommitteeConfig extends NetworkDescriptor {
   def createSampleInstance: NetworkDescriptor = {
     val mainConf = new NetworkCommitteeConfig()
     val conf = new MlpNetworkDescriptor()
-        
-    val arg = MlpNetwork.Arg(500, 0.5, 0.0, 0.1)
-    conf.arg = arg
+    conf.param = MlpNetwork.Param(500, 0.5, 0.0, 0.1)
         
     val hiddenLayer = LayerDescriptor("org.aiotrade.lib.neuralnetwork.machine.mlp.neuron.LogiSigmoidNeuron", 20)
     val outputLayer = LayerDescriptor("org.aiotrade.lib.neuralnetwork.machine.mlp.neuron.LinearNeuron", 8)

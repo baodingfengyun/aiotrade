@@ -32,10 +32,10 @@
 package org.aiotrade.lib.neuralnetwork.core.descriptor
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.neuralnetwork.core.model.Parameter
 import org.aiotrade.lib.neuralnetwork.core.model.Network
 import org.aiotrade.lib.neuralnetwork.datasource.DataSource
 import org.aiotrade.lib.util.Descriptor
-import org.aiotrade.lib.util.Argument
 
 /**
  * @author Caoyuan Deng
@@ -43,16 +43,16 @@ import org.aiotrade.lib.util.Argument
 
 abstract class NetworkDescriptor protected () extends Descriptor {
     
-  private var _arg: Argument = _
-  protected var _dataSource: DataSource = _
+  private var _param: Parameter = _
+  private var _dataSource: DataSource = _
     
   def numLayers: Int
     
   def layerDescriptors: ArrayList[_ <: LayerDescriptor]
     
-  def arg = _arg
-  def arg_=(arg: Argument) {
-    _arg = arg
+  def param = _param
+  def param_=(param: Parameter) {
+    _param = param
   }
     
   /**
