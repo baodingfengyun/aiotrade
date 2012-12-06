@@ -34,10 +34,9 @@ import java.awt.Color
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
-import org.aiotrade.lib.math.indicator.SpotIndicator
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.util
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 
 
 /**
@@ -71,12 +70,12 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
    * a place holder plus flags
    */
   protected type Holder = Boolean
-  val holders = new ArrayBuffer[Holder]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  val holders = new ArrayList[Holder]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
    */
-  val vars = new ArrayBuffer[TVar[Any]]
+  val vars = new ArrayList[TVar[Any]]
 
   /**
    * we implement occurred timestamps and items in density mode instead of spare
@@ -140,23 +139,12 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
        * position <-> time <-> item mapping
        */
       val idx = timestamps.indexOfOccurredTime(time)
-      if (idx >= 0 && idx < holders.size) {
-        true
-      } else {
-        this match {
-          case x: SpotIndicator =>
-            /** re-get one by computing it */
-            x.computeSpot(time)
-            true
-          case _ => false
-        }
-      }
+      idx >= 0 && idx < holders.size
     } finally {
       readLock.unlock
       //timestamps.readLock.unlock
     }
   }
-
 
   protected def assignValue(tval: TVal) {
     // todo
@@ -310,13 +298,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
       if (idx >= 0 && idx < holders.size) {
         true
       } else {
-        this match {
-          case x: SpotIndicator =>
-            /** re-get one by computing it */
-            x.computeSpot(time)
-            true
-          case _ => false
-        }
+        false
       }
     } finally {
       readLock.unlock
@@ -332,7 +314,8 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         if (timestamps(i) == time) return i
         else if (timestamps(i) > time) return -1
       }
-      return -1
+      
+      -1
     } finally {
       readLock.unlock
     }
@@ -345,17 +328,10 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
       if (idx >= 0 && idx < holders.size) {
         true
       } else {
-        this match {
-          case x: SpotIndicator =>
-            /** re-get one by computing it */
-            x.computeSpot(time)
-            true
-          case _ => false
-        }
+        false
       }
     } finally {
       readLock.unlock
-      //timestamps.readLock.unlock
     }
   }
 
@@ -367,7 +343,8 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         if (timestamps(i) == time) return i
         else if (timestamps(i) < time) return -1
       }
-      return -1
+      
+      -1
     } finally {
       readLock.unlock
     }
@@ -447,8 +424,8 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   }
   
   protected class InnerTVar[V: Manifest](
-    name: String, plot: Plot
-  ) extends AbstractInnerTVar[V](name, plot) {
+    _name: String, _plot: Plot
+  ) extends AbstractInnerTVar[V](_name, _plot) {
 
     var values = new ArrayList[V](INIT_CAPACITY)
 
@@ -508,9 +485,8 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     def update(idx: Int, value: V) {
       super.update(idx, value)
     }
- 
   }
-
+  
   //@todo SparseTVar
   /* protected class SparseTVar[V: Manifest](
    name: String, plot: Plot
@@ -575,8 +551,8 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
    * cooperating with DefaultSer.
    */
   abstract class AbstractInnerTVar[V: Manifest](
-    name: String, plot: Plot
-  ) extends AbstractTVar[V](name, plot) {
+    _name: String, _plot: Plot
+  ) extends AbstractTVar[V](_name, _plot) {
 
     addVar(this.asInstanceOf[TVar[Any]])
 
