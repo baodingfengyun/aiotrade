@@ -64,20 +64,21 @@ object RealTimeChartView {
 }
 
 import RealTimeChartView._
-class RealTimeChartView($controller: ChartingController,
-                        $quoteSer: QuoteSer,
-                        $empty: Boolean
+class RealTimeChartView(_controller: ChartingController,
+                        _quoteSer: QuoteSer,
+                        _empty: Boolean
 ) extends {
   private var _prevClose = Null.Double
   private var gridValues: Array[Double] = _
   private val cal = Calendar.getInstance
   private var exchange: Exchange = _
-} with AbstractQuoteChartView($controller, $quoteSer, $empty) with Reactor {
+} with AbstractQuoteChartView(_controller, _quoteSer, _empty) with Reactor {
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
   def this() = this(null, null, true)
 
-  override def init(controller: ChartingController, mainSer: TSer) {
+  override 
+  def init(controller: ChartingController, mainSer: TSer) {
     super.init(controller, mainSer)
 
     exchange = sec.exchange
@@ -164,13 +165,14 @@ class RealTimeChartView($controller: ChartingController,
 
   def prevClose = _prevClose
   def prevClose_=(prevClose: Double) {
-    this._prevClose = prevClose
+    _prevClose = prevClose
     gridValues(0) = prevClose
     mainChartPane.referCursorValue = prevClose
     glassPane.referCursorValue = prevClose
   }
 
-  override def popupToDesktop {
+  override 
+  def popupToDesktop {
     val popupView = new RealTimeChartView(controller, quoteSer)
     popupView.isInteractive = false
     val dimension = new Dimension(200, 150)
@@ -179,9 +181,10 @@ class RealTimeChartView($controller: ChartingController,
     controller.popupViewToDesktop(popupView, dimension, alwaysOnTop, false)
   }
 
-  override def updateView(evt: TSerEvent) {
+  override 
+  def updateView(evt: TSerEvent) {
     evt match {
-      case TSerEvent(_, _, _, _, ticker: Ticker, _) => //updateByTicker(ticker)
+      case TSerEvent(_, _, _, _, _, _) => 
       case _ =>
     }
   }

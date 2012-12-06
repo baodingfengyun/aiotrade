@@ -120,72 +120,64 @@ trait TSerEvent {
   def symbol: String
   def fromTime: Long
   def toTime: Long
-  def lastObject: AnyRef // object the event carries (it can be any thing other than a SerItem)
+  def message: String
   def callback: TSerEvent.Callback
 }
 object TSerEvent {
-  type Callback = () => Unit
+  type Callback = () => Any
 
   final case class Refresh(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
   final case class Loaded(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
   final case class Updated(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
   final case class Closed(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
   final case class Computed(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
   final case class Cleared(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
   final case class ToBeSet(
     source: TSer,
     symbol: String,
     fromTime: Long,
     toTime: Long,
-    lastObject: AnyRef = null,
+    message: String = null,
     callback: Callback = null) extends TSerEvent
-  case object None extends TSerEvent {
-    def source = null
-    def symbol = null
-    def fromTime = 0
-    def toTime = 0
-    def lastObject = null
-    def callback = null
-  }
 
-  def unapply(e: TSerEvent): Option[(TSer, String, Long, Long, AnyRef, Callback)] = {
-    Some((e.source, e.symbol, e.fromTime, e.toTime, e.lastObject, e.callback))
+  def unapply(e: TSerEvent): Option[(TSer, String, Long, Long, String, Callback)] = {
+    Some((e.source, e.symbol, e.fromTime, e.toTime, e.message, e.callback))
   }
 }
 

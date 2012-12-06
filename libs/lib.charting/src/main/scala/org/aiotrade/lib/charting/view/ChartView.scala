@@ -33,6 +33,9 @@ package org.aiotrade.lib.charting.view
 import java.awt.Dimension
 import javax.swing.JLayeredPane
 import java.awt.Graphics
+import java.io.File
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.swing.JComponent
 import org.aiotrade.lib.charting.view.pane.AxisXPane
 import org.aiotrade.lib.charting.view.pane.AxisYPane
@@ -90,7 +93,8 @@ abstract class ChartView(protected var _controller: ChartingController,
   val CONTROL_HEIGHT = 12
   val TITLE_HEIGHT_PER_LINE = 12
 } with JComponent with ChangeSubject with Reactor {
-
+  private val log = Logger.getLogger(getClass.getName)
+  
   protected val overlappingSerChartToVars = mutable.Map[TSer, mutable.Map[Chart, mutable.Set[TVar[_]]]]()
 
   val mainSerChartToVars = mutable.Map[Chart, mutable.Set[TVar[_]]]()
@@ -131,14 +135,37 @@ abstract class ChartView(protected var _controller: ChartingController,
   }
 
   reactions += {
-    case evt@TSerEvent.Computed(_, _, _, _, _, callback) =>
+    case evt@TSerEvent.Computed(_, _, _, _, msg, callback) =>
       updateView(evt)
-      if (callback != null) callback()
-    case evt@TSerEvent.Updated(_, _, _, _, _, callback) =>
+      if (msg != null) processEvtMessage(msg)
+      if (callback != null) processEvtCallback(callback)
+    case evt@TSerEvent.Updated(_, _, _, _, msg, callback) =>
       updateView(evt)
-      if (callback != null) callback()
-    case TSerEvent(_, _, _, _, _, callback) =>
-      if (callback != null) callback()
+      if (msg != null) processEvtMessage(msg)
+      if (callback != null) processEvtCallback(callback)
+    case TSerEvent(_, _, _, _, msg, callback) =>
+      if (msg != null) processEvtMessage(msg)
+      if (callback != null) processEvtCallback(callback)
+  }
+  
+  private def processEvtMessage(msg: String) {
+    //WindowManager.getDefault().setStatusText(msg)
+  }
+  
+  private def processEvtCallback(callback: () => Any) {
+    callback() match {
+      case imgFile: File =>
+        getParent match {
+          case viewContainer: ChartViewContainer =>
+            try {
+              viewContainer.saveToImage(imgFile, "png")
+            } catch {
+              case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
+            }
+          case _ =>
+        }
+      case _ =>
+    }
   }
 
   def this(controller: ChartingController, mainSer: TSer) = this(controller, mainSer, false)

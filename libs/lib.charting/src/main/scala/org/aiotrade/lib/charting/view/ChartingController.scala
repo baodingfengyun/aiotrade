@@ -242,7 +242,7 @@ object ChartingController {
 
       reactions += {
         /** this reaction only process loading, update events to check if need to update cursor */
-        case TSerEvent.Loaded(_, _, fromTime, toTime, _, _)  => updateView(toTime)
+        case TSerEvent.Loaded (_, _, fromTime, toTime, _, _) => updateView(toTime)
         case TSerEvent.Refresh(_, _, fromTime, toTime, _, _) => updateView(toTime)
         case TSerEvent.Updated(_, _, fromTime, toTime, _, _) => updateView(toTime)
         case _ =>

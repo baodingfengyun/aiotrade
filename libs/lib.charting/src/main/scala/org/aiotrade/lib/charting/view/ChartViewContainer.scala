@@ -171,31 +171,32 @@ abstract class ChartViewContainer extends JPanel {
   }
 
   protected def setMasterView(masterView: ChartView, gbc: GridBagConstraints) {
-    this._masterView = masterView
+    _masterView = masterView
     add(masterView, gbc)
   }
 
-  def addSlaveView(descriptor: IndicatorDescriptor, ser: TSer, $gbc: GridBagConstraints): ChartView = {
-    var view: ChartView = null
+  def addSlaveView(descriptor: IndicatorDescriptor, ser: TSer, _gbc: GridBagConstraints): ChartView = {
     if (!descriptorToSlaveView.contains(descriptor)) {
-      if (ser.isOverlapping) {
-        view = masterView
+      val view = if (ser.isOverlapping) {
+        val view = masterView
         view.addOverlappingCharts(ser)
+        view
       } else {
-        view = new IndicatorChartView(controller, ser)
-        val gbc = if ($gbc == null) {
+        val view = new IndicatorChartView(controller, ser)
+        val gbc = if (_gbc == null) {
           GBC(0).setFill(GridBagConstraints.BOTH)
-        } else $gbc
+        } else _gbc
         add(view, gbc)
+        view
       }
       descriptorToSlaveView.put(descriptor, view)
       selectedView = view
-    }
-    view
+      view 
+    } else null
   }
 
   def removeSlaveView(descriptor: IndicatorDescriptor) {
-    val view = lookupChartView(descriptor) match {
+    lookupChartView(descriptor) match {
       case Some(view) if view eq masterView =>
         view.removeOverlappingCharts(descriptor.createdServerInstance)
       case Some(view) =>
