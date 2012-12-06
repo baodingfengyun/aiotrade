@@ -46,17 +46,20 @@ class HVDIndicator extends SpotIndicator {
   val period2    = Factor("Period2",  100)
   val period3    = Factor("Period3",  200)
     
-  val HVD1 = TVar[Array[Array[Double]]]("HVD1", Plot.Profile)
-  val HVD2 = TVar[Array[Array[Double]]]("HVD2", Plot.Profile)
-  val HVD3 = TVar[Array[Array[Double]]]("HVD3", Plot.Profile)
+  val HVD1 = STVar[Array[Array[Double]]]("HVD1", Plot.Profile)
+  val HVD2 = STVar[Array[Array[Double]]]("HVD2", Plot.Profile)
+  val HVD3 = STVar[Array[Array[Double]]]("HVD3", Plot.Profile)
     
-  def computeSpot(time: Long, baseIdx: Int) {
-    val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)
-    val probability_mass2 = probMass(baseIdx, C, V, period2, nIntervals)
-    val probability_mass3 = probMass(baseIdx, C, V, period3, nIntervals)
+  protected def computeSpot(time: Long, baseIdx: Int) {
+    val baseIdx = timestamps.indexOfOccurredTime(time)
+    if (baseIdx > 0) {
+      val probability_mass1 = probMass(baseIdx, C, V, period1, nIntervals)
+      val probability_mass2 = probMass(baseIdx, C, V, period2, nIntervals)
+      val probability_mass3 = probMass(baseIdx, C, V, period3, nIntervals)
         
-    HVD1(time) = probability_mass1
-    HVD2(time) = probability_mass2
-    HVD3(time) = probability_mass3
+      HVD1(time) = probability_mass1
+      HVD2(time) = probability_mass2
+      HVD3(time) = probability_mass3
+    }
   }
 }

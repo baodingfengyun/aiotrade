@@ -37,7 +37,5 @@ package org.aiotrade.lib.math.indicator
  */
 trait SpotIndicator extends Indicator {
     
-  def spotTime_=(time: Long)
-    
   def computeSpot(time: Long)
 }

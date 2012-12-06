@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.TVar
  *
  * @author Caoyuan Deng
  */
-class ProbMassIndicator($baseSer: BaseTSer) extends SpotIndicator($baseSer) {
+class ProbMassIndicator(_baseSer: BaseTSer) extends SpotIndicator(_baseSer) {
   sname = "Probability Mass"
   lname = "Probability Mass"
   isOverlapping = true
@@ -49,20 +49,20 @@ class ProbMassIndicator($baseSer: BaseTSer) extends SpotIndicator($baseSer) {
   val period2    = Factor("Period2", 100.0)
   val period3    = Factor("Period3", 200.0)
     
-    
-  val MASS1 = TVar[Array[Array[Double]]]("MASS1", Plot.Profile)
-  val MASS2 = TVar[Array[Array[Double]]]("MASS2", Plot.Profile)
-  val MASS3 = TVar[Array[Array[Double]]]("MASS3", Plot.Profile)
+  val MASS1 = STVar[Array[Array[Double]]]("MASS1", Plot.Profile)
+  val MASS2 = STVar[Array[Array[Double]]]("MASS2", Plot.Profile)
+  val MASS3 = STVar[Array[Array[Double]]]("MASS3", Plot.Profile)
 
+  protected def computeSpot(time: Long, baseIdx: Int) {
+    if (baseIdx > 0) {
+      val probability_mass1 = probMass(baseIdx, baseVar, period1, nIntervals)
+      val probability_mass2 = probMass(baseIdx, baseVar, period2, nIntervals)
+      val probability_mass3 = probMass(baseIdx, baseVar, period3, nIntervals)
 
-  def computeSpot(time: Long, baseIdx: Int) {
-    val probability_mass1 = probMass(baseIdx, baseVar, period1, nIntervals)
-    val probability_mass2 = probMass(baseIdx, baseVar, period2, nIntervals)
-    val probability_mass3 = probMass(baseIdx, baseVar, period3, nIntervals)
-
-    MASS1(time) = probability_mass1
-    MASS2(time) = probability_mass2
-    MASS3(time) = probability_mass3
+      MASS1(time) = probability_mass1
+      MASS2(time) = probability_mass2
+      MASS3(time) = probability_mass3
+    }
   }
 
   override def shortName: String =  {

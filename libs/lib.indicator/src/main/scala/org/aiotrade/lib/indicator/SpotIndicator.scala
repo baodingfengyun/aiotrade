@@ -31,42 +31,96 @@
 package org.aiotrade.lib.indicator
 
 import org.aiotrade.lib.math.timeseries.BaseTSer
+import org.aiotrade.lib.math.timeseries.Null
+import org.aiotrade.lib.math.timeseries.TVar
+import org.aiotrade.lib.math.indicator.Plot
+import scala.collection.mutable
 
 /**
  * 
  * @author Caoyuan Deng
  */
-abstract class SpotIndicator($baseSer: BaseTSer) extends Indicator($baseSer) with org.aiotrade.lib.math.indicator.SpotIndicator {
-    
-  var spotTime = Long.MinValue
+abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) with org.aiotrade.lib.math.indicator.SpotIndicator {
     
   def this() = this(null)
     
-  def computeSpot(time: Long) {
-        
-    /** get baseIndex before preCalc(), which may clear this data */
-    val baseIdx = baseSer.indexOfOccurredTime(time)
-        
-    preComputeFrom(time)
-        
-    computeSpot(time, baseIdx)
-        
-    spotTime = time
-        
-    postComputeFrom
+  /**
+   * @todo Also override existsFromHead and existsFromTail?
+   */
+  override 
+  def exists(time: Long): Boolean = true
+
+  override 
+  def computeFrom(fromTime: Long) {
+    // do nothing
   }
-    
+  
   protected def compute(fromIdx: Int, size: Int) {
-    var i = fromIdx
-    while (i < size) {
-      val time = baseSer.timestamps(i)
-      if (time == spotTime) {
-        computeSpot(time, i)
-      }
-      i += 1
-    }
+    // do nothing
   }
-    
+
+  def computeSpot(time: Long) {
+    /** get baseIdx before preComputeFrom(), which may clear this data */
+    val baseIdx = baseSer.indexOfOccurredTime(time)
+    computeSpot(time, baseIdx)
+  }
+  
+  /**
+   * @param time
+   * @param baseIdx   baseIdx may be < 0, means there is no timestamps for this 
+   *                  time yet, time could be future.
+   */
   protected def computeSpot(time: Long, baseIdx: Int)
+  
+  object STVar {
+    def apply[V: Manifest](): TVar[V] = new SpotTVar[V]("", Plot.None)
+    def apply[V: Manifest](name: String): TVar[V] = new SpotTVar[V](name, Plot.None)
+    def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new SpotTVar[V](name, plot)
+  }
+  
+  protected class SpotTVar[V: Manifest](
+    _name: String, _plot: Plot
+  ) extends AbstractInnerTVar[V](_name, _plot) {
+
+    private lazy val _timeToValue = new mutable.HashMap[Long, V]()
+
+    def values = {
+      throw new UnsupportedOperationException()
+    }
+    
+    def put(time: Long, value: V): Boolean = {
+      _timeToValue += time-> value
+      true
+    }
+
+    def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
+      throw new UnsupportedOperationException()
+    }
+
+    def apply(time: Long): V = {
+      if (!_timeToValue.contains(time)) {
+        computeSpot(time)
+      }
+      _timeToValue.getOrElse(time, Null.getNullVal)
+    }
+
+    def apply(time: Long, fromHeadOrTail: Boolean): V = {
+      throw new UnsupportedOperationException()
+    }
+
+    def update(time: Long, value: V) {
+      _timeToValue(time) = value
+    }
+
+    override 
+    def apply(idx: Int): V = {
+      throw new UnsupportedOperationException()
+    }
+
+    override 
+    def update(idx: Int, value: V) {
+      throw new UnsupportedOperationException()
+    }
+  } 
 }
 
