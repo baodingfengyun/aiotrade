@@ -33,7 +33,7 @@ package org.aiotrade.lib.math.timeseries
 import org.aiotrade.lib.math.indicator.Plot
 
 /**
- * This is a horizotal view of DefaultSeries. Is' a reference of one of
+ * This is a horizotal view of DefaultSer. Is' a reference of one of
  * the field vars.
  *
  * @author Caoyuan Deng

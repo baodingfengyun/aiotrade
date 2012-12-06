@@ -133,7 +133,7 @@ final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends Abstr
                                                                       with IndexedSeqOptimized[A, TStampedMapBasedList[A]]
                                                                       with Builder[A, TStampedMapBasedList[A]] {
     
-  private val timeToElementData = mutable.Map[Long, A]()
+  private val timeToElementData = new mutable.HashMap[Long, A]()
 
   override 
   def size: Int = timestamps.size
@@ -157,14 +157,14 @@ final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends Abstr
     var i = 0
     while (i < length) {
       val time = timestamps(i)
-      xs(i) = timeToElementData.get(time).asInstanceOf[B]
+      xs(i) = timeToElementData.getOrElse(time, Null.getNullVal).asInstanceOf[B]
       i += 1
     }
   }
     
   def add(time: Long, elem:A): Boolean = {
     if (elem == null) {
-      /** null value needs not to be put in map, this will spare the memory usage */
+      /** null value does not need to be put in map, this will spare the memory usage */
       return true
     }
         
@@ -178,7 +178,7 @@ final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends Abstr
     }
   }
     
-  def apply(time: Long): A = timeToElementData.get(time).getOrElse(Null.getNullVal)
+  def apply(time: Long): A = timeToElementData.getOrElse(time, Null.getNullVal)
     
   def update(time: Long, elem: A) {
     if (timestamps.contains(time)) {
