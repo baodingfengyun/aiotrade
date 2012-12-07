@@ -277,9 +277,9 @@ abstract class ChartViewContainer extends JPanel {
   }
 
   @throws(classOf[Exception])
-  def saveToCustomSizeImage(file: File, fileFormat: String, begTime: Long, endTime: Long, height: Int) {
-    val begPos = _controller.baseSer.rowOfTime(begTime)
-    val endPos = _controller.baseSer.rowOfTime(endTime)
+  def saveToCustomSizeImage(file: File, fileFormat: String, fromTime: Long, toTime: Long, height: Int) {
+    val begPos = _controller.baseSer.rowOfTime(fromTime)
+    val endPos = _controller.baseSer.rowOfTime(toTime)
     val nBars = endPos - begPos
     val width = (nBars * _controller.wBar).toInt
 

@@ -164,6 +164,18 @@ abstract class ChartView(protected var _controller: ChartingController,
             }
           case _ =>
         }
+
+      case (imgFile: File, fromTime: Long, toTime: Long, height: Int) =>
+        getParent match {
+          case viewContainer: ChartViewContainer =>
+            try {
+              viewContainer.saveToCustomSizeImage(imgFile, "png", fromTime, toTime, height)
+            } catch {
+              case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
+            }
+          case _ =>
+        }
+        
       case _ =>
     }
   }
