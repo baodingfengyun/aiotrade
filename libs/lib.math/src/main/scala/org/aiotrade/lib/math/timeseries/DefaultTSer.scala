@@ -485,6 +485,9 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     def update(idx: Int, value: V) {
       super.update(idx, value)
     }
+    
+    def timesIterator: Iterator[Long] = timestamps.iterator
+    def valuesIterator: Iterator[V] = values.iterator
   }
   
   //@todo SparseTVar

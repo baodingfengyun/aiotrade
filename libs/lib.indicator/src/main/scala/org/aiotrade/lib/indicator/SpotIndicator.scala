@@ -30,11 +30,12 @@
  */
 package org.aiotrade.lib.indicator
 
+import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Plot
-import scala.collection.mutable
+import scala.collection.immutable
 
 /**
  * 
@@ -82,14 +83,14 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     _name: String, _plot: Plot
   ) extends AbstractInnerTVar[V](_name, _plot) {
 
-    private lazy val _timeToValue = new mutable.HashMap[Long, V]()
+    private var timeToValue = immutable.TreeMap[Long, V]() // must sort by time
 
-    def values = {
+    def values: ArrayList[V] = {
       throw new UnsupportedOperationException()
     }
     
     def put(time: Long, value: V): Boolean = {
-      _timeToValue += time-> value
+      timeToValue += time-> value
       true
     }
 
@@ -98,10 +99,10 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     }
 
     def apply(time: Long): V = {
-      if (!_timeToValue.contains(time)) {
+      if (!timeToValue.contains(time)) {
         computeSpot(time)
       }
-      _timeToValue.getOrElse(time, Null.value)
+      timeToValue.getOrElse(time, Null.value)
     }
 
     def apply(time: Long, fromHeadOrTail: Boolean): V = {
@@ -109,7 +110,7 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     }
 
     def update(time: Long, value: V) {
-      _timeToValue(time) = value
+      timeToValue += time -> value
     }
 
     override 
@@ -121,6 +122,13 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     def update(idx: Int, value: V) {
       throw new UnsupportedOperationException()
     }
+    
+    def reset(time: Long) {
+      timeToValue -= time
+    }
+    
+    def timesIterator: Iterator[Long] = timeToValue.keysIterator
+    def valuesIterator: Iterator[V] = timeToValue.valuesIterator
   } 
 }
 

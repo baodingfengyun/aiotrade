@@ -69,6 +69,9 @@ trait TVar[V] extends Plottable {
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]
+  
+  def timesIterator: Iterator[Long]
+  def valuesIterator: Iterator[V]
 
   val NullVal: V
 

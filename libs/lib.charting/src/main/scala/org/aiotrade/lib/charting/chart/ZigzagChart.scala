@@ -62,78 +62,64 @@ class ZigzagChart extends AbstractChart {
         
     val pathsWidget = addChild(new PathsWidget)
     val tp = new LineSegment
-    var index1 = getFirstIndexOfEffectiveValue(0)
+    val time0 = ser.timestamps(0)
+    var time1 = getFirstTimeOfEffectiveValue(time0)
     var break = false
     
-    def loop: Unit = {
-      if (index1 < 0) {
-        /** found none */
-        return
-      }
-            
-      val position1 = baseSer.rowOfTime(ser.timestamps(index1))
+    while (time1 >= 0 && !break) {
+      val position1 = baseSer.rowOfTime(time1)
       val bar1 = br(position1)
       if (bar1 > nBars) {
         /** exceeds visible range */
-        return
-      }
-            
-      val index2 = getFirstIndexOfEffectiveValue(index1 + 1)
-      if (index2 < 0) {
-        /** no more values now */
-        return
-      }
-            
-      val position2 = baseSer.rowOfTime(ser.timestamps(index2))
-      val bar2 = br(position2)
-      if (bar2 < 1) {
-        /** not in visible range yet */
-        index1 = index2
-        loop
-      }
-            
-      /** now we've got two good positions, go on to draw a line between them */
+        break = true
+      } else {
+        val time2 = getFirstTimeOfEffectiveValue(time1 + 1)
+        if (time2 < 0) {
+          /** no more values now */
+          break = true
+        } else {
+          val position2 = baseSer.rowOfTime(time2)
+          val bar2 = br(position2)
+          if (bar2 < 1) {
+            /** not in visible range yet */
+            time1 = time2
+          } else {
+            /** now we've got two good positions, go on to draw a line between them */
 
-      val value1 = model.v.double(tb(bar1))
-      val value2 = model.v.double(tb(bar2))
+            val value1 = model.v.double(tb(bar1))
+            val value2 = model.v.double(tb(bar2))
             
-      /** now try to draw line between these two points */
-      val x1 = xb(bar1)
-      val x2 = xb(bar2)
-      val y1 = yv(value1)
-      val y2 = yv(value2)
+            /** now try to draw line between these two points */
+            val x1 = xb(bar1)
+            val x2 = xb(bar2)
+            val y1 = yv(value1)
+            val y2 = yv(value2)
             
-      tp.setForeground(color)
-      tp.model.set(x1, y1, x2, y2)
-      tp.plot
-      pathsWidget.appendFrom(tp)
+            tp.setForeground(color)
+            tp.model.set(x1, y1, x2, y2)
+            tp.plot
+            pathsWidget.appendFrom(tp)
             
-      /** set new position1 for next while loop */
-      index1 = index2
-      loop
+            /** set new position1 for next while loop */
+            time1 = time2
+          }
+        }
+      }
     }
-
-    loop
   }
     
-  private def getFirstIndexOfEffectiveValue(fromIdx: Int): Int = {
-    var index = -1
-        
-    val v = model.v
-    val n = v.size
-    var i = fromIdx
-    var break = false
-    while (i < n && !break) {
-      val value = v.double(i)
-      if (Null.not(value)) {
-        index = i
-        break = true
+  private def getFirstTimeOfEffectiveValue(fromTime: Long): Long = {
+    val times = model.v.timesIterator
+    val values = model.v.valuesIterator
+    while (times.hasNext) {
+      val time = times.next
+      val value = values.next.asInstanceOf[Double] // should call values.next to sync with times.next
+      if (time >= fromTime && Null.not(value)) {
+        return time
       }
-
-      i += 1
     }
-        
-    index
+    
+    -1
   }
     
 }
