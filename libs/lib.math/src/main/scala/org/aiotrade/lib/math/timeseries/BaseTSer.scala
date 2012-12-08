@@ -42,7 +42,7 @@ trait BaseTSer extends TSer {
   def serProvider: SerProvider
 
   // --- Only BaseTSer can have methods that explictly add value
-  def createOrClear(time: Long)
+  def createOrReset(time: Long)
   def ++=[V <: TVal](values: Array[V]): TSer
 
   /**

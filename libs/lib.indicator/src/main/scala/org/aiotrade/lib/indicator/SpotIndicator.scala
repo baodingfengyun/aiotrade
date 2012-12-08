@@ -79,7 +79,7 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new SpotTVar[V](name, plot)
   }
   
-  protected class SpotTVar[V: Manifest](
+  final protected class SpotTVar[V: Manifest](
     _name: String, _plot: Plot
   ) extends AbstractInnerTVar[V](_name, _plot) {
 
@@ -89,13 +89,13 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
       throw new UnsupportedOperationException()
     }
     
-    def put(time: Long, value: V): Boolean = {
+    def add(time: Long, value: V): Boolean = {
       timeToValue += time-> value
       true
     }
 
-    def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
-      throw new UnsupportedOperationException()
+    def add(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
+      throw new UnsupportedOperationException("Can only be accessed via time.")
     }
 
     def apply(time: Long): V = {
@@ -106,7 +106,7 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     }
 
     def apply(time: Long, fromHeadOrTail: Boolean): V = {
-      throw new UnsupportedOperationException()
+      throw new UnsupportedOperationException("Can only be accessed via time.")
     }
 
     def update(time: Long, value: V) {
@@ -115,14 +115,18 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
 
     override 
     def apply(idx: Int): V = {
-      throw new UnsupportedOperationException()
+      throw new UnsupportedOperationException("Can only be accessed via time.")
     }
 
     override 
     def update(idx: Int, value: V) {
-      throw new UnsupportedOperationException()
+      throw new UnsupportedOperationException("Can only be accessed via time.")
     }
     
+    def reset(idx: Int) {
+      throw new UnsupportedOperationException("Can only be accessed via time.")
+    }
+
     def reset(time: Long) {
       timeToValue -= time
     }

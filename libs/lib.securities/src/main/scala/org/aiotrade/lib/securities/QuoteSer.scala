@@ -138,7 +138,7 @@ class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
    */
   def updateFrom(quote: Quote) {
     val time = quote.time
-    createOrClear(time)
+    createOrReset(time)
 
     assignValue(quote)
 

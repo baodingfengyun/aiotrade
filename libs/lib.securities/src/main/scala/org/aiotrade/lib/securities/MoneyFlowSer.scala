@@ -205,7 +205,7 @@ class MoneyFlowSer($sec: Sec, $freq: TFreq) extends FreeFloatSer($sec, $freq) {
    */
   def updateFrom(mf: MoneyFlow) {
     val time = mf.time
-    createOrClear(time)
+    createOrReset(time)
 
     assignValue(mf)
         

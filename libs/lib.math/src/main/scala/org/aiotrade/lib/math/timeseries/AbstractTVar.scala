@@ -102,7 +102,7 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
   def double(time: Long): Double = toDouble(apply(time))
   def double(idx: Int):   Double = toDouble(apply(idx))
 
-  private def toFloat(v: V): Float = {
+  def toFloat(v: V): Float = {
     v match {
       case null => Null.Float
       case x: Byte   => x.toFloat
@@ -121,7 +121,7 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     }
   }
 
-  private def toDouble(v: V): Double = {
+  def toDouble(v: V): Double = {
     v match {
       case null => Null.Double
       case x: Byte   => x.toDouble

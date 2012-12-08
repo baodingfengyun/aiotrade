@@ -87,7 +87,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
       if (time_i >= masterFromTime) {
         val intervalBegin = tarUnit.beginTimeOfUnitThatInclude(time_i, cal)
             
-        tarSer.createOrClear(intervalBegin)
+        tarSer.createOrReset(intervalBegin)
             
         var prevNorm = srcSer.close(time_i)
         var postNorm = srcSer.close(time_i) //srcSer.close_adj(time_i)

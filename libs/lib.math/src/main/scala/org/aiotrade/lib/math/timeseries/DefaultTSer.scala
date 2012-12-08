@@ -206,7 +206,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
-                vars foreach {x => x.put(time, x.NullVal)}
+                vars foreach {x => x.add(time, x.NullVal)}
                 newHolders(i) = createItem(time)
                 i += 1
               }
@@ -224,7 +224,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
               var i = 0
               while (i < appendSize) {
                 val time = timestamps(begIdx + i)
-                vars foreach {x => x.put(time, x.NullVal)}
+                vars foreach {x => x.add(time, x.NullVal)}
                 newHolders(i) = createItem(time)
                 i += 1
               }
@@ -423,13 +423,15 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new InnerTVar[V](name, plot)
   }
   
-  protected class InnerTVar[V: Manifest](
+  final protected class InnerTVar[V: Manifest](
     _name: String, _plot: Plot
   ) extends AbstractInnerTVar[V](_name, _plot) {
 
-    var values = new ArrayList[V](INIT_CAPACITY)
+    private var _values = new ArrayList[V](INIT_CAPACITY)
 
-    final def put(time: Long, value: V): Boolean = {
+    def values = _values
+    
+    def add(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         if (idx == values.size) {
@@ -443,40 +445,43 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         false
       }
     }
-
-    final def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
+    
+    /**
+     * @todo ? update or put
+     */
+    def add(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
       val idx = if (fromHeadOrTail) DefaultTSer.this.indexOfOccurredTimeFromHead(time) else DefaultTSer.this.indexOfOccurredTimeFromTail(time)
       if (idx >= 0) {
-        if (idx == values.size) {
-          values += value
+        if (idx == _values.size) {
+          _values += value
         } else {
-          values.insert(idx, value)
+          _values.insert(idx, value)
         }
         true
       } else {
-        assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
+        assert(false, "Add timestamps first before update an element! " + ": " + "idx=" + idx + ", time=" + time)
         false
       }
     }
 
-    final def apply(time: Long): V = {
+    def apply(time: Long): V = {
       val idx = timestamps.indexOfOccurredTime(time)
-      values(idx)
+      _values(idx)
     }
 
-    final def apply(time: Long, fromHeadOrTail: Boolean): V = {
+    def apply(time: Long, fromHeadOrTail: Boolean): V = {
       val idx = if (fromHeadOrTail) DefaultTSer.this.indexOfOccurredTimeFromHead(time) else DefaultTSer.this.indexOfOccurredTimeFromTail(time)
-      values(idx)
+      _values(idx)
     }
 
-    final def update(time: Long, value: V) {
+    def update(time: Long, value: V) {
       val idx = timestamps.indexOfOccurredTime(time)
       values(idx) = value
     }
 
     // @Note, see https://lampsvn.epfl.ch/trac/scala/ticket/2599
     override 
-    final def apply(idx: Int): V = {
+    def apply(idx: Int): V = {
       super.apply(idx)
     }
 
@@ -486,8 +491,16 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
       super.update(idx, value)
     }
     
+    def reset(idx: Int) {
+      update(idx, Null.value)
+    }
+    
+    def reset(time: Long) {
+      update(time, Null.value)
+    }
+
     def timesIterator: Iterator[Long] = timestamps.iterator
-    def valuesIterator: Iterator[V] = values.iterator
+    def valuesIterator: Iterator[V] = _values.iterator
   }
   
   //@todo SparseTVar

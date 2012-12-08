@@ -67,7 +67,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
    * you'd better never think to open these methods to protected or public.
    * @return Returns the index of time.
    */
-  def createOrClear(time: Long){
+  def createOrReset(time: Long){
     try {
       writeLock.lock
       /**
@@ -77,7 +77,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
        */
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0 && idx < holders.size) {
-        // existed, clear it
+        // existed, reset it
         vars foreach {x => x(idx) = x.NullVal}
         holders(idx) = false
       } else {
@@ -112,7 +112,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
   }
 
   /**
-   * Add a clear item and corresponding time in time order,
+   * Add a null item and corresponding time in time order,
    * should process time position (add time to timestamps orderly).
    * Support inserting time/clearItem pair in random order
    *
@@ -125,7 +125,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
     if (time < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach {x => x.put(time, x.NullVal)}
+        vars foreach {x => x.add(time, x.NullVal)}
         // as timestamps includes this time, we just always put in a none-null item
         holders.insert(existIdx, holder)
         return existIdx
@@ -141,7 +141,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
           timestamps.insert(idx, time)
           timestamps.log.logInsert(1, idx)
 
-          vars foreach {x => x.put(time, x.NullVal)}
+          vars foreach {x => x.add(time, x.NullVal)}
           holders.insert(idx, holder)
           return idx
 
@@ -164,7 +164,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
         timestamps += time
         timestamps.log.logAppend(1)
 
-        vars foreach {x => x.put(time, x.NullVal)}
+        vars foreach {x => x.add(time, x.NullVal)}
         holders += holder
         return this.size - 1
 
@@ -181,13 +181,13 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       // time == lastOccurredTime, keep same time and append vars and holders.
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach {x => x.put(time, x.NullVal)}
+        vars foreach {x => x.add(time, x.NullVal)}
         holders += holder
         return size - 1
       } else {
         assert(false,
                "As it's an adding action, we should not reach here! " +
-               "Check your code, you are probably from createOrClear(long), " +
+               "Check your code, you are probably from createOrReset(long), " +
                "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(time) +
                " return -1 ?")
         return -1
@@ -221,7 +221,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
         val value = values(i)
         if (value != null) {
           val time = value.time
-          createOrClear(time)
+          createOrReset(time)
           assignValue(value)
 
           frTime = math.min(frTime, time)
@@ -277,9 +277,3 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
     }
   }
 }
-
-
-
-
-
-

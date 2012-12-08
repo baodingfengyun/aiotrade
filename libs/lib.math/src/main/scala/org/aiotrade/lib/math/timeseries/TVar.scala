@@ -45,20 +45,27 @@ trait TVar[V] extends Plottable {
   def name_=(name: String)
 
   def timestamps: TStamps
-
-  def put(time: Long, value: V): Boolean
+  
+  /**
+   * Append or insert value at time
+   */
+  def add(time: Long, value: V): Boolean
+  def add(time: Long, fromHeadOrTail: Boolean, value: V): Boolean
+  
+  def apply(idx: Int): V
   def apply(time: Long): V
   def apply(time: Long, fromHeadOrTail: Boolean): V
-  def apply(idx: Int): V
 
-  def update(time: Long, value: V)
   def update(idx: Int, value: V)
-  def update(time: Long, fromHeadOrTail: Boolean, value: V): Boolean
+  def update(time: Long, value: V)
 
-  def float(time: Long): Float
   def float(idx: Int): Float
-  def double(time: Long): Double
+  def float(time: Long): Float
   def double(idx: Int): Double
+  def double(time: Long): Double
+
+  def toFloat(v: V): Float
+  def toDouble(v: V): Double
   
   def clear(fromIdx: Int)
     
@@ -69,6 +76,15 @@ trait TVar[V] extends Plottable {
   def toDoubleArray: Array[Double]
     
   def values: ArrayList[V]
+  
+  /**
+   * reset to Null.value
+   */
+  def reset(idx: Int)
+  /**
+   * reset to Null.value
+   */
+  def reset(time: Long)
   
   def timesIterator: Iterator[Long]
   def valuesIterator: Iterator[V]

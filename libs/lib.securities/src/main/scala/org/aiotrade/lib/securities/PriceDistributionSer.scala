@@ -38,7 +38,7 @@ class PriceDistributionSer($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec
    */
   def updateFrom(pd: PriceCollection) {
     val time = pd.time
-    createOrClear(time)
+    createOrReset(time)
     priceCollection(time) = pd
 
     /** be ware of fromTime here may not be same as ticker's event */

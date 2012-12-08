@@ -77,7 +77,7 @@ class QuoteSerJointer(srcSers: Map[QuoteSer, Double], targetSer: QuoteSer, timeZ
     val now = System.currentTimeMillis
     var time_i = masterFromTime
     while (time_i < now) {
-      targetSer.createOrClear(time_i)
+      targetSer.createOrReset(time_i)
       for ((srcSer, weight) <- srcSers if srcSer.exists(time_i)) {
         targetSer.open(time_i)   = targetSer.open(time_i) + (srcSer.open(time_i) / serToBaseNorm(srcSer).get.open) * weight
         targetSer.high(time_i)   = targetSer.high(time_i) + (srcSer.high(time_i) / serToBaseNorm(srcSer).get.high) * weight
