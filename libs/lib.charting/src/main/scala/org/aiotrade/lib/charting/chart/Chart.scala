@@ -42,8 +42,42 @@ import org.aiotrade.lib.math.timeseries.TSer
  *
  * @author Caoyuan Deng
  */
+trait Chart extends Widget with Ordered[Chart] {
+  import Chart._
+
+  /**
+   * @NOTICE:
+   * It's always better to set datumPlane here. After call following set(,,,)
+   * methods, the chart can be properly put in any datumPlane with the same datum,
+   * by calling DatumPlane.putChart() for automatically rendering, or, can be
+   * drawn on pane by calling render() initiatively (such as mouse cursor chart).
+   * So, do not try to separate a setDatumPane(AbstractDatumPlane) method.
+   */
+  def set(datumPlane: DatumPlane, ser: TSer, depth: Int)
+  def set(datumPlane: DatumPlane, ser: TSer)
+    
+  def isFirstPlotting: Boolean
+  def isFirstPlotting_=(b: Boolean)
+    
+  def depth: Int
+  def depth_=(depth: Int): Unit
+    
+  def ser: TSer
+  def ser_=(ser: TSer): Unit
+    
+  def setStrock(strockWidth: Int, strockType: StrockType)
+  def strockWidth: Double
+  def strockType: StrockType
+    
+  def isSelected: Boolean
+  def isSelected_=(b: Boolean)
+    
+  def reset
+    
+}
+
 object Chart {
-  abstract class StrockType
+  trait StrockType
   object StrockType {
     case object Base extends StrockType
     case object Dash extends StrockType
@@ -77,38 +111,4 @@ object Chart {
    * Another solution is define 1 n-colors chart as n 1-color charts (implemented).
    */
   val MIN_SEGMENT_WIDTH = 1
-}
-
-trait Chart extends Widget with Ordered[Chart] {
-  import Chart._
-
-  /**
-   * @NOTICE:
-   * It's always better to set datumPlane here. After call following set(,,,)
-   * methods, the chart can be properly put in any datumPlane with the same datum,
-   * by calling DatumPlane.putChart() for automatically rendering, or, can be
-   * drawn on pane by calling render() initiatively (such as mouse cursor chart).
-   * So, do not try to separate a setDatumPane(AbstractDatumPlane) method.
-   */
-  def set(datumPlane: DatumPlane, ser: TSer, depth: Int)
-  def set(datumPlane: DatumPlane, ser: TSer)
-    
-  def isFirstPlotting: Boolean
-  def isFirstPlotting_=(b: Boolean)
-    
-  def depth: Int
-  def depth_=(depth: Int): Unit
-    
-  def ser: TSer
-  def ser_=(ser: TSer): Unit
-    
-  def setStrock(strockWidth: Int, strockType: StrockType)
-  def strockWidth: Double
-  def strockType: StrockType
-    
-  def isSelected: Boolean
-  def isSelected_=(b: Boolean)
-    
-  def reset
-    
 }

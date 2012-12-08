@@ -101,7 +101,7 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
       if (!_timeToValue.contains(time)) {
         computeSpot(time)
       }
-      _timeToValue.getOrElse(time, Null.getNullVal)
+      _timeToValue.getOrElse(time, Null.value)
     }
 
     def apply(time: Long, fromHeadOrTail: Boolean): V = {

@@ -39,6 +39,7 @@ import org.aiotrade.lib.math.indicator.Plot
  * @author Caoyuan Deng
  */
 abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) extends TVar[V] {
+  final val NullVal = Null.value[V]
 
   val LAYER_NOT_SET = -1
 
@@ -95,20 +96,27 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
     result
   }
 
-  def float(time: Long): Float = toFloat(this(time))
-  def float(idx: Int): Float = toFloat(this(idx))
+  def float(time: Long): Float = toFloat(apply(time))
+  def float(idx: Int):   Float = toFloat(apply(idx))
 
-  def double(time: Long): Double = toDouble(this(time))
-  def double(idx: Int): Double = toDouble(this(idx))
+  def double(time: Long): Double = toDouble(apply(time))
+  def double(idx: Int):   Double = toDouble(apply(idx))
 
   private def toFloat(v: V): Float = {
     v match {
       case null => Null.Float
-      case n: Number => n.floatValue
-      case o: AnyRef =>
+      case x: Byte   => x.toFloat
+      case x: Short  => x.toFloat
+      case x: Char   => x.toFloat
+      case x: Int    => x.toFloat
+      case x: Long   => x.toFloat
+      case x: Float  => x
+      case x: Double => x.toFloat
+      case x: Number => x.floatValue
+      case x: AnyRef =>
         assert(false, "Why you get here(TVar.float) ? " +
                v + " Check your code and give me Float instead of float: " +
-               o.asInstanceOf[AnyRef].getClass.getCanonicalName)
+               x.asInstanceOf[AnyRef].getClass.getCanonicalName)
         Null.Float
     }
   }
@@ -116,6 +124,13 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
   private def toDouble(v: V): Double = {
     v match {
       case null => Null.Double
+      case x: Byte   => x.toDouble
+      case x: Short  => x.toDouble
+      case x: Char   => x.toDouble
+      case x: Int    => x.toDouble
+      case x: Long   => x.toDouble
+      case x: Float  => x.toDouble
+      case x: Double => x
       case n: Number => n.doubleValue
       case o: AnyRef =>
         assert(false, "Why you get here(TVar.double) ? " +
@@ -124,8 +139,6 @@ abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) exten
         Null.Double
     }
   }
-
-  final val NullVal = Null.getNullVal[V]
 
   /**
    * Clear values that >= fromIdx

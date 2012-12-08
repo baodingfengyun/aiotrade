@@ -33,8 +33,8 @@ object Null {
   def not(v: Double)  = !java.lang.Double.isNaN(v)
   def not(v: Boolean) = v != Boolean
 
-  def getNullVal[T](implicit m: Manifest[T]): T = {
-    val value = m.toString match {
+  def value[T](implicit m: Manifest[T]): T = {
+    val v = m.toString match {
       case "Byte"    => Null.Byte   // -128 ~ 127
       case "Short"   => Null.Short  // -32768 ~ 32767
       case "Char"    => Null.Char   // 0(\u0000) ~ 65535(\uffff)
@@ -45,6 +45,7 @@ object Null {
       case "Boolean" => Null.Boolean
       case _ => null
     }
-    value.asInstanceOf[T]
+    
+    v.asInstanceOf[T]
   }
 }

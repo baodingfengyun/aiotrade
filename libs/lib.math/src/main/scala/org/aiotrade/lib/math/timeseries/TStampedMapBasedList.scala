@@ -157,7 +157,7 @@ final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends Abstr
     var i = 0
     while (i < length) {
       val time = timestamps(i)
-      xs(i) = timeToElementData.getOrElse(time, Null.getNullVal).asInstanceOf[B]
+      xs(i) = timeToElementData.getOrElse(time, Null.value).asInstanceOf[B]
       i += 1
     }
   }
@@ -178,7 +178,7 @@ final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends Abstr
     }
   }
     
-  def apply(time: Long): A = timeToElementData.getOrElse(time, Null.getNullVal)
+  def apply(time: Long): A = timeToElementData.getOrElse(time, Null.value)
     
   def update(time: Long, elem: A) {
     if (timestamps.contains(time)) {

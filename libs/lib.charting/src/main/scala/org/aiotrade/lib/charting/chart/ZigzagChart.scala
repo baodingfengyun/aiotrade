@@ -30,12 +30,12 @@
  */
 package org.aiotrade.lib.charting.chart
 
+import org.aiotrade.lib.charting.laf.LookFeel
 import org.aiotrade.lib.charting.widget.LineSegment
+import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
-import org.aiotrade.lib.charting.laf.LookFeel
-import org.aiotrade.lib.charting.widget.PathsWidget
 
 /**
  *
@@ -119,12 +119,12 @@ class ZigzagChart extends AbstractChart {
   private def getFirstIndexOfEffectiveValue(fromIdx: Int): Int = {
     var index = -1
         
-    val values = model.v.values
+    val v = model.v
+    val n = v.size
     var i = fromIdx
-    val n = values.size
     var break = false
     while (i < n && !break) {
-      val value = values(i).asInstanceOf[Double]
+      val value = v.double(i)
       if (Null.not(value)) {
         index = i
         break = true

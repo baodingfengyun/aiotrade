@@ -36,4 +36,4 @@ package org.aiotrade.lib.charting.widget
  * @version 1.0, November 28, 2006, 1:33 AM
  * @since   1.0.4
  */
-trait WidgetModel {}
+trait WidgetModel
