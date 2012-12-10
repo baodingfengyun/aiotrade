@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -35,7 +35,7 @@ import java.util.Random
 /**
  * @author Caoyuan Deng
  */
-class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
+class InputOutputPointSet[T <: InputOutputPoint: Manifest] protected (val inputOutputPoints: Array[T]) {
 
   private val inputDimension = inputOutputPoints(0).input.dimension
   private var inputMeans = Array.ofDim[Double](inputDimension)
@@ -47,15 +47,11 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
   private var outputStdDeviations = Array.ofDim[Double](outputDimension)
   private var outputNormalized = Array.ofDim[Boolean](outputDimension)
     
-  def toArray: Array[InputOutputPoint] = {
-    inputOutputPoints
-  }
-    
-  def apply(idx: Int): InputOutputPoint = {
+  def apply(idx: Int): T = {
     inputOutputPoints(idx)
   }
     
-  def update(idx: Int, iop: InputOutputPoint) {
+  def update(idx: Int, iop: T) {
     inputOutputPoints(idx) = iop
   }
     
@@ -64,23 +60,26 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
   }
     
   def randomizeOrder {
-    val size1 = size
-        
     val random = new Random(System.currentTimeMillis)
-    for (i <- 0 until size1) {
-      val next = random.nextInt(size1 - i)
+
+    val n = size
+    var i = 0
+    while (i < n) {
+      val next = random.nextInt(n - i)
             
       val iop = inputOutputPoints(next)
             
       inputOutputPoints(next) = inputOutputPoints(i)
       inputOutputPoints(i) = iop
+      
+      i += 1
     }
   }
     
-  def cloneWithRandomizedOrder: InputOutputPointSet = {
+  def cloneWithRandomizedOrder: InputOutputPointSet[T] = {
     val size1 = size
         
-    val newPoints = Array.ofDim[InputOutputPoint](size1)
+    val newPoints = Array.ofDim[T](size1)
     System.arraycopy(inputOutputPoints, 0, newPoints, 0, size1)
         
     val newSet = new InputOutputPointSet(newPoints)
@@ -224,7 +223,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
   }
     
   def normalizeAllInputs {
-    val n = apply(0).input.dimension
+    val n = inputOutputPoints(0).input.dimension
     var i = 0
     while (i < n) {
       normalizeInputs(i)
@@ -233,7 +232,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
   }
     
   def normalizeAllOutputs {
-    val n = apply(0).output.dimension
+    val n = inputOutputPoints(0).output.dimension
     var i = 0
     while (i < n) {
       normalizeOutputs(i)
@@ -242,7 +241,7 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
   }
     
   def normalizePositivelyAllOutputs {
-    val n = apply(0).output.dimension
+    val n = inputOutputPoints(0).output.dimension
     var i = 0
     while (i < n) {
       normalizeOutputsPositively(i)
@@ -446,4 +445,8 @@ class InputOutputPointSet(val inputOutputPoints: Array[InputOutputPoint]) {
         
     normalized
   }
+}
+
+object InputOutputPointSet {
+  def apply[T <: InputOutputPoint: Manifest](inputOutputPoints: Array[T]) = new InputOutputPointSet(inputOutputPoints)
 }

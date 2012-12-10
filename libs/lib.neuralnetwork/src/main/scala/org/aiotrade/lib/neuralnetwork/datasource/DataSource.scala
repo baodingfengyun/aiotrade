@@ -44,8 +44,8 @@ abstract class DataSource(private var _numNetworks: Int, private var _inputDimen
     init(_numNetworks, _inputDimension, _outputDimension)
   }
   
-  private var _trainingPointSets: Array[InputOutputPointSet] = _
-  private var _validatingPointSets: Array[InputOutputPointSet] = _
+  private var _trainingPointSets: Array[InputOutputPointSet[_ <: InputOutputPoint]] = _
+  private var _validatingPointSets: Array[InputOutputPointSet[_ <: InputOutputPoint]] = _
     
   def this() = this(0, 0, 0)
     
@@ -54,8 +54,8 @@ abstract class DataSource(private var _numNetworks: Int, private var _inputDimen
     _inputDimension = inputDimension
     _outputDimension = outputDimension
         
-    _trainingPointSets = Array.ofDim[InputOutputPointSet](nNetworks)
-    _validatingPointSets = Array.ofDim[InputOutputPointSet](nNetworks)
+    _trainingPointSets = Array.ofDim[InputOutputPointSet[_ <: InputOutputPoint]](nNetworks)
+    _validatingPointSets = Array.ofDim[InputOutputPointSet[_ <: InputOutputPoint]](nNetworks)
   }
     
   /**
@@ -78,19 +78,19 @@ abstract class DataSource(private var _numNetworks: Int, private var _inputDimen
     _outputDimension = outputDimension
   }
     
-  def getTrainingPointSet(networkIdx: Int): InputOutputPointSet = {
+  def getTrainingPointSet(networkIdx: Int): InputOutputPointSet[_ <: InputOutputPoint] = {
     _trainingPointSets(networkIdx)
   }
     
-  def setTrainingPointSet(networkIdx: Int, trainingPointSet: InputOutputPointSet) {
+  def setTrainingPointSet(networkIdx: Int, trainingPointSet: InputOutputPointSet[_ <: InputOutputPoint]) {
     _trainingPointSets(networkIdx) = trainingPointSet
   }
     
-  def getValidatingPointSet(networkIdx: Int): InputOutputPointSet = {
+  def getValidatingPointSet(networkIdx: Int): InputOutputPointSet[_] = {
     _validatingPointSets(networkIdx)
   }
     
-  def setValidatingPointSet(networkIdx: Int, validatingPointSet: InputOutputPointSet) {
+  def setValidatingPointSet(networkIdx: Int, validatingPointSet: InputOutputPointSet[_ <: InputOutputPoint]) {
     _validatingPointSets(networkIdx) = validatingPointSet
   }
     
@@ -103,7 +103,7 @@ abstract class DataSource(private var _numNetworks: Int, private var _inputDimen
    * @throws Exception
    */
   @throws(classOf[Exception])
-  def getTrainingPoints(networkIdx: Int): Array[InputOutputPoint]
+  def getTrainingPoints(networkIdx: Int): Array[_ <: InputOutputPoint]
     
   /**
    * Read validating points from the source. only input vector will be read.

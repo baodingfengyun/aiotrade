@@ -32,6 +32,7 @@
 package org.aiotrade.lib.neuralnetwork.core.committee
 
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.vector.InputOutputPoint
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.neuralnetwork.core.committee.function.CommitteeFunction
@@ -88,7 +89,7 @@ class NetworkCommittee(private var _combinationFunction: CommitteeFunction) exte
     _combinationFunction.assamble(results.toArray)
   }
     
-  def train(iops: InputOutputPointSet) {
+  def train(iops: InputOutputPointSet[_ <: InputOutputPoint]) {
     val threadGroup = new ThreadGroup("a-group-of:" + this)
     for (network <- _committee) {
       val trainRunner = new TrainRunner(network, iops.cloneWithRandomizedOrder)
@@ -167,7 +168,7 @@ class NetworkCommittee(private var _combinationFunction: CommitteeFunction) exte
     res
   }
     
-  class TrainRunner(network: Network, iops: InputOutputPointSet) extends Runnable {
+  class TrainRunner(network: Network, iops: InputOutputPointSet[_ <: InputOutputPoint]) extends Runnable {
     def run() {
       network.train(iops)
     }

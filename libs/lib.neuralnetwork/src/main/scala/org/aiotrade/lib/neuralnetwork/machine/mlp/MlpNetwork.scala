@@ -37,6 +37,7 @@ import org.aiotrade.lib.neuralnetwork.core.model.Parameter
 import org.aiotrade.lib.neuralnetwork.core.model.Network
 import org.aiotrade.lib.neuralnetwork.core.model.NetworkUpdated
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.vector.InputOutputPoint
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import scala.concurrent.SyncVar
@@ -192,12 +193,12 @@ class MlpNetwork extends Network {
     error
   }
     
-  def train(iops: InputOutputPointSet) {
+  def train(iops: InputOutputPointSet[_ <: InputOutputPoint]) {
     //trainSerialMode(iops)
     trainBatchMode(iops)
   }
     
-  private def trainSerialMode(iops: InputOutputPointSet) {
+  private def trainSerialMode(iops: InputOutputPointSet[_ <: InputOutputPoint]) {
     var break = false
     var epoch = 1L
     while (epoch <= param.maxEpoch && !break) {
@@ -230,7 +231,7 @@ class MlpNetwork extends Network {
     }
   }
     
-  private def trainBatchMode(iops: InputOutputPointSet) {
+  private def trainBatchMode(iops: InputOutputPointSet[_ <: InputOutputPoint]) {
     val syncVar = new SyncVar[Boolean]
     var break = false
     var epoch = 1L

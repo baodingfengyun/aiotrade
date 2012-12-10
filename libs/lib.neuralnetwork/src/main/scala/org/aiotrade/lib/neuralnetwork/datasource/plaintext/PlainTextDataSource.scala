@@ -234,7 +234,7 @@ class PlainTextDataSource extends DataSource {
           if (patternSize != _inputDimension + _outputDimension) {
             throw new Exception("The data file is not properly formated.")
           }
-          val iop = new InputOutputPoint(_inputDimension, _outputDimension)
+          val iop = InputOutputPoint(_inputDimension, _outputDimension)
                 
           var i = 0
           while (i < _inputDimension) {

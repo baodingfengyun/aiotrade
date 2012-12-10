@@ -31,6 +31,7 @@
 
 package org.aiotrade.lib.neuralnetwork.core.model
 
+import org.aiotrade.lib.math.vector.InputOutputPoint
 import org.aiotrade.lib.math.vector.InputOutputPointSet
 import org.aiotrade.lib.math.vector.Vec
 import org.aiotrade.lib.neuralnetwork.core.descriptor.NetworkDescriptor
@@ -77,7 +78,7 @@ trait Network extends Publisher with Serializable {
    *
    * @param iop  The training set to be learned.
    */
-  def train(iops: InputOutputPointSet)
+  def train(iops: InputOutputPointSet[_ <: InputOutputPoint])
     
   def inputDimension: Int
     

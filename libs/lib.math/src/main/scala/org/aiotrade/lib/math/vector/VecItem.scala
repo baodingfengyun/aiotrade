@@ -39,4 +39,4 @@ package org.aiotrade.lib.math.vector
  * 
  * @author Caoyuan Deng
  */
-final case class VecItem(var index: Int, var value: Double) extends Serializable
+final case class VecItem(index: Int, value: Double) extends Serializable

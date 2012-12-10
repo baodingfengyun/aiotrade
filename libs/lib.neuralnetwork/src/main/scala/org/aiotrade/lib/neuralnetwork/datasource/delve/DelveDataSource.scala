@@ -170,7 +170,7 @@ class DelveDataSource extends DataSource {
         } else {
           val st = new StringTokenizer(str)
           val patternSize = st.countTokens
-          val iop = new InputOutputPoint(patternSize - numberOfOutputs, numberOfOutputs)
+          val iop = InputOutputPoint(patternSize - numberOfOutputs, numberOfOutputs)
           var i = 0
           while (i < patternSize - numberOfOutputs) {
             iop.input(i) = st.nextToken.toDouble

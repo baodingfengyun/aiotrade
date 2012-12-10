@@ -39,10 +39,10 @@ import org.aiotrade.lib.math.timeseries.Null
  *
  * @author Caoyuan Deng
  */
-class DefaultVec(source: Array[Double]) extends Vec {
+class DefaultVec(underlying: Array[Double]) extends Vec {
   import DefaultVec._
     
-  private var _values: Array[Double] = source
+  private var _values: Array[Double] = underlying
     
   /**
    * Create a zero values <code>DefaultVec</code>.
@@ -299,6 +299,9 @@ class DefaultVec(source: Array[Double]) extends Vec {
 }
 
 object DefaultVec {
+  def apply(underlying: Array[Double]) = new DefaultVec(underlying)
+  def apply(source: Vec) = new DefaultVec(source)
+  
   val ITEM_SEPARATOR = " "
     
   /**

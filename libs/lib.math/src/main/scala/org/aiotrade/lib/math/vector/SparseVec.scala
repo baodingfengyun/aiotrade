@@ -114,8 +114,7 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     for (i <- 0 until dimension) {
       val value = values(i)
       if (value != 0) {
-        newItems(i).index = i
-        newItems(i).value = value
+        newItems(i) = VecItem(i, value)
       }
     }
         
@@ -185,53 +184,62 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   }
     
   def apply(dimensionIdx: Int): Double = {
-    for (item <- _items) {
-      if (item.index == dimensionIdx) {
-        return item.value
+    var i = 0
+    while (i < _items.length) {
+      if (_items(i).index == dimensionIdx) {
+        return _items(i).value
       }
+      i += 1
     }
-        
-    return 0d
+      
+    0.0
   }
     
   def update(dimensionIdx: Int, value: Double) {
-    val item = itemOf(dimensionIdx)
-        
-    if (item != null) {
-            
-      item.value = value
-            
+    val itemIdx = itemIdxOf(dimensionIdx)
+    if (itemIdx >= 0) {
+      _items(itemIdx) = VecItem(dimension, value)
     } else {
-            
       val newItems = new Array[VecItem](_items.length + 1)
-            
       var added = false
-      for (i <- 0 until newItems.length) {
+      var i = 0
+      while (i < newItems.length) {
         if (_items(i).index < dimensionIdx) {
           newItems(i) = _items(i)
         } else {
           if (!added) {
-            newItems(i) = new VecItem(dimensionIdx, value)
+            newItems(i) = VecItem(dimensionIdx, value)
             added = true
           } else {
             newItems(i) = _items(i - 1)
           }
         }
+        i += 1
       }
             
-      this._items = newItems
+      _items = newItems
     }
   }
     
-  def itemOf(dimensionIdx: Int): VecItem = {
-        
-    for (i <- 0 until _items.length) {
+  private def itemIdxOf(dimensionIdx: Int): Int = {
+    var i = 0
+    while (i < _items.length) {
       if (_items(i).index == dimensionIdx) {
-        return _items(i)
+        return _items(i).index
       }
+      i += 1
     }
-        
-    return null
+   
+    -1
+  }
+
+  def itemOf(dimensionIdx: Int): VecItem = {
+    val i = itemIdxOf(dimensionIdx)
+    if (i >= 0) {
+      _items(i)
+    } else {
+      null
+    }
   }
     
   def setAll(value: Double) {
@@ -242,11 +250,11 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     } else {
             
       _items = new Array[VecItem](dimension)
-      for (i <- 0 until dimension) {
-        _items(i).index = i
-        _items(i).value = value
+      var i = 0
+      while (i < dimension) {
+        _items(i) = VecItem(i, value)
+        i += 1
       }
-            
     }
   }
     
@@ -263,11 +271,14 @@ class SparseVec(src: Array[VecItem]) extends Vec {
 
       case _ =>
         val itemBuf = new ArrayList[VecItem]
-        for (i <- 0 until src.dimension) {
+        var i = 0
+        while (i < src.dimension) {
           val value = src(i)
           if (value != 0) {
-            itemBuf += new VecItem(i, value)
+            itemBuf += VecItem(i, value)
           }
+          
+          i += 1
         }
 
         itemBuf.toArray
@@ -357,9 +368,11 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   def square: Double = {
     var result = 0d
         
-    for (i <- 0 until _items.length) {
+    var i = 0
+    while (i < _items.length) {
       val value = _items(i).value
       result += value * value
+      i += 1
     }
         
     result
@@ -368,8 +381,11 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   def plus(operand: Double): Vec = {
     val result = new SparseVec(this)
         
-    for (i <- 0 until _items.length) {
-      result._items(i).value = _items(i).value + operand
+    var i = 0 
+    while (i < _items.length) {
+      val item = _items(i)
+      result._items(i) = VecItem(item.index, item.value + operand)
+      i += 1
     }
         
     result
@@ -379,8 +395,11 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   def times(operand: Double): Vec = {
     val result = new SparseVec(this)
         
-    for (i <- 0 until _items.length) {
-      result._items(i).value = _items(i).value * operand
+    var i = 0
+    while (i < _items.length) {
+      val item = _items(i)
+      result._items(i) = VecItem(item.index, item.value * operand)
+      i += 1
     }
         
     result
@@ -398,19 +417,23 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     var result = 0d
         
     /** for norm1 operation, we only need compute with those data.value != 0 */
-    for (i <- 0 until _items.length) {
+    var i = 0
+    while (i < _items.length) {
       result += math.abs(_items(i).value)
+      i += 1
     }
         
-    return result;
+    result
   }
     
   def normTwo: Double = {
-    var result = 0d
+    var result = 0.0
         
     /** for norm2 operation, we only need compute with those data.value != 0 */
-    for (i <- 0 until _items.length) {
+    var i = 0
+    while (i < _items.length) {
       result += math.pow(_items(i).value, 2)
+      i += 1
     }
     result = math.sqrt(result)
         
@@ -418,10 +441,12 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   }
     
   def checkValidation: Boolean = {
-    for (i <- 0 until _items.length) {
+    var i = 0
+    while (i < _items.length) {
       if (Null.is(_items(i).value)) {
         return false
       }
+      i += 1
     }
         
     true
@@ -430,12 +455,14 @@ class SparseVec(src: Array[VecItem]) extends Vec {
   def randomize(min: Double, max: Double) {
     val source = new Random(System.currentTimeMillis + Runtime.getRuntime.freeMemory)
 
-    for (i <- 0 until dimension) {
+    var i = 0
+    while (i < dimension) {
       /**
        * @NOTICE
        * source.nextDouble() returns a pseudorandom value between 0.0 and 1.0
        */
-      this(i) = source.nextDouble * (max - min) + min
+      update(i, source.nextDouble * (max - min) + min)
+      i += 1
     }
   }
 
@@ -445,8 +472,10 @@ class SparseVec(src: Array[VecItem]) extends Vec {
     val sb = new StringBuffer()
         
     sb.append("[")
-    for (i <- 0 until dimension) {
+    var i = 0
+    while (i < dimension) {
       sb.append(this(i)).append(ITEM_SEPARATOR)
+      i += 1
     }
     sb.append("]")
         

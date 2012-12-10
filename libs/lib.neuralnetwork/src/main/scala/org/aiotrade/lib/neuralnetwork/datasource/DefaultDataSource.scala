@@ -220,7 +220,7 @@ class DefaultDataSource(_nNetworks: Int, _inputDimension: Int, _outputDimension:
           if (vecSize != inputDimension + outputDimension) {
             throw new Exception("The data file is not properly formated.")
           }
-          val iop = new InputOutputPoint(inputDimension, outputDimension)
+          val iop = InputOutputPoint(inputDimension, outputDimension)
                 
           var i = 0
           while (i < inputDimension) {

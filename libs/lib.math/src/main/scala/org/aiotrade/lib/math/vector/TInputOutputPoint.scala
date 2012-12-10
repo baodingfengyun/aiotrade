@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2007, AIOTrade Computing Co. and Contributors
+ * Copyright (c) 2006-2013, AIOTrade Computing Co. and Contributors
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without 
@@ -30,36 +30,17 @@
  */
 package org.aiotrade.lib.math.vector
 
-import java.util.Random
-
 /**
- * An (Input, Output) pair: one point of combined input-output space.
- *
+ * 
  * @author Caoyuan Deng
  */
-class InputOutputPoint protected (val input: Vec, val output: Vec)
+class TInputOutputPoint protected (_input: Vec, _output: Vec, val time: Long) extends InputOutputPoint(_input, _output)
 
-object InputOutputPoint {
-  def apply(input: Vec, output: Vec) = new InputOutputPoint(input, output)
-  def apply(inputDimension: Int, outputDimension: Int) = new InputOutputPoint(new DefaultVec(inputDimension), new DefaultVec(outputDimension))
+object TInputOutputPoint {
+  def apply(input: Vec, output: Vec, time: Long) = 
+    new TInputOutputPoint(input, output, time)
+  def apply(inputDimension: Int, outputDimension: Int, time: Long) = 
+    new TInputOutputPoint(new DefaultVec(inputDimension), new DefaultVec(outputDimension), time)
   
-  def unapply(iop: InputOutputPoint): Option[(Vec, Vec)] = Some(iop.input, iop.output)
-  
-  def randomizeOrder_createNew[T <: InputOutputPoint: Manifest](iops: Array[T]): Array[T] = {
-    val size = iops.length
-    val result = Array.ofDim[T](size)
-
-    System.arraycopy(iops, 0, result, 0, size)
-    val random = new Random(System.currentTimeMillis)
-    var i = 0
-    while (i < size) {
-      val next = random.nextInt(size - i)
-      val iop = result(next)
-      result(next) = result(i)
-      result(i) = iop
-      i += 1
-    }
-
-    result
-  }
+  def unapply(iop: TInputOutputPoint): Option[(Vec, Vec, Long)] = Some(iop.input, iop.output, iop.time)
 }
