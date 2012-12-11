@@ -308,10 +308,10 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   }
   
   protected def doCloseTask(referIdx: Int) {
-    log.info("doClose(" + referIdx + "): going to update positions price.")
+    log.info("doClose(" + referIdx + "): updating positions price.")
     updatePositionsPrice
       
-    log.info("doClose(" + referIdx + "): going to check order status.")
+    log.info("doClose(" + referIdx + "): checking order status.")
     checkOrderStatus
 
     if (isTradeStarted) {
@@ -321,17 +321,17 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     // today's orders processed, now begin to check new conditions and 
     // prepare new orders according to current closed status.
     
-    log.info("doClose(" + referIdx + "): going to update account.")
+    log.info("doClose(" + referIdx + "): updating account.")
     accounts foreach broker.updateAccount
     
-    log.info("doClose(" + referIdx + "): going to check stop condition.")
+    log.info("doClose(" + referIdx + "): checking stop condition.")
     secPicking.go(currentTime)
     checkStopCondition
     
-    log.info("doClose(" + referIdx + "): going to atClose(" + referIdx + ").")
+    log.info("doClose(" + referIdx + "): processing atClose(" + referIdx + ").")
     atClose(referIdx)
     
-    log.info("doClose(" + referIdx + "): going to process pending orders.")
+    log.info("doClose(" + referIdx + "): processing pending orders.")
     processPendingOrders
     
     log.info("doClose(" + referIdx + "): done.")
@@ -480,18 +480,19 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
         }
 
         if (account.availableFunds <= 0) {
-          opening == Nil
+          opening.clear
         }
           
-        val conflicts = Nil//opening.keysIterator filter (closing.contains(_))
+        val conflicts = Nil //opening.keysIterator filter (closing.contains(_))
         val openingx = (opening -- conflicts).values.toList
         val closingx = (closing -- conflicts).values.toList
 
         // opening
         val (noFunds, withFunds) = openingx partition (_.funds.isNaN)
         val assignedFunds = withFunds.foldLeft(0.0){(s, x) => s + x.funds}
-        val estimateFundsPerSec = if (noFunds.size != 0) (account.availableFunds - assignedFunds) / noFunds.size else 0.0
-        val (openingOrdersx,successOpeningOrderComposesx, failedOpeningOrderComposes)= (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)})).foldLeft(
+        val estimateFundsPerSec = if (noFunds.nonEmpty) (account.availableFunds - assignedFunds) / noFunds.size else 0.0
+        val openingxWithFunds = (withFunds ::: (noFunds map {_ funds (estimateFundsPerSec)}))
+        val (openingOrdersx, successOpeningOrderComposesx, failedOpeningOrderComposes) = openingxWithFunds.foldLeft(
           List[Order](), List[OrderCompose](), List[OrderCompose]()
         ){(s, x) =>
           val (orders, successOrderComposes, failedOrderComposes) = s
@@ -537,21 +538,23 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * @Note Iterable has no method of sortBy, that's why use List here instead of Set
    */
   protected def adjustOpeningOrders(account: TradableAccount, openingOrders: List[Order]) {
-    var orders = openingOrders.sortBy(_.price) 
-    var amount = 0.0
-    while ({amount = calcTotalFundsToOpen(account, openingOrders); amount > account.availableFunds}) {
-      orders match {
-        case order :: tail =>
-          if (order.funds.isNaN) {
-            order.quantity -= account.tradingRule.quantityPerLot
-          } else {
-            // @todo estimate price of order.sec
-            val price = 1.0
-            order.funds -= account.calcFundsToOpen(price, account.tradingRule.quantityPerLot, order.sec) 
-          }
-          orders = tail
-        case Nil => 
-          orders = openingOrders // loop again
+    if (account.availableFunds > 0 && openingOrders.nonEmpty) {
+      var orders = openingOrders.sortBy(_.price) 
+      var amount = 0.0
+      while ({amount = calcTotalFundsToOpen(account, openingOrders); amount > account.availableFunds}) {
+        orders match {
+          case order :: tail =>
+            if (order.funds.isNaN) {
+              order.quantity -= account.tradingRule.quantityPerLot
+            } else {
+              // @todo estimate price of order.sec
+              val price = 1.0
+              order.funds -= account.calcFundsToOpen(price, account.tradingRule.quantityPerLot, order.sec) 
+            }
+            orders = tail
+          case Nil => 
+            orders = openingOrders // loop again
+        }
       }
     }
   }

@@ -102,8 +102,8 @@ class PaperBroker(val name: String) extends Broker {
     import oc._
     
     if (referIdx >= timestamps.length) {
-      println("No order: %s. referIdx %s >= timestamps.length, it's future time, paper work will stop here.".format
-              (oc, referIdx, timestamps.length)
+      println("No order: %s. referIdx %s >= timestamps.length, it's future time, paper work will stop here.".format(
+          oc, referIdx, timestamps.length)
       )
       None
     } else {
@@ -128,7 +128,7 @@ class PaperBroker(val name: String) extends Broker {
             }
           
           } else { // closing
-          
+            
             if (price.notSet) {
               price(account.tradingRule.sellPriceRule(quote))
             }
@@ -146,6 +146,7 @@ class PaperBroker(val name: String) extends Broker {
           }
           
           quantity(math.abs(quantity))
+          
           if (quantity > 0) {
             val order = Order(account, sec, price, quantity, side, tpe)
             println("Prepared %s".format(order))
