@@ -164,7 +164,7 @@ class PaperBroker(val name: String) extends Broker {
             // @todo, pend opening order or not ?
           } else {
             // try next freq period
-            after (1)
+            next (1)
           }
           None
       }

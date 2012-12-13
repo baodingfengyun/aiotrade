@@ -7,14 +7,14 @@ import org.aiotrade.lib.securities.model.Quote
  * @author Caoyuan Deng
  */
 class TradingRule {
-  val quantityPerLot = 100
-  val tradableProportionOfVolume = 0.1
-  val expenseScheme: ExpenseScheme = ChinaStocksExpenseScheme(0.0008)
+  def quantityPerLot = 100
+  def tradableProportionOfVolume = 0.1
+  def expenseScheme: ExpenseScheme = ChinaStocksExpenseScheme(0.0008)
   
   // -- usally for futures
-  val marginRate: Double = 1.0
+  def marginRate: Double = 1.0
   /** contract multiplier,  price per index point, 300.0 in China Index Future, 1 for stock */
-  val multiplier: Double = 1.0
+  def multiplier: Double = 1.0
   
   def reserveFundsRate = 0.0
   

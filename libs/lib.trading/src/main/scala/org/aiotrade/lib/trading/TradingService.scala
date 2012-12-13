@@ -355,15 +355,15 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     for (Trigger(sec, position, triggerTime, side) <- triggers) {
       side match {
         case Side.EnterLong =>
-          buy (sec) after (1)
+          buy (sec) next (1)
         case Side.ExitLong =>
-          sell (sec) after (1)
+          sell (sec) next (1)
         case Side.EnterShort =>
         case Side.ExitShort =>
         case Side.CutLoss if position != null => 
-          sell (sec) quantity (position.quantity) after (1)
+          sell (sec) quantity (position.quantity) next (1)
         case Side.TakeProfit if position != null =>
-          sell (sec) quantity (position.quantity) after (1)
+          sell (sec) quantity (position.quantity) next (1)
         case _ =>
       }
     }
@@ -409,7 +409,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           if (order.side.isOpening) {
             // @todo retry?
           } else {
-            val retry = new OrderCompose(order.sec, order.side, currentReferIdx) quantity (order.remainQuantity) after (1) using(account)
+            val retry = new OrderCompose(order.sec, order.side, currentReferIdx) quantity (order.remainQuantity) next (1) using(account)
             println("Retry order due to %s: %s".format(order.status, retry))
             addPendingOrder(retry)
           }
@@ -648,16 +648,16 @@ object TradingService {
           for (Trigger(sec, position, triggerTime, side) <- triggers) {
             side match {
               case Side.EnterLong =>
-                buy (sec) after (1)
+                buy (sec) next (1)
               
               case Side.ExitLong =>
-                sell (sec) after (1)
+                sell (sec) next (1)
               
               case Side.CutLoss if position != null => 
-                sell (sec) quantity (position.quantity) after (1)
+                sell (sec) quantity (position.quantity) next (1)
               
               case Side.TakeProfit if position != null =>
-                sell (sec) quantity (position.quantity) after (1)
+                sell (sec) quantity (position.quantity) next (1)
               
               case _ =>
             }

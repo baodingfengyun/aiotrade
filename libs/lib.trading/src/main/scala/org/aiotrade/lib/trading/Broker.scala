@@ -80,7 +80,8 @@ abstract class Broker extends Publisher {
     private var _price = Double.NaN
     private var _funds = Double.NaN
     private var _quantity = Double.NaN
-    private var _afterIdx = 0
+    private var _weight = Double.NaN
+    private var _plusIdx = 0
 
     implicit def ToSetDouble(v: Double) = new SetDouble(v)
     
@@ -114,9 +115,20 @@ abstract class Broker extends Publisher {
       this
     }
         
+    /**
+     * You can assign weight instead of funds or quantity, and let trading service to
+     * calculate the actual funds according to total available funds and weights of
+     * each target issue
+     */
+    def weight = _weight
+    def weight(weight: Double): this.type = {
+      _weight = weight
+      this
+    }
+
     /** on t + idx */
-    def after(i: Int): this.type = {
-      _afterIdx += i
+    def next(i: Int): this.type = {
+      _plusIdx += i
       this
     }
     
@@ -124,7 +136,7 @@ abstract class Broker extends Publisher {
      * @Note This referIdx may may point to future and.exceed timestamps' lastIdx.
      *   So be carefully to call timestamps(referIdx)
      */
-    def referIdx = referIdxAtDecision + _afterIdx
+    def referIdx = referIdxAtDecision + _plusIdx
 
     override 
     def toString = {
