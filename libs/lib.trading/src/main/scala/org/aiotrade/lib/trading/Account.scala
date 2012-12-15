@@ -61,6 +61,28 @@ abstract class TradableAccount($code: String, $balance: Double, val tradingRule:
     
     quantity
   }
+  
+  /**
+   * Helper method
+   *
+   * @param equity
+   * @param price
+   * @return corresponding quantity
+   */
+  def toQuantity(equity: Double, price: Double): Double = {
+    math.round(equity / (price * tradingRule.multiplier))
+  }
+  
+  /**
+   * Helper method
+   * 
+   * @param quantity
+   * @param price
+   * @return corresponding equity
+   */
+  def toEquity(quantity: Double, price: Double): Double = {
+    math.abs(quantity) * price * tradingRule.multiplier
+  }
 
   /**
    * @return  amount with signum
