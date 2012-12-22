@@ -49,10 +49,6 @@
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-actors</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.scala-lang</groupId>
-                    <artifactId>scala-actors-migration_${scala.version}</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
 

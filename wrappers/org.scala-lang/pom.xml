@@ -38,15 +38,11 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_${scala.version}</artifactId>
+            <artifactId>akka-actor_${akka.scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-actors</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-actors-migration_${scala.version}</artifactId>
         </dependency>
     </dependencies>
 
@@ -70,8 +66,6 @@
                         <publicPackage>akka.serializtion</publicPackage>
                         <publicPackage>akka.util</publicPackage>
                         <publicPackage>akka.util.internal</publicPackage>
-                        <!-- scala-actors-migration -->
-                        <publicPackage>scala.actors.migration</publicPackage>
                         <!-- scala-actors -->
                         <publicPackage>scala.actors</publicPackage>
                         <publicPackage>scala.actors.remote</publicPackage>

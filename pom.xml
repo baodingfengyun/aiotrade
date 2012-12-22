@@ -30,14 +30,15 @@
         <h2database.version>1.3.163</h2database.version>
         <mysql.version>5.1.9</mysql.version>
         <netbeans.version>RELEASE71</netbeans.version>
-        <scala.version>2.10.0-RC5</scala.version>
+        <scala.version>2.10.0</scala.version>
+	    <akka.scala.version>2.10</akka.scala.version>
     </properties>
     
     <profiles>
         <profile>
             <id>scala-next</id>
             <properties>
-                <scala.version>2.10.0-RC5</scala.version>
+                <scala.version>2.10.0</scala.version>
             </properties>
         </profile>
         
@@ -161,18 +162,13 @@
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-actor_${scala.version}</artifactId>
-                <version>2.1.0-RC6</version>
+                <artifactId>akka-actor_${akka.scala.version}</artifactId>
+                <version>2.1.0</version>
             </dependency>
             <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-actors</artifactId>
                 <version>${scala.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-actors-migration_${scala.version}</artifactId>
-                <version>1.0.0-RC5</version>
             </dependency>
             
             <dependency>
