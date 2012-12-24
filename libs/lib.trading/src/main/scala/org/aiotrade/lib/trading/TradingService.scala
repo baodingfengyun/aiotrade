@@ -290,7 +290,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
    * Main entrance of trading server at period referIdx when it's closed.
    * It could be trigged by a closed event
    */
-  def doClose(referIdx: Int, delay: Long = 0, unit: TimeUnit = TimeUnit.MILLISECONDS) {
+  def doClose(referIdx: Int, delay: Long = 0, timeUnit: TimeUnit = TimeUnit.MILLISECONDS) {
     currentReferIdx = referIdx
     closedReferIdx = referIdx
 
@@ -302,7 +302,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           doCloseTask(referIdx)
         }
       }
-      taskScheduler.schedule(task, delay, unit)
+      taskScheduler.schedule(task, delay, timeUnit)
     }
     
   }
@@ -418,12 +418,12 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     }
   }
   
-  protected def report(idx: Int) {
+  protected def report(referIdx: Int) {
     val (equity, initialEquity) = accounts.foldLeft((0.0, 0.0)){(s, x) => (s._1 + x.equity, s._2 + x.initialEquity)}
     param.publish(ReportData("Total", 0, currentTime, equity / initialEquity))
-    param.publish(ReportData("Refer", 0, currentTime, referSer.close(idx) / referSer.open(tradeStartIdx) - 1))
+    param.publish(ReportData("Refer", 0, currentTime, referSer.close(referIdx) / referSer.open(tradeStartIdx) - 1))
     
-    benchmark.at(currentTime, equity, referSer.close(idx))
+    benchmark.at(currentTime, equity, referSer.close(referIdx))
 
     if (accounts.size > 1) {
       accounts foreach {account => 
