@@ -49,11 +49,6 @@
             <artifactId>lib-indicator-basic</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.aiotrade</groupId>
-            <artifactId>lib-moneyflow</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         
         <dependency>
             <groupId>com.oracle</groupId>
