@@ -283,7 +283,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   protected def doOpenTask(referIdx: Int) {
     atOpen(referIdx)
     
-    executeOrdersOf(referIdx)
+    executeOrders(referIdx)
   }
   
   /**
@@ -369,7 +369,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
     }
   }  
   
-  protected def executeOrdersOf(referIdx: Int) {
+  protected def executeOrders(referIdx: Int) {
     val executeTime = timestamps(referIdx)
 
     // The status of submited orders will be set to OrderStatus.PendingNew
