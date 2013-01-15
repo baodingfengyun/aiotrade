@@ -16,6 +16,7 @@ import scala.collection.generic._
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.BufferLike
 import scala.collection.mutable.Builder
+import scala.collection.mutable.IndexedSeq
 import scala.collection.mutable.IndexedSeqOptimized
 import scala.collection.mutable.Seq
 import scala.collection.mutable.WrappedArray
@@ -48,17 +49,10 @@ final class ArrayList[A](
                                with IndexedSeqOptimized[A, ArrayList[A]]
                                with Builder[A, ArrayList[A]] {
 
-  def this()(implicit m: Manifest[A]) = this(16, null)
-  
-  /**
-   * We have to override this seq method to bypass issues like:
-   * error: overriding method seq in trait Seq of type => scala.collection.mutable.Seq[A];
-   * method seq in trait IndexedSeq of type => IndexedSeq[A] has incompatible type
-   */
   override 
   def companion: GenericCompanion[ArrayList] = ArrayList
-  override 
-  def seq: ArrayList[A] = this
+
+  def this()(implicit m: Manifest[A]) = this(16, null)
   
   def result: ArrayList[A] = this
 
@@ -119,7 +113,7 @@ private[collection] abstract class collectionAbstractSeq[+A] extends collectionA
 private[collection] abstract class AbstractSeq[A] extends collectionAbstractSeq[A] with Seq[A]
 private[collection] abstract class AbstractBuffer[A] extends AbstractSeq[A] with Buffer[A]
 
-abstract class AbstractArrayList[A](
+abstract class AbstractArrayList[A](  
   override
   protected val initialSize: Int, 
   protected val elementClass: Class[A]
@@ -129,24 +123,19 @@ abstract class AbstractArrayList[A](
                                             with BufferLike[A, AbstractArrayList[A]]
                                             with IndexedSeqOptimized[A, AbstractArrayList[A]]
                                             with Builder[A, AbstractArrayList[A]]
-                                            with ResizableArray[A] 
+                                            with ResizableArray[A]
                                             with CustomParallelizable[A, ParArray[A]] 
                                             with Serializable {
   
-  /**
-   * We have to override this seq method to bupass issues like:
-   * error: overriding method seq in trait Seq of type => scala.collection.mutable.Seq[A];
-   * method seq in trait IndexedSeq of type => IndexedSeq[A] has incompatible type
-   */
   override 
   def companion: GenericCompanion[AbstractArrayList] = AbstractArrayList
-  override 
-  def seq: AbstractArrayList[A] = this
-
+  
+  import scala.collection.Traversable
+  
   def clear() {
     reduceToSize(0)
   }
-
+  
   override 
   def sizeHint(len: Int) {
     if (len > size && len >= 1) {
