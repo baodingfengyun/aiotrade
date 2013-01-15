@@ -13,6 +13,7 @@ package org.aiotrade.lib.collection
 
 import scala.collection.generic._
 import scala.collection.mutable.Builder
+import scala.collection.mutable.IndexedSeq
 import scala.collection.mutable.IndexedSeqOptimized
 
 /** This class is used internally to implement data structures that
