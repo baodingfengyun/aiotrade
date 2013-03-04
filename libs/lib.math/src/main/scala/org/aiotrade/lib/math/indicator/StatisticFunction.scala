@@ -46,7 +46,7 @@ object StatisticFunction {
 
   def sum(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = sum(values.toArray, fromIdx, toIdx)
   def sum(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
-    if (fromIdx < 0 || toIdx >= values.size) {
+    if (fromIdx < 0 || toIdx >= values.length) {
       return Null.Double
     }
 
@@ -67,7 +67,7 @@ object StatisticFunction {
   def isum(idx: Int, values: Array[Double], period: Int, prev: Double): Double = {
     val lookbackIdx = lookback(idx, period)
 
-    if (lookbackIdx < 0 || idx >= values.size) {
+    if (lookbackIdx < 0 || idx >= values.length) {
       Null.Double
     } else if (lookbackIdx == 0) {
       /** compute first availabe sum (in case of enough period first time) */
@@ -88,7 +88,7 @@ object StatisticFunction {
 
   def ma(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = ma(values.toArray, fromIdx, toIdx)
   def ma(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
-    if (fromIdx < 0 || toIdx >= values.size) {
+    if (fromIdx < 0 || toIdx >= values.length) {
       return Null.Double
     }
 
@@ -103,7 +103,7 @@ object StatisticFunction {
   def ima(idx: Int, values: Array[Double], period: Int, prev: Double): Double = {
     val lookbackIdx = lookback(idx, period)
 
-    if (lookbackIdx < 0 || idx >= values.size) {
+    if (lookbackIdx < 0 || idx >= values.length) {
       Null.Double
     } else if (lookbackIdx == 0) {
       /** compute first available ma (in case of enough period first time) */
@@ -124,7 +124,7 @@ object StatisticFunction {
 
   def ema(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = ema(values.toArray, fromIdx, toIdx)
   def ema(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
-    if (fromIdx < 0 || toIdx >= values.size) {
+    if (fromIdx < 0 || toIdx >= values.length) {
       return Null.Double
     }
 
@@ -169,7 +169,7 @@ object StatisticFunction {
   def imax(idx: Int, values: Array[Double], period: Int, prev: Double): Double = {
     val lookbackIdx = lookback(idx, period)
 
-    if (lookbackIdx < 0 || idx >= values.size) {
+    if (lookbackIdx < 0 || idx >= values.length) {
       Null.Double
     } else if (lookbackIdx == 0) {
       max(values, 0, idx)
@@ -192,7 +192,7 @@ object StatisticFunction {
   def imin(idx: Int, values: Array[Double], period: Int, prev: Double): Double = {
     val lookbackIdx = lookback(idx, period)
 
-    if (lookbackIdx < 0 || idx >= values.size) {
+    if (lookbackIdx < 0 || idx >= values.length) {
       Null.Double
     } else if (lookbackIdx == 0) {
       min(values, 0, idx)
@@ -233,12 +233,12 @@ object StatisticFunction {
    */
   def stdDev(values: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = stdDev(values.toArray, fromIdx, toIdx)
   def stdDev(values: Array[Double], fromIdx: Int, toIdx: Int): Double = {
-    if (fromIdx < 0 || toIdx >= values.size) {
+    if (fromIdx < 0 || toIdx >= values.length) {
       return Null.Double
     }
 
     val ma1 = ma(values, fromIdx, toIdx)
-    val lastIdx = math.min(toIdx, values.size - 1)
+    val lastIdx = math.min(toIdx, values.length - 1)
     var deviation_square_sum = 0.0
     var i = fromIdx
     while (i <= lastIdx) {
@@ -251,6 +251,37 @@ object StatisticFunction {
     math.sqrt(deviation_square_sum / period1)
   }
 
+  def correlation(xs: Array[Double], ys: Array[Double], fromIdx: Int, toIdx: Int): Double = {
+    assert(
+      xs != null && ys != null && xs.length >= 2 && xs.length == ys.length, 
+      "Invald params: x.length(>=2)=%s, y.length(=x.length)=%s".format(xs.length, ys.length)
+    )
+    
+    if (fromIdx < 0 || toIdx >= xs.length) {
+      return Null.Double
+    }
+    
+    val ma_x = ma(xs, fromIdx, toIdx)
+    val ma_y = ma(ys, fromIdx, toIdx)
+    
+    val lastIdx = math.min(toIdx, xs.length - 1)
+    var covxy = 0.0
+    var dev_x = 0.0
+    var dev_y = 0.0
+    var r = 0.0
+    var i = fromIdx
+    while (i <= lastIdx) {
+      val dx = xs(i) - ma_x
+      val dy = ys(i) - ma_y
+      covxy += dx * dy
+      dev_x += dx * dx
+      dev_y += dy * dy
+      i += 1
+    }
+    
+    covxy / math.sqrt(dev_x * dev_y)
+  }
+  
   /**
    * Probability Mass Function
    */
@@ -258,7 +289,7 @@ object StatisticFunction {
   def probMass(values: Array[Double], fromIdx: Int, toIdx: Int, nIntervals: Int): Array[Array[Double]] = {
     probMass(values, null.asInstanceOf[Array[Double]], fromIdx, toIdx, nIntervals)
   }
-
+  
   /**
    * Probability Mass Function
    */
@@ -390,7 +421,7 @@ object StatisticFunction {
       i += 1
     }
 
-    val lastIdx = math.min(toIdx, values.size - 1)
+    val lastIdx = math.min(toIdx, values.length - 1)
     var total = 0.0
     i = fromIdx
     while (i <= lastIdx) {

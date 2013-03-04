@@ -6,21 +6,21 @@ package org.aiotrade.lib.math.stats
  */
 object GeneralizedLeastSquares {
   
-  def coefficients(x: Array[Double], y: Array[Double], order: Int, _weight: Array[Double] = null): Array[Double] = {
-    val weight = if (_weight == null) Array.fill[Double](x.length)(1.0) else _weight
+  def coefficients(xs: Array[Double], ys: Array[Double], order: Int, _weights: Array[Double] = null): Array[Double] = {
+    val ws = if (_weights == null) Array.fill[Double](xs.length)(1.0) else _weights
     
     assert(
-      x != null && y != null && weight != null && x.length >= 2 && 
-      x.length == y.length && x.length == weight.length && order >= 2, 
-      "Invald params: x.length(>=2)=%s, y.length(=x.length)=%s, order(>=2)=%s".format(x.length, y.length, order)
+      xs != null && ys != null && ws != null && xs.length >= 2 && 
+      xs.length == ys.length && xs.length == ws.length && order >= 2, 
+      "Invald params: x.length(>=2)=%s, y.length(=x.length)=%s, order(>=2)=%s".format(xs.length, ys.length, order)
     )
 
     val s = Array.ofDim[Double]((order - 1) * 2 + 1)
     var i = 0
     while (i < s.length) {
       var j = 0
-      while (j < x.length) {
-        s(i) += math.pow(x(j), i) * weight(j)
+      while (j < xs.length) {
+        s(i) += math.pow(xs(j), i) * ws(j)
         j += 1
       }
       i += 1
@@ -30,8 +30,8 @@ object GeneralizedLeastSquares {
     i = 0
     while (i < f.length) {
       var j = 0
-      while (j < x.length) {
-        f(i) += math.pow(x(j), i) * y(j) * weight(j)
+      while (j < xs.length) {
+        f(i) += math.pow(xs(j), i) * ys(j) * ws(j)
         j += 1
       }
       i += 1
@@ -70,7 +70,7 @@ object GeneralizedLeastSquares {
     val result = Array.ofDim[Double](factors.length)
 		
     val len = factors.length - 1
-    if (len == 0){
+    if (len == 0) {
       result(0) = b(0) / factors(0)(0)
       return result
     }
@@ -81,7 +81,7 @@ object GeneralizedLeastSquares {
     var yIdx = -1
     var i = 0
     var break_i = false
-    while (i <= len && !break_i){
+    while (i <= len && !break_i) {
       var j = 0
       var break_j = false
       while (j <= len && !break_j) {
@@ -91,14 +91,14 @@ object GeneralizedLeastSquares {
         }
         j += 1
       }
-      if (yIdx != -1){
+      if (yIdx != -1) {
         xIdx = i
         break_i = true
       }
       i += 1
     }
     
-    if (xIdx == -1){
+    if (xIdx == -1) {
       return null
     }
 		
@@ -126,7 +126,7 @@ object GeneralizedLeastSquares {
     var sum = b(xIdx)
     count_i = 0
     i = 0
-    while (i <= len){
+    while (i <= len) {
       if (i != yIdx) {
         sum -= factors(xIdx)(i) * result2(count_i)
         result(i) = result2(count_i)
@@ -146,18 +146,18 @@ object GeneralizedLeastSquares {
   }
 
   private def testCoefficients() {
-    val x1 = Array(187.1, 179.5, 157.0, 197.0, 239.4, 217.8, 227.1, 233.4, 242.0, 251.9, 230.0, 271.8)
-    val y1 = Array( 25.4,  22.8,  20.6,  21.8,  32.4,  24.4,  29.3,  27.9,  27.8,  34.2,  29.2,  30.0)
-    val coefs1 = coefficients(x1, y1, 2)
+    val xs1 = Array(187.1, 179.5, 157.0, 197.0, 239.4, 217.8, 227.1, 233.4, 242.0, 251.9, 230.0, 271.8)
+    val ys1 = Array( 25.4,  22.8,  20.6,  21.8,  32.4,  24.4,  29.3,  27.9,  27.8,  34.2,  29.2,  30.0)
+    val coefs1 = coefficients(xs1, ys1, 2)
     println("y = %s + %s * x".format(coefs1(0), coefs1(1))) // y = 3.412968396061506 + 0.10814137404983369 * x
     
-    val x2 = Array[Double]( 2000,  2001,  2002,  2003,  2004,   2005,   2006,   2007,   2008)
-    val y2 = Array[Double](37.84, 44.55, 45.74, 63.80, 76.67, 105.59, 178.48, 355.27, 409.92)
-    val w2 = Array[Double]( 11.0,  12.0,  13.0,  14.0,  15.0,   16.0,   17.0,   18.0,   19.0)
-    val coefs2 = coefficients(x2, y2, 2, w2)
+    val xs2 = Array[Double]( 2000,  2001,  2002,  2003,  2004,   2005,   2006,   2007,   2008)
+    val ys2 = Array[Double](37.84, 44.55, 45.74, 63.80, 76.67, 105.59, 178.48, 355.27, 409.92)
+    val ws2 = Array[Double]( 11.0,  12.0,  13.0,  14.0,  15.0,   16.0,   17.0,   18.0,   19.0)
+    val coefs2 = coefficients(xs2, ys2, 2, ws2)
     println("y = %s + %s * x".format(coefs2(0), coefs2(1)))
-    val ys2 = List[Double](2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010) map fit(coefs2)
-    println(ys2)
+    val ys2Fit = List[Double](2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010) map fit(coefs2)
+    println(ys2Fit)
   }
 
   private def testMultiLinear() {
