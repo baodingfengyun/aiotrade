@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.indicator.StatisticFunction
+import org.aiotrade.lib.math.StatsFunctions
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
@@ -45,7 +45,7 @@ class STDDEVFunction extends Function {
     val begIdx = idx - period.toInt + 1
     val endIdx = idx
 
-    StatisticFunction.stdDev(baseVar.values, begIdx, endIdx)
+    StatsFunctions.stdDev(baseVar.values, begIdx, endIdx)
   }
 
     

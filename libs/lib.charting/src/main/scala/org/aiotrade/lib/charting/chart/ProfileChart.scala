@@ -36,7 +36,7 @@ import java.awt.geom.GeneralPath
 import java.util.Calendar
 import org.aiotrade.lib.charting.widget.PathsWidget
 import org.aiotrade.lib.charting.widget.WidgetModel
-import org.aiotrade.lib.math.indicator.StatisticFunction
+import org.aiotrade.lib.math.StatsFunctions
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.charting.laf.LookFeel
@@ -101,10 +101,10 @@ class ProfileChart extends AbstractChart {
     
     
   private def plotProfileChart(profile: Array[Array[Double]], xorigin: Double, width: Double, path: GeneralPath) {
-    val nIntervals = profile(StatisticFunction.VALUE).length - 1
+    val nIntervals = profile(StatsFunctions.VALUE).length - 1
         
     val halfInterval = if (nIntervals < 1) 0f else
-      0.5f * (profile(StatisticFunction.VALUE)(1) - profile(StatisticFunction.VALUE)(0))
+      0.5f * (profile(StatsFunctions.VALUE)(1) - profile(StatsFunctions.VALUE)(0))
         
     var firstValueGot = false
         
@@ -112,10 +112,10 @@ class ProfileChart extends AbstractChart {
     var i = 0
     while (i <= nIntervals) {
             
-      val mass = profile(StatisticFunction.MASS)(i)
+      val mass = profile(StatsFunctions.MASS)(i)
       if (Null.not(mass)) {
         val x = xorigin + mass * width
-        y = yv(profile(StatisticFunction.VALUE)(i) + halfInterval)
+        y = yv(profile(StatsFunctions.VALUE)(i) + halfInterval)
         if (!firstValueGot) {
           path.moveTo(xorigin, y)
           firstValueGot = true

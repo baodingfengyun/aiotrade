@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.indicator.StatisticFunction
+import org.aiotrade.lib.math.StatsFunctions
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
@@ -42,7 +42,7 @@ import org.aiotrade.lib.math.indicator.Factor
  */
 class MINFunction extends Function {
   final protected def imin(idx: Int, baseVar: TVar[Double], period: Double, prev: Double): Double = {
-    StatisticFunction.imin(idx, baseVar.values, period.toInt, prev)
+    StatsFunctions.imin(idx, baseVar.values, period.toInt, prev)
   }
     
   var period: Factor = _

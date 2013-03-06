@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.indicator.StatisticFunction
+import org.aiotrade.lib.math.StatsFunctions
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Factor
@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.indicator.Factor
  */
 class EMAFunction extends Function {
   final protected def iema(idx: Int, var1: TVar[Double], period: Double, prev: Double): Double = {
-    StatisticFunction.iema(idx, var1.values, period.toInt, prev)
+    StatsFunctions.iema(idx, var1.values, period.toInt, prev)
   }
     
   var period: Factor = _

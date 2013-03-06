@@ -30,7 +30,7 @@
  */
 package org.aiotrade.lib.indicator.function
 
-import org.aiotrade.lib.math.indicator.StatisticFunction
+import org.aiotrade.lib.math.StatsFunctions
 import org.aiotrade.lib.math.timeseries.BaseTSer
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Factor
@@ -44,14 +44,14 @@ final case class PROBMASSFunction extends Function {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 
-    StatisticFunction.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue)
+    StatsFunctions.probMass(baseVar.values, begIdx, endIdx, nInterval.intValue)
   }
 
   protected def probMass(idx: Int, baseVar: TVar[Double], weight: TVar[Double], period: Double, nInterval: Double): Array[Array[Double]] = {
     val begIdx = idx - period.intValue + 1
     val endIdx = idx
 
-    StatisticFunction.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
+    StatsFunctions.probMass(baseVar.values, weight.values, begIdx, endIdx, nInterval.intValue)
   }
     
   var period: Factor = _

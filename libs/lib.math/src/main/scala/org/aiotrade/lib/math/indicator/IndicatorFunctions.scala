@@ -30,6 +30,7 @@
  */
 package org.aiotrade.lib.math.indicator
 
+import org.aiotrade.lib.math.StatsFunctions
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.collection.ArrayList
 
@@ -37,7 +38,7 @@ import org.aiotrade.lib.collection.ArrayList
  *
  * @author Caoyuan Deng
  */
-object IndicatorFunction {
+object IndicatorFunctions {
     
   def dmPlus(idx: Int, highs: ArrayList[Double], lows: ArrayList[Double]): Double = {
     if (idx == 0) {
@@ -138,8 +139,8 @@ object IndicatorFunction {
         i += 1
       }
             
-      val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
-      val ma_tr = StatisticFunction.ma(trs, 0, period - 1)
+      val ma_dm = StatsFunctions.ma(dms, 0, period - 1)
+      val ma_tr = StatsFunctions.ma(trs, 0, period - 1)
             
       if (ma_tr == 0) 0 else ma_dm / ma_tr * 100f
             
@@ -168,8 +169,8 @@ object IndicatorFunction {
         i += 1
       }
             
-      val ma_dm = StatisticFunction.ma(dms, 0, period - 1)
-      val ma_tr = StatisticFunction.ma(trs, 0, period - 1)
+      val ma_dm = StatsFunctions.ma(dms, 0, period - 1)
+      val ma_tr = StatsFunctions.ma(trs, 0, period - 1)
             
       if (ma_tr == 0) 0 else ma_dm / ma_tr * 100f
             
@@ -211,7 +212,7 @@ object IndicatorFunction {
         i += 1
       }
             
-      StatisticFunction.ma(dxes, 0, periodADX - 1)
+      StatsFunctions.ma(dxes, 0, periodADX - 1)
     }
   }
     

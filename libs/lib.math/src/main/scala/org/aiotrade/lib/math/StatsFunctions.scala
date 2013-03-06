@@ -28,7 +28,7 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.aiotrade.lib.math.indicator
+package org.aiotrade.lib.math
 
 import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.collection.ArrayList
@@ -37,7 +37,7 @@ import org.aiotrade.lib.collection.ArrayList
  *
  * @author Caoyuan Deng
  */
-object StatisticFunction {
+object StatsFunctions {
 
   val MAX = 0
   val MIN = 1
@@ -251,6 +251,7 @@ object StatisticFunction {
     math.sqrt(deviation_square_sum / period1)
   }
 
+  def correlation(xs: ArrayList[Double], ys: ArrayList[Double], fromIdx: Int, toIdx: Int): Double = correlation(xs.toArray, ys.toArray, fromIdx, toIdx)
   def correlation(xs: Array[Double], ys: Array[Double], fromIdx: Int, toIdx: Int): Double = {
     assert(
       xs != null && ys != null && xs.length >= 2 && xs.length == ys.length, 
@@ -279,7 +280,11 @@ object StatisticFunction {
       i += 1
     }
     
-    covxy / math.sqrt(dev_x * dev_y)
+    if (dev_x == 0 || dev_y == 0) {
+      0
+    } else {
+      covxy / math.sqrt(dev_x * dev_y)
+    }
   }
   
   /**
@@ -293,9 +298,7 @@ object StatisticFunction {
   /**
    * Probability Mass Function
    */
-  def probMass(values: ArrayList[Double], weights: ArrayList[Double],
-               fromIdx: Int, toIdx: Int, nIntervals: Int
-  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, nIntervals)
+  def probMass(values: ArrayList[Double], weights: ArrayList[Double], fromIdx: Int, toIdx: Int, nIntervals: Int): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, nIntervals)
   def probMass(values: Array[Double], weights: Array[Double],
                fromIdx: Int, toIdx: Int, nIntervals: Int
   ): Array[Array[Double]] = {
@@ -315,9 +318,7 @@ object StatisticFunction {
   /**
    * Probability Density Function
    */
-  def probMass(values: ArrayList[Double],
-               fromIdx: Int, toIdx: Int, interval: Double
-  ): Array[Array[Double]] = probMass(values.toArray, fromIdx, toIdx, interval)
+  def probMass(values: ArrayList[Double], fromIdx: Int, toIdx: Int, interval: Double): Array[Array[Double]] = probMass(values.toArray, fromIdx, toIdx, interval)
   def probMass(values: Array[Double],
                fromIdx: Int, toIdx: Int, interval: Double
   ): Array[Array[Double]] = {
@@ -328,9 +329,7 @@ object StatisticFunction {
   /**
    * Probability Mass Function
    */
-  def probMass(values: ArrayList[Double], weights: ArrayList[Double],
-               fromIdx: Int, toIdx: Int, interval: Double
-  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, interval)
+  def probMass(values: ArrayList[Double], weights: ArrayList[Double], fromIdx: Int, toIdx: Int, interval: Double): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, interval)
   def probMass(values: Array[Double], weights: Array[Double],
                fromIdx: Int, toIdx: Int, interval: Double
   ): Array[Array[Double]] = {
@@ -351,9 +350,7 @@ object StatisticFunction {
   /**
    * Probability Mass Function
    */
-  private def probMass(values: ArrayList[Double], weights: ArrayList[Double],
-                       fromIdx: Int, toIdx: Int, max: Double, min: Double, nIntervals: Int
-  ): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, max, min, nIntervals)
+  private def probMass(values: ArrayList[Double], weights: ArrayList[Double], fromIdx: Int, toIdx: Int, max: Double, min: Double, nIntervals: Int): Array[Array[Double]] = probMass(values.toArray, weights.toArray, fromIdx, toIdx, max, min, nIntervals)
   private def probMass(values: Array[Double], weights: Array[Double],
                        fromIdx: Int, toIdx: Int, max: Double, min: Double, nIntervals: Int
   ): Array[Array[Double]] = {
@@ -397,9 +394,7 @@ object StatisticFunction {
   /**
    * Probability Density Function
    */
-  def probMassWithTimeInfo(values: ArrayList[Double], weights: ArrayList[Double],
-                           fromIdx: Int, toIdx: Int, interval: Double
-  ): Array[Array[Double]] = probMassWithTimeInfo(values.toArray, weights.toArray, fromIdx, toIdx, interval)
+  def probMassWithTimeInfo(values: ArrayList[Double], weights: ArrayList[Double], fromIdx: Int, toIdx: Int, interval: Double): Array[Array[Double]] = probMassWithTimeInfo(values.toArray, weights.toArray, fromIdx, toIdx, interval)
   def probMassWithTimeInfo(values: Array[Double], weights: Array[Double],
                            fromIdx: Int, toIdx: Int, interval: Double
   ): Array[Array[Double]] = {
