@@ -272,8 +272,8 @@ object StatsFunctions {
     var r = 0.0
     var i = fromIdx
     while (i <= lastIdx) {
-      val dx = xs(i) - ma_x
-      val dy = ys(i) - ma_y
+      val dx = if (Null.not(xs(i))) xs(i) - ma_x else 0
+      val dy = if (Null.not(ys(i))) ys(i) - ma_y else 0
       covxy += dx * dy
       dev_x += dx * dx
       dev_y += dy * dy
