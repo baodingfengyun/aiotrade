@@ -25,6 +25,8 @@ AIOTrade
         +-- configgy
 
 ### Build --- Maven
+    Set environment variable:
+    MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
 
     > cd aiotrade.git
 
