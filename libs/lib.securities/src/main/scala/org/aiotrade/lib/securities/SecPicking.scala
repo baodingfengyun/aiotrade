@@ -1,4 +1,4 @@
-package org.aiotrade.lib.trading
+package org.aiotrade.lib.securities
 
 import java.text.SimpleDateFormat
 import java.util.Date

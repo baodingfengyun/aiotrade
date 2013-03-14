@@ -10,15 +10,13 @@ import ru.circumflex.orm._
 import scala.collection.mutable
 import org.aiotrade.lib.math.timeseries.TVal
 import java.util.Collections
-import java.util.Random
 import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import java.util.Calendar
 import org.aiotrade.lib.math.timeseries.TFreq
 
-@serializable
-final class PriceDistribution extends BelongsToSec with TVal with Flag {
+final class PriceDistribution extends BelongsToSec with TVal with Flag with Serializable {
 
   private var _time: Long = _
   def time = _time
@@ -237,7 +235,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         )
       }
       catch{
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
       })
   }
 
@@ -249,7 +247,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         ) ORDER_BY (this.time) list
       }
      catch{
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
       }
     ) foreach {x =>
       if (x.closed_?){
@@ -279,7 +277,7 @@ object PriceDistributions  extends Table[PriceDistribution] {
         ) ORDER_BY (this.time) list
       }
       catch{
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex); Nil
+        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex); Nil
       }
     )
   }

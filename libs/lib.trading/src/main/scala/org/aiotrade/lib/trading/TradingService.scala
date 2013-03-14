@@ -15,6 +15,8 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
+import org.aiotrade.lib.securities.SecPicking
+import org.aiotrade.lib.securities.SecPickingEvent
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.ExchangeStatus
 import org.aiotrade.lib.securities.model.Sec
@@ -111,7 +113,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
           log.warning("TSerEvent.Updated with idx < 0 (" + ser.serProvider.uniSymbol + "), time=" + toTime + ", idx=" + idx + ", currentReferIdx=" + currentReferIdx + ", closedReferIdx=" + closedReferIdx)
         }
       } catch {
-        case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
       }
       
     case securities.api.ExchangeStatusEvt(code, status) if code == referSer.serProvider.exchange.code =>
@@ -130,7 +132,7 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
               }
             }
           } catch {
-            case ex => log.log(Level.SEVERE, ex.getMessage, ex)
+            case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
           }
         case _ =>
       }

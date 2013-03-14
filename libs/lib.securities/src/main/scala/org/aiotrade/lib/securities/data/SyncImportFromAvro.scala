@@ -25,7 +25,7 @@ object SyncImportFromAvro extends SyncBasis {
             importAvroDataFileToTestMysql
           }
           catch{
-            case ex =>log.log(Level.WARNING, ex.getMessage, ex)
+            case ex: Throwable =>log.log(Level.WARNING, ex.getMessage, ex)
           }
         }
       }, date, 12 * 3600 * 1000L)
