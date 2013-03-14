@@ -72,7 +72,7 @@ class AnalysisChartView(acontroller: ChartingController,
                         empty: Boolean
 ) extends {
   private val compareIndicatorToChart = mutable.Map[QuoteCompareIndicator, QuoteChart]()
-  private var withDrawingPaneHelper: WithDrawingPaneHelper = _
+  private var withDrawingPaneHelper: WithDrawingPaneHelper = null
 } with AbstractQuoteChartView(acontroller, aquoteSer, empty) with WithDrawingPane with Reactor {
     
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)

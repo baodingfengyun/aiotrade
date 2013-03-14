@@ -44,11 +44,11 @@ import javax.swing.JButton
  *  ICON_SIZE etc should be early def, since it may be used in super() call via setForeground
  */
 class AIOCloseButton extends {
-	val ICON_SIZE = 12
-  private var chosenIcon: Icon = _
-  private var unchosenIcon: Icon = _
-  private var chosenRolloverIcon: Icon = _
-  private var unchosenRolloverIcon: Icon = _
+  val ICON_SIZE = 12
+  private var chosenIcon: Icon = null
+  private var unchosenIcon: Icon = null
+  private var chosenRolloverIcon: Icon = null
+  private var unchosenRolloverIcon: Icon = null
 } with JButton {
     
   private var chosen: Boolean = _

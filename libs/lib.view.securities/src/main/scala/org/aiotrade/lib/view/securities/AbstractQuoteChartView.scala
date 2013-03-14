@@ -74,9 +74,9 @@ abstract class AbstractQuoteChartView(acontroller: ChartingController,
                                       aquoteSer: QuoteSer,
                                       empty: Boolean
 ) extends {
-  private var _quoteChart: QuoteChart = _
-  protected var maxVolume, minVolume: Double = _
-  protected var sec: Sec = _
+  private var _quoteChart: QuoteChart = null
+  protected var maxVolume, minVolume: Double = 0.0
+  protected var sec: Sec = null
 } with ChartView(acontroller, aquoteSer, empty) with WithQuoteChart {
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)

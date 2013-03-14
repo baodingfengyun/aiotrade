@@ -69,9 +69,9 @@ class RealTimeChartView(_controller: ChartingController,
                         _empty: Boolean
 ) extends {
   private var _prevClose = Null.Double
-  private var gridValues: Array[Double] = _
+  private var gridValues: Array[Double] = null
   private val cal = Calendar.getInstance
-  private var exchange: Exchange = _
+  private var exchange: Exchange = null
 } with AbstractQuoteChartView(_controller, _quoteSer, _empty) with Reactor {
 
   def this(controller: ChartingController, quoteSer: QuoteSer) = this(controller, quoteSer, false)
