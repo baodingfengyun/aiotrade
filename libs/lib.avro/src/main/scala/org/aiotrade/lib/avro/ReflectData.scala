@@ -42,14 +42,14 @@ object ReflectData {
   def get() = INSTANCE
 
   private val classLoader = Thread.currentThread.getContextClassLoader
-  private val FIELD_CACHE = new java.util.concurrent.ConcurrentHashMap[Class[_], java.util.Map[String, Field]]()
+  private val FIELD_CACHE = new java.util.concurrent.ConcurrentHashMap[Class[_], java.util.Map[String, Field]](8, 0.9f, 1)
 
   /** Return the named field of the provided class.  Implementation caches
    * values, since this is used at runtime to get and set fields. */
   private def getField(c: Class[_], name: String): Field = {
     var fields = FIELD_CACHE.get(c)
     if (fields == null) {
-      fields = new java.util.concurrent.ConcurrentHashMap[String, Field]()
+      fields = new java.util.concurrent.ConcurrentHashMap[String, Field](8, 0.9f, 1)
       FIELD_CACHE.put(c, fields)
     }
     val realName = name.replace("_DOLLAR_", "$")

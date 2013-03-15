@@ -41,7 +41,7 @@ import org.aiotrade.lib.math.timeseries.TSer
 object Function {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private val idToFunction = new ConcurrentHashMap[Id[_ <: Function], Function]
+  private val idToFunction = new ConcurrentHashMap[Id[_ <: Function], Function](8, 0.9f, 1)
 
   def idOf[T <: Function](klass: Class[T], baseSer: BaseTSer, args: Any*) = Id[T](klass, baseSer, args: _*)
   

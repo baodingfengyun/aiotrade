@@ -18,7 +18,7 @@ object SpecificDatumReader {
 
   private val NO_ARG = Array[Class[_]]()
   private val SCHEMA_ARG = Array[Class[_]](classOf[Schema])
-  private val CTOR_CACHE = new ConcurrentHashMap[Class[_], Constructor[_]]()
+  private val CTOR_CACHE = new ConcurrentHashMap[Class[_], Constructor[_]](8, 0.9f, 1)
 
   /** Create an instance of a class.  If the class implements {@link
    * SchemaConstructable}, call a constructor with a {@link

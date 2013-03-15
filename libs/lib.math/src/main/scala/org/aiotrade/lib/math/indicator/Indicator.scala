@@ -180,7 +180,7 @@ object Indicator {
 
   private val FAC_DECIMAL_FORMAT = new DecimalFormat("0.###")
 
-  private val idToIndicator = new ConcurrentHashMap[Id[_ <: Indicator], Indicator]
+  private val idToIndicator = new ConcurrentHashMap[Id[_ <: Indicator], Indicator](8, 0.9f, 1)
 
   def idOf[T <: Indicator](klass: Class[T], baseSer: BaseTSer, factors: Factor*) = Id[T](klass, baseSer, factors: _*)
   

@@ -35,7 +35,7 @@ class SpecificData protected () extends GenericData {
   private val log = Logger.getLogger(this.getClass().getName)
   private val classLoader = Thread.currentThread.getContextClassLoader
   
-  private val classCache = new java.util.concurrent.ConcurrentHashMap[String, Class[_]]()
+  private val classCache = new java.util.concurrent.ConcurrentHashMap[String, Class[_]](8, 0.9f, 1)
   private val schemaCache = new java.util.WeakHashMap[java.lang.reflect.Type, Schema]()
 
   override protected def isEnum(datum: Object): Boolean = {

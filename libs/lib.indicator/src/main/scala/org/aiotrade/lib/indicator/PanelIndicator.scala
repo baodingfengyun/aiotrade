@@ -163,7 +163,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
 object PanelIndicator extends Publisher {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  private val idToIndicator = new ConcurrentHashMap[Id[_ <: PanelIndicator[_ <: Indicator]], PanelIndicator[_ <: Indicator]]
+  private val idToIndicator = new ConcurrentHashMap[Id[_ <: PanelIndicator[_ <: Indicator]], PanelIndicator[_ <: Indicator]](8, 0.9f, 1)
 
   private val runtime = Runtime.getRuntime
   private case object PanelHeartBeat

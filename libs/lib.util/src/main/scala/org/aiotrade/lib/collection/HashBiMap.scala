@@ -15,7 +15,7 @@ class HashBiMap[A, B](forward: ConcurrentHashMap[A, B], backward: ConcurrentHash
      with MapLike[A, B, HashBiMap[A, B]] 
      with Serializable {
 
-  def this() = this(new ConcurrentHashMap[A, B], new ConcurrentHashMap[B, A])
+  def this() = this(new ConcurrentHashMap[A, B](8, 0.9f, 1), new ConcurrentHashMap[B, A](8, 0.9f, 1))
 
   type Entry = DefaultEntry[A, B]
 

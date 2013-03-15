@@ -50,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap
  * configurable per thread.
  */
 class NLS(locale: Locale) {
-  private val map = new ConcurrentHashMap[Class[_], TranslationBundle]
+  private val map = new ConcurrentHashMap[Class[_], TranslationBundle](8, 0.9f, 1)
 
   private def get[T <: TranslationBundle](tpe: Class[T]): T = {
     var bundle = map.get(tpe)
