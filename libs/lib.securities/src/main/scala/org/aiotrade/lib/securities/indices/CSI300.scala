@@ -11,6 +11,7 @@ import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities
@@ -25,7 +26,8 @@ import org.aiotrade.lib.util.ValidTime
 
 object CSI300 {
   private val log = Logger.getLogger(getClass.getName)
-  
+  private val config = org.aiotrade.lib.util.config.Config()
+
   val indexCurrentMonthSymbol    = "IF0001.FF"
   val indexNextMonthSymbol       = "IF0002.FF"
   val indexNextSeasonSymbol      = "IF0003.FF"
@@ -39,20 +41,31 @@ object CSI300 {
     try {
       Option(this.getClass.getClassLoader.getResourceAsStream(filePath))
     } catch {
-      case ex: Throwable => println(ex); None
+      case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
     }
   }
 
   def loadIFMembers(secPicking: SecPicking) {
-    val readerOpt = getResourceInputStream(IFDataHome + IFMemberFileName) match {
-      case Some(is) =>
-        log.info("Loading members from " + IFDataHome + IFMemberFileName)
-        val df = new SimpleDateFormat("M/d/yyyy")
-        val cal = Calendar.getInstance(Exchange.SS.timeZone)
-        Some(new BufferedReader(new InputStreamReader(is, "utf-8")))
+    val configMemberIsOpt = config.getString("csi300.member") match {
+      case Some(memberFile) =>
+        try {
+          log.info("Loading members from " + memberFile)
+          Option(new FileInputStream(memberFile))
+        } catch {
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
+        }
       case None => None
     }
     
+    val readerOpt = 
+      (configMemberIsOpt match {
+          case None => 
+            log.info("Loading members from " + IFDataHome + IFMemberFileName)
+            getResourceInputStream(IFDataHome + IFMemberFileName)
+          case some => some
+        }
+      ) map (is => new BufferedReader(new InputStreamReader(is, "utf-8")))
+      
     readerOpt match {
       case Some(reader) =>
         val df = new SimpleDateFormat("M/d/yyyy")
