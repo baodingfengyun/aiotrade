@@ -47,9 +47,11 @@ import org.aiotrade.lib.indicator.QuoteCompareIndicator
 import org.aiotrade.lib.math.timeseries.datasource.DataContract
 import org.aiotrade.lib.math.timeseries.descriptor.Content
 import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
+import org.aiotrade.lib.securities.indices.CSI300
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.PersistenceManager
 import org.aiotrade.lib.securities.model.Sec
+import org.aiotrade.lib.securities.SecPicking
 import org.aiotrade.lib.securities.dataserver.QuoteContract
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities.model.Sector
@@ -130,7 +132,7 @@ object SymbolNodes {
   private val folderIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/market.png")
   private val symbolIcon = ImageUtilities.loadImage("org/aiotrade/modules/ui/resources/stock.png")
 
-  val categories = List("008004", "008002")
+  val categories = List("008004", "008002", "csi300")
   /** The sectors that will be opened immediatelly */
   val sectorKeys = List("008004.N07", "008004.N14") 
 
@@ -286,25 +288,34 @@ object SymbolNodes {
     override def getDisplayName = category
   }
   
-  class CategoryChildFactory(category: String) extends ChildFactory[Sector] {
-    val sectors = Sector.sectorsOf(category)
-    protected def createKeys(toPopulate: java.util.List[Sector]): Boolean = {
-      sectors foreach toPopulate.add
+  class CategoryChildFactory(category: String) extends ChildFactory[Either[Sector, SecPicking]] {
+    protected def createKeys(toPopulate: java.util.List[Either[Sector, SecPicking]]): Boolean = {
+      if (category == "csi300") {
+        toPopulate.add(Right(CSI300.buildSecPicking))
+      } else {
+        val sectors = Sector.sectorsOf(category)
+        sectors map (Left(_)) foreach toPopulate.add
+      }
       true
     }
     
     override 
-    protected def createNodesForKey(key: Sector): Array[Node] = Array(new SectorNode(key))
+    protected def createNodesForKey(key: Either[Sector, SecPicking]): Array[Node] = Array(new SectorNode(key))
   }
   
   @throws(classOf[IntrospectionException])
-  class SectorNode(val sector: Sector, ic: InstanceContent
-  ) extends BeanNode[Sector](sector, new SectorChildren(sector), new AbstractLookup(ic)) {
+  class SectorNode(val sector: Either[Sector, SecPicking], ic: InstanceContent
+  ) extends BeanNode[Either[Sector, SecPicking]](sector, new SectorChildren(sector), new AbstractLookup(ic)) {
 
-    setName(sector.key)
+    sector match {
+      case Left(sector) =>
+        setName(sector.key)
     
-    if (sector.key == favoriteFolderName) {
-      _favoriteNode = this
+        if (sector.key == favoriteFolderName) {
+          _favoriteNode = this
+        }
+      case Right(secPicking) =>
+        setName("secPicking") // @todo
     }
 
     /* add additional items to the lookup */
@@ -362,10 +373,11 @@ object SymbolNodes {
      */
     @throws(classOf[DataObjectNotFoundException])
     @throws(classOf[IntrospectionException])
-    def this(sector: Sector) = this(sector, new InstanceContent)
+    def this(sector: Either[Sector, SecPicking]) = this(sector, new InstanceContent)
 
     /** Declaring the actions that can be applied to this node */
-    override def getActions(popup: Boolean): Array[Action] = {
+    override 
+    def getActions(popup: Boolean): Array[Action] = {
       val df = getLookup.lookup(classOf[DataFolder])
       Array(
         getLookup.lookup(classOf[SymbolStartWatchAction]),
@@ -384,29 +396,43 @@ object SymbolNodes {
       )
     }
 
-    override def getIcon(tpe: Int): Image = {
-      folderIcon
-    }
+    override 
+    def getIcon(tpe: Int): Image = folderIcon
 
-    override def getOpenedIcon(tpe: Int): Image = {
-      getIcon(0)
-    }
+    override 
+    def getOpenedIcon(tpe: Int): Image = getIcon(0)
 
-    override def getDisplayName: String = {
-      (if (Bundle.containsKey(sector.name)) Bundle.getString(sector.name) else sector.name) + " (" + getChildren.asInstanceOf[SectorChildren].secs.length + ")"
+    override 
+    def getDisplayName: String = {
+      sector match {
+        case Left(sector) =>
+          (if (Bundle.containsKey(sector.name)) Bundle.getString(sector.name) else sector.name) + " (" + getChildren.asInstanceOf[SectorChildren].secs.size + ")"
+        case Right(secPicking) =>
+          "secPicking"
+      }
     }
     
     /** tooltip */
-    override def getShortDescription = {
-      sector.code + " (" + (if (Bundle.containsKey(sector.name)) Bundle.getString(sector.name) else sector.name) + ")"
+    override 
+    def getShortDescription = {
+      sector match {
+        case Left(sector) => 
+          sector.code + " (" + (if (Bundle.containsKey(sector.name)) Bundle.getString(sector.name) else sector.name) + ")"
+        case Right(secPicking) =>
+          "secPicking"
+      }
     }
   }
   
   /**
    * The children of the sector node, child should be a symbol
    */
-  class SectorChildren(sector: Sector) extends Children.Keys[Sec] {
-    val secs = Sector.secsOf(sector)
+  class SectorChildren(sector: Either[Sector, SecPicking]) extends Children.Keys[Sec] {
+    val secs = sector match {
+      case Left(sector) => Sector.secsOf(sector)
+      case Right(secPicking) => secPicking.allSecs
+    }
+
     val keys = new java.util.TreeSet[Sec]
 
     override 
@@ -680,8 +706,10 @@ object SymbolNodes {
             handle.finish
             node.getLookup.lookup(classOf[SymbolStopWatchAction]).setEnabled(true)
             SymbolStartWatchAction.this.setEnabled(false)
-
-            openSector(sectorNode.sector)
+            sectorNode.sector match {
+              case Left(sector) => openSector(sector)
+              case Right(secPicking) => // @todo
+            }
           }
         }, handle, false)
     }

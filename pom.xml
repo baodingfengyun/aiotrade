@@ -115,8 +115,14 @@
         -->
         <repository>
             <id>netbeans</id>
-            <name>repository hosting netbeans.org api artifacts</name>
-            <url>http://bits.netbeans.org/maven2</url>
+            <name>NetBeans Platform Maven Repository</name>
+            <url>http://bits.netbeans.org/nexus/content/groups/netbeans</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
 
         <repository>
