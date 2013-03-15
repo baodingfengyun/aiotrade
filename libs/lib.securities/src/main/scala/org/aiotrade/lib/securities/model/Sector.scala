@@ -70,15 +70,10 @@ final class Sector extends LightSector with SerProvider with Ordered[Sector] {
   }
 
   def getSectorSymbol = {
-    val unisymbol = if (crckey.startsWith(Sector.Category.TDXIndustries(0))){
-      val ss = this.crckey.split('.')
-
-      if (ss.length == 3) ss(1) + "." + ss(2)
-      else crckey
-    }
-    else this.crckey
-
-    unisymbol
+    if (crckey.startsWith(Sector.Category.TDXIndustries(0))){
+      val ss = crckey.split('.')
+      if (ss.length == 3) ss(1) + "." + ss(2) else crckey
+    } else crckey
   }
 
   type T = SectorMoneyFlowSer
@@ -256,18 +251,18 @@ object Sector {
   // --- subcategories/code
 
   object Kind {
-    val Index = "INDEX"                 // 指数
-    val Stock = "STOCK"                 // 股票
-    val Fund = "FUND"                  // 基金
-    val Bond = "BOND"                  // 债券
-    val Warrant = "WARRANT"               // 权证
-    val Future = "FUTURE"                // 期货
-    val Forex = "FOREX"                 // 外汇
-    val Option = "OPTION"                // 期权
-    val Treasury = "TREASURY"              // 国债
+    val Index = "INDEX"                       // 指数
+    val Stock = "STOCK"                       // 股票
+    val Fund = "FUND"                         // 基金
+    val Bond = "BOND"                         // 债券
+    val Warrant = "WARRANT"                   // 权证
+    val Future = "FUTURE"                     // 期货
+    val Forex = "FOREX"                       // 外汇
+    val Option = "OPTION"                     // 期权
+    val Treasury = "TREASURY"                 // 国债
     val AdditionalShareOffer = "ADDSHAOFFER"  // 增发
-    val ConvertibleBond = "CONVBOND"       // 可转换债券
-    val TreasuryRepurchase = "TREASREP"    // 国债回购
+    val ConvertibleBond = "CONVBOND"          // 可转换债券
+    val TreasuryRepurchase = "TREASREP"       // 国债回购
   }
 
   // --- code of 'board'
@@ -292,10 +287,10 @@ object Sector {
 
   def toKey(category: String, code: String): String = category + "." + code
   def toCategoryCode(key: String): (String, String) = {
-    val separator = key.indexOf('.')
-    if (separator > 0) {
-      val category = key.substring(0, separator)
-      val code = key.substring(separator + 1, key.length)
+    val sep = key.indexOf('.')
+    if (sep > 0) {
+      val category = key.substring(0, sep)
+      val code = key.substring(sep + 1, key.length)
       (category, code)
     } else {
       (key, null)

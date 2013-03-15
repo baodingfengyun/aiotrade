@@ -266,9 +266,7 @@ object SymbolNodes {
   
   object RootChildFactory extends ChildFactory[String] {
     protected def createKeys(toPopulate: java.util.List[String]): Boolean = {
-      for (category <- categories) {
-        toPopulate.add(category)
-      }
+      categories foreach toPopulate.add
       true
     }
     
@@ -616,13 +614,11 @@ object SymbolNodes {
         Array(new GroupNode(key, content))
       } catch {
         case ex: IntrospectionException =>
-          ErrorManager.getDefault().notify(ErrorManager.INFORMATIONAL, ex)
+          ErrorManager.getDefault.notify(ErrorManager.INFORMATIONAL, ex)
           /** Should never happen - no reason for it to fail above */
           Array(
             new AbstractNode(Children.LEAF) {
-              override def getHtmlDisplayName = {
-                "<font color='red'>" + ex.getMessage() + "</font>"
-              }
+              override def getHtmlDisplayName = "<font color='red'>" + ex.getMessage() + "</font>"
             }
           )
       }

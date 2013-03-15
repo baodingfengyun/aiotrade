@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.aiotrade.lib.securities.model
 
-@serializable
-class LightSector extends CRCLongId {
+class LightSector extends CRCLongId with Serializable {
 
   var category: String = ""
   var code: String = ""
