@@ -37,36 +37,29 @@ object CSI300 {
   private val IFQuoteFileName  = "IF0000Quote.txt"
   private val IFMemberFileName = "IF0000Member.txt"
   
-  private def getResourceInputStream(filePath: String): Option[InputStream] = {
+  private def getInputStream(filePath: String, viaResource: Boolean): Option[InputStream] = {
     try {
-      Option(this.getClass.getClassLoader.getResourceAsStream(filePath))
+      if (viaResource) {
+        Option(getClass.getClassLoader.getResourceAsStream(filePath))
+      } else {
+        Option(new FileInputStream(filePath))
+      }
     } catch {
       case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
     }
   }
-
+  
   def loadIFMembers(secPicking: SecPicking) {
-    val configMemberIsOpt = config.getString("csi300.member") match {
-      case Some(memberFile) =>
-        try {
-          log.info("Loading members from " + memberFile)
-          Option(new FileInputStream(memberFile))
-        } catch {
-          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
-        }
-      case None => None
+    val inOpt = config.getString("csi300.member") match {
+      case Some(memberFile) => 
+        log.info("Loading members from " + memberFile)
+        getInputStream(memberFile, false)
+      case None => 
+        log.info("Loading members from " + IFDataHome + IFMemberFileName)
+        getInputStream(IFDataHome + IFMemberFileName, true)
     }
     
-    val readerOpt = 
-      (configMemberIsOpt match {
-          case None => 
-            log.info("Loading members from " + IFDataHome + IFMemberFileName)
-            getResourceInputStream(IFDataHome + IFMemberFileName)
-          case some => some
-        }
-      ) map (is => new BufferedReader(new InputStreamReader(is, "utf-8")))
-      
-    readerOpt match {
+    inOpt map (is => new BufferedReader(new InputStreamReader(is, "utf-8"))) match {
       case Some(reader) =>
         val df = new SimpleDateFormat("M/d/yyyy")
         val cal = Calendar.getInstance(Exchange.SS.timeZone)
@@ -101,10 +94,10 @@ object CSI300 {
                         }
                       }
                     case None =>
-                      println("There is no sec of symbol: " + uniSymbol + ", " + name)
+                      log.info("There is no sec of symbol: " + uniSymbol + ", " + name)
                   }
                 case xs =>
-                  println("Wrong or empty line at line(" + lineNum + "): " + line + ", was split to: " + xs.mkString("(", "," ,")"))
+                  log.info("Wrong or empty line at line(" + lineNum + "): " + line + ", was split to: " + xs.mkString("(", "," ,")"))
               }
             }
           }
@@ -141,7 +134,7 @@ object CSI300 {
       secPicking.secToValidTimes.getOrElse(sec, Nil).sortBy(_.validTo * -1).headOption match {
         case Some(lastValidTime) => 
           if (lastValidTime.validTo != 0) {
-            println("Warning: the lastValidTime of %s is at %s".format(sec.uniSymbol, new Date(lastValidTime.validTo)))
+            log.info("Warning: the lastValidTime of %s is at %s".format(sec.uniSymbol, new Date(lastValidTime.validTo)))
           }
         case None =>
           // it should have been existed before content of txt
@@ -183,7 +176,7 @@ object CSI300 {
     val ser = new QuoteSer(sec, csi300Ser.freq)
     sec.setSer(ser)
 
-    getResourceInputStream(IFDataHome + IFQuoteFileName) match {
+    getInputStream(IFDataHome + IFQuoteFileName, true) match {
       case Some(is) =>
         try {
           val quotes = new ArrayList[Quote]()
@@ -223,7 +216,7 @@ object CSI300 {
           }
         }
       case _ =>
-        println("Can't load IFData from file!")
+        log.info("Can't load IFData from file!")
     }
   }
   
