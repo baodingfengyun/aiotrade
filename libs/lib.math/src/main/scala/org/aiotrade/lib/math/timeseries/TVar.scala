@@ -41,6 +41,8 @@ import org.aiotrade.lib.collection.ArrayList
  * @author Caoyuan Deng
  */
 trait TVar[V] extends Plottable {
+  protected implicit val m: Manifest[V]
+  
   def name: String
   def name_=(name: String)
 
@@ -89,9 +91,12 @@ trait TVar[V] extends Plottable {
   def timesIterator: Iterator[Long]
   def valuesIterator: Iterator[V]
 
-  val NullVal: V
+  final val nullVal = Null.value[V]
+  final def addNull(time: Long): Boolean = add(time, nullVal)
+  final def addNull(idx: Int): Boolean = add(idx, nullVal)
+  final def setNull(time: Long) = update(time, nullVal)
+  final def setNull(idx: Int) = update(idx, nullVal)
 
   private val _hashCode = System.identityHashCode(this)
-  override 
-  def hashCode: Int = _hashCode
+  override def hashCode: Int = _hashCode
 }

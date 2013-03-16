@@ -33,7 +33,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
 
   protected implicit val m: Manifest[A]
   
-  protected val elementClass: Class[A]
+  protected val elementClass: Option[Class[A]]
   
   override 
   def companion: GenericCompanion[ResizableArray] = ResizableArray
@@ -41,11 +41,21 @@ trait ResizableArray[A] extends IndexedSeq[A]
   protected def initialSize: Int = 16
   protected[collection] var array: Array[A] = makeArray(initialSize)
 
+  /**
+   * Under case of calling new ArrayList[T] where T is not specified explicitly 
+   * during compile time, ie. the T is got during runtime, 'm' may be "_ <: Any",
+   * or, AnyRef. In this case, we should pass in an elementClass and create array via
+   *   java.lang.reflect.Array.newInstance(x, size) 
+   */
   protected def makeArray(size: Int) = {
-    if (elementClass != null) {
-      java.lang.reflect.Array.newInstance(elementClass, size).asInstanceOf[Array[A]]
-    } else {
-      new Array[A](size) // this will return primitive element typed array if A is primitive, @see scala.reflect.Manifest
+    elementClass match {
+      case Some(x) => 
+        java.lang.reflect.Array.newInstance(x, size).asInstanceOf[Array[A]]
+      case None => 
+        // If the A is specified under compile time, that's ok, a Array[A] will be 
+        // created (if A is primitive type, will also create a primitive typed array @see scala.reflect.Manifest)
+        // If A is specified under runtime, will create a Array[AnyRef]
+        new Array[A](size) 
     }
   }
 
@@ -76,7 +86,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
     var i = 0
     val top = size
     while (i < top) {
-      f(array(i).asInstanceOf[A])
+      f(array(i))
       i += 1
     }
   }
@@ -104,7 +114,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
     require(sz <= size0)
     while (size0 > sz) {
       size0 -= 1
-      if (!m.erasure.isPrimitive) {
+      if (!m.runtimeClass.isPrimitive) {
         array(size0) = null.asInstanceOf[A] 
       }
     }
@@ -117,7 +127,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
       var newsize = math.max(array.length, 1) * 2 
       while (n > newsize)
         newsize = newsize * 2
-      val newar: Array[A] = makeArray(newsize)
+      val newar = makeArray(newsize)
       scala.compat.Platform.arraycopy(array, 0, newar, 0, size0)
       array = newar
     }

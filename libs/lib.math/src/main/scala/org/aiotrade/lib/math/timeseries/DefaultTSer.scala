@@ -69,13 +69,13 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   /**
    * a place holder plus flags
    */
-  protected type Holder = Boolean
-  val holders = new ArrayList[Holder]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
+  final protected type Holder = Boolean
+  final protected val holders = new ArrayList[Holder]//(INIT_CAPACITY)// this will cause timestamps' lock deadlock?
   /**
    * Each var element of array is a Var that contains a sequence of values for one field of SerItem.
    * @Note: Don't use scala's HashSet or HashMap to store Var, these classes seems won't get all of them stored
    */
-  val vars = new ArrayList[TVar[Any]]
+  val vars = new ArrayList[TVar[_]]
 
   /**
    * we implement occurred timestamps and items in density mode instead of spare
@@ -111,7 +111,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   /**
    * used only by InnerVar's constructor and AbstractIndicator's functions
    */
-  protected def addVar(v: TVar[Any]) {
+  protected def addVar(v: TVar[_]) {
     vars += v
   }
 
@@ -151,7 +151,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   }
 
   /**
-   * return a holder with flag != 0
+   * return a holder with value is true
    */
   protected def createItem(time: Long): Holder = true
 
@@ -206,7 +206,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
-                vars foreach {x => x.add(time, x.NullVal)}
+                vars foreach (_.addNull(time))
                 newHolders(i) = createItem(time)
                 i += 1
               }
@@ -224,7 +224,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
               var i = 0
               while (i < appendSize) {
                 val time = timestamps(begIdx + i)
-                vars foreach {x => x.add(time, x.NullVal)}
+                vars foreach (_.addNull(time))
                 newHolders(i) = createItem(time)
                 i += 1
               }
@@ -463,7 +463,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         false
       }
     }
-
+    
     def apply(time: Long): V = {
       val idx = timestamps.indexOfOccurredTime(time)
       _values(idx)
@@ -583,10 +583,10 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     def apply(idx: Int): V = {
       if (idx >= 0 && idx < values.size) {
         values(idx) match {
-          case null => NullVal
+          case null => nullVal
           case value => value
         }
-      } else NullVal
+      } else nullVal
     }
 
     def update(idx: Int, value: V) {

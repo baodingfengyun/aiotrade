@@ -90,9 +90,9 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
   checkRegister
   
   /** class of msg value */
-  val tpe: Class[T] = m.erasure.asInstanceOf[Class[T]]
+  val tpe: Class[T] = m.runtimeClass.asInstanceOf[Class[T]]
   /** typeParams of msg value */
-  private val tpeParams = m.typeArguments map (_.erasure)
+  private val tpeParams = m.typeArguments map (_.runtimeClass)
   
   @throws(classOf[RuntimeException])
   private def checkRegister {
@@ -416,24 +416,24 @@ object Evt {
     pd.volumeDown=2334
     pd.volumeUp = 9803
     pc.put(pd.price.toString, pd)
-    val msg = PCEvt(pc)
+    val msg = PCEvt(Array(pc))
 
 //    val msg = TestVmapEvt(vmap)
 //    println("print a map schema.")
-    printSchema(pc.getClass)
+    printSchema(Array(pc).getClass)
     
     val avroBytes = toAvro(msg.value, msg.tag)
 //    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
 //    println("" + avroDatum(".")(0).asInstanceOf[Long])
 //    println("" + avroDatum("d")(0).asInstanceOf[collection.Map[String, String]])
-    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[PriceCollection]
-    println(avroDatum)
+    val avroDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[Array[PriceCollection]]
+    println(avroDatum.mkString(","))
     //avroDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
     
     val jsonBytes = toJson(msg.value, msg.tag)
 //    val jsonDatum = fromAvro(avroBytes, msg.tag).get.asInstanceOf[collection.Map[String, Array[_]]]
-    val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[PriceCollection]
-    println(jsonDatum)    
+    val jsonDatum = fromJson(jsonBytes, msg.tag).get.asInstanceOf[Array[PriceCollection]]
+    println(jsonDatum.mkString(","))    
     //jsonDatum foreach {case (k, v) => println(k + " -> " + v.mkString("[", ",", "]"))}
   }
   
@@ -486,7 +486,7 @@ private[avro] object TestAPIs {
 //     ]}}
 //  """)
 
-  val PCEvt = Evt[PriceCollection](-103)//, "", """
+  val PCEvt = Evt[Array[PriceCollection]](-103)//, "", """
   //{"type":"record","name":"PriceCollection","namespace":"org.aiotrade.lib.avro.TestAPIs$","fields":[{"name":"map","type":["null",{"type":"map","values":{"type":"record","name":"PriceDistribution","fields":[{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"price","type":["null","double"]},{"name":"volumeUp","type":["null","double"]},{"name":"volumeDown","type":["null","double"]},{"name":"_uniSymbol","type":["null","string"]}]}}]},{"name":"isTransient","type":["null","boolean"]},{"name":"_time","type":["null","long"]},{"name":"_flag","type":["null","int"]},{"name":"_uniSymbol","type":["null","string"]}]}
   // """)
 

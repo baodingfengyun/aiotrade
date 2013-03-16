@@ -176,7 +176,7 @@ class SpecificData protected () extends GenericData {
         val fields = new java.util.ArrayList[Schema.Field]()
         var i = 1 // tuple indexed from 1
         for (param <- m.typeArguments) {
-          val fieldSchema = createSchema(param.erasure, names)
+          val fieldSchema = createSchema(param.runtimeClass, names)
           // make nullable
           Schema.createUnion(java.util.Arrays.asList(Schema.create(Schema.Type.NULL), fieldSchema))
           fields.add(new Schema.Field("_" + i, fieldSchema, null /* doc */, null))
@@ -187,15 +187,15 @@ class SpecificData protected () extends GenericData {
       case c: Class[T] if isCollectionClass(c) => // array
         m.typeArguments.headOption match {
           case Some(etype) => 
-            val etypex = etype.erasure.asInstanceOf[Class[_]]
+            val etypex = etype.runtimeClass.asInstanceOf[Class[_]]
             Schema.createArray(createSchema(etypex, names))
           case None => throw new AvroTypeException("No array type specified.")
         }
       case c: Class[T] if isMapClass(c) => // map
         m.typeArguments match {
           case List(key, value) => 
-            val keyx = key.erasure.asInstanceOf[Class[_]]
-            val valuex = value.erasure.asInstanceOf[Class[_]]
+            val keyx = key.runtimeClass.asInstanceOf[Class[_]]
+            val valuex = value.runtimeClass.asInstanceOf[Class[_]]
             if (CharSequenceClass.isAssignableFrom(keyx)) {
               Schema.createMap(createSchema(valuex, names))
             } else {

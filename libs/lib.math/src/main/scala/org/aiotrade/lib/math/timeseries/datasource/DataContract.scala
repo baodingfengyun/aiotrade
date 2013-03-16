@@ -73,7 +73,7 @@ abstract class DataContract[S: Manifest] extends Descriptor[S] {
    */
   override 
   def createServiceInstance(args: Any*): Option[S] = {
-    lookupServiceTemplate(m.erasure.asInstanceOf[Class[S]], "DataServers")
+    lookupServiceTemplate(m.runtimeClass.asInstanceOf[Class[S]], "DataServers")
   }
 
   override 

@@ -52,7 +52,7 @@ import org.aiotrade.lib.collection.AbstractArrayList
  * @version 1.02, 11/25/2006
  * @since   1.0.4
  */
-final class TStampsLog(initialSize: Int) extends AbstractArrayList[Short](initialSize, null) {
+final class TStampsLog(initialSize: Int) extends AbstractArrayList[Short](initialSize, None) {
   import TStampsLog._
 
   def this() = this(16)
@@ -71,8 +71,8 @@ final class TStampsLog(initialSize: Int) extends AbstractArrayList[Short](initia
     logFlag & SIZE
   }
 
-  def logAppend(size: Int): Unit = {
-    def addLog(size: Int): Unit = {
+  def logAppend(size: Int) {
+    def addLog(size: Int) {
       if (size > SIZE) {
         this += (APPEND | SIZE).toShort
         _logCursor = nextCursor(_logCursor)
@@ -101,8 +101,8 @@ final class TStampsLog(initialSize: Int) extends AbstractArrayList[Short](initia
     _logTime = System.currentTimeMillis
   }
 
-  def logInsert(size: Int, idx: Int): Unit = {
-    def addLog(size: Int, idx: Int): Unit = {
+  def logInsert(size: Int, idx: Int) {
+    def addLog(size: Int, idx: Int) {
       if (size > SIZE) {
         this += (INSERT | SIZE).toShort
         this ++= intToShorts(idx)
@@ -217,8 +217,7 @@ object TStampsLog {
 }
 
 
-@cloneable
-abstract class TStamps(initialSize: Int) extends AbstractArrayList[Long](initialSize, null) {
+abstract class TStamps(initialSize: Int) extends AbstractArrayList[Long](initialSize, None) with Cloneable {
   val LONG_LONG_AGO = new GregorianCalendar(1900, Calendar.JANUARY, 1).getTimeInMillis
 
   private val readWriteLock = new java.util.concurrent.locks.ReentrantReadWriteLock

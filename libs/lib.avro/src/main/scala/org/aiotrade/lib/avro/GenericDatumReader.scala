@@ -323,6 +323,9 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
     newArray(old, size, schema, classOf[Any])
   }
   
+  /**
+   * We need 'elementClass: Class[T]' to get the Manifest[T]
+   */
   protected def newArray[T: Manifest](old: Any, size: Int, schema: Schema, elementClass: Class[T]): AnyRef = {
     import Schema.Type._
     schema.getElementType.getType match {
@@ -332,7 +335,7 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
       case DOUBLE =>  new ArrayList[Double](size)
       case BOOLEAN => new ArrayList[Boolean](size)
       case ENUM =>    new ArrayList[Int](size)
-      case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, elementClass)
+      case RECORD | ARRAY | MAP | UNION | FIXED | STRING | BYTES | NULL => new ArrayList[T](size, Some(elementClass))
       case _ => throw new AvroRuntimeException("Unknown type: " + expected)
     }
   }

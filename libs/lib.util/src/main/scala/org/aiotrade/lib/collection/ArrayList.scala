@@ -41,8 +41,7 @@ import scala.collection.parallel.mutable.ParArray
 
 @SerialVersionUID(1529165946227428979L)
 final class ArrayList[A](  
-  _initialSize: Int, 
-  _elementClass: Class[A] = null
+  _initialSize: Int, _elementClass: Option[Class[A]] = None
 )(implicit _m: Manifest[A]) extends AbstractArrayList[A](_initialSize, _elementClass)(_m) 
                                with GenericTraversableTemplate[A, ArrayList]
                                with BufferLike[A, ArrayList[A]]
@@ -52,7 +51,7 @@ final class ArrayList[A](
   override 
   def companion: GenericCompanion[ArrayList] = ArrayList
 
-  def this()(implicit m: Manifest[A]) = this(16, null)
+  def this()(implicit m: Manifest[A]) = this(16)
   
   def result: ArrayList[A] = this
 
@@ -114,9 +113,8 @@ private[collection] abstract class AbstractSeq[A] extends collectionAbstractSeq[
 private[collection] abstract class AbstractBuffer[A] extends AbstractSeq[A] with Buffer[A]
 
 abstract class AbstractArrayList[A](  
-  override
-  protected val initialSize: Int, 
-  protected val elementClass: Class[A]
+  override protected val initialSize: Int, 
+  protected val elementClass: Option[Class[A]]
 )(protected implicit val m: Manifest[A]) extends AbstractBuffer[A]
                                             with Buffer[A]
                                             with GenericTraversableTemplate[A, AbstractArrayList]
@@ -146,7 +144,7 @@ abstract class AbstractArrayList[A](
   }
   
   override 
-  def par = ParArray.handoff[A](array.asInstanceOf[Array[A]], size)  
+  def par = ParArray.handoff[A](array, size)  
   
   /** Appends a single element to this buffer and returns
    *  the identity of the buffer. It takes constant time.
@@ -182,9 +180,11 @@ abstract class AbstractArrayList[A](
     }
     ensureSize(size0 + len)
     xs match {
-      /** a Traversable Array instance will always be converted to WrappedArray, @see https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
+      // according to the way arrays work in 2.8: An implicit conversion takes 
+      // Java arrays to `WrappedArray` if you need a `Traversable` instance.  
+      // @see https://lampsvn.epfl.ch/trac/scala/ticket/2564
       case xs: WrappedArray[A] =>
-        Array.copy(xs.array, 0, array, size0, len)
+        scala.compat.Platform.arraycopy(xs.array, 0, array, size0, len)
         size0 += len
         this
       case xs: IndexedSeq[A] =>
@@ -273,7 +273,9 @@ abstract class AbstractArrayList[A](
     ensureSize(size0 + len)
     copy(n, n + len, size0 - n)
     seq match {
-      /** a Traversable Array instance will always be converted to WrappedArray, @see https://lampsvn.epfl.ch/trac/scala/ticket/2564 */
+      // according to the way arrays work in 2.8: An implicit conversion takes 
+      // Java arrays to `WrappedArray` if you need a `Traversable` instance.  
+      // @see https://lampsvn.epfl.ch/trac/scala/ticket/2564
       case xs: WrappedArray[A] =>
         scala.compat.Platform.arraycopy(xs.array, 0, array, n, len)
       case _ =>
@@ -307,7 +309,7 @@ abstract class AbstractArrayList[A](
     remove(n, 1)
     result
   }
-
+  
   /** Defines the prefix of the string representation.
    */
   override 

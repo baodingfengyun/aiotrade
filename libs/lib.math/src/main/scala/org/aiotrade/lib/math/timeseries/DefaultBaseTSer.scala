@@ -78,7 +78,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0 && idx < holders.size) {
         // existed, reset it
-        vars foreach {x => x(idx) = x.NullVal}
+        vars foreach (_.setNull(idx))
         holders(idx) = false
       } else {
         // append at the end: create a new one, add placeholder
@@ -125,7 +125,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
     if (time < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach {x => x.add(time, x.NullVal)}
+        vars foreach (_.addNull(time))
         // as timestamps includes this time, we just always put in a none-null item
         holders.insert(existIdx, holder)
         return existIdx
@@ -141,7 +141,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
           timestamps.insert(idx, time)
           timestamps.log.logInsert(1, idx)
 
-          vars foreach {x => x.add(time, x.NullVal)}
+          vars foreach (_.addNull(time))
           holders.insert(idx, holder)
           return idx
 
@@ -164,7 +164,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
         timestamps += time
         timestamps.log.logAppend(1)
 
-        vars foreach {x => x.add(time, x.NullVal)}
+        vars foreach (_.addNull(time))
         holders += holder
         return this.size - 1
 
@@ -181,7 +181,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       // time == lastOccurredTime, keep same time and append vars and holders.
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach {x => x.add(time, x.NullVal)}
+        vars foreach (_.addNull(time))
         holders += holder
         return size - 1
       } else {
@@ -206,7 +206,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
    */
   override 
   def ++=[V <: TVal](values: Array[V]): TSer = {
-    if (values.length < 1) return this
+    if (values.length == 0) return this
     
     try {
       writeLock.lock

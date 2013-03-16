@@ -38,9 +38,7 @@ import org.aiotrade.lib.math.indicator.Plot
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractTVar[V: Manifest](var name: String, var plot: Plot) extends TVar[V] {
-  final val NullVal = Null.value[V]
-
+abstract class AbstractTVar[V](var name: String, var plot: Plot)(protected implicit val m: Manifest[V]) extends TVar[V] {
   val LAYER_NOT_SET = -1
 
   var layer = LAYER_NOT_SET

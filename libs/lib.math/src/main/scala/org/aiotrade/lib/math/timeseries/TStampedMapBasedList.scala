@@ -127,7 +127,7 @@ import scala.collection.mutable.IndexedSeqOptimized
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends AbstractArrayList[A](16, null) 
+final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends AbstractArrayList[A](16, None) 
                                                                       with GenericTraversableTemplate[A, TStampedMapBasedList]
                                                                       with BufferLike[A, TStampedMapBasedList[A]]
                                                                       with IndexedSeqOptimized[A, TStampedMapBasedList[A]]

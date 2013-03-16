@@ -102,7 +102,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
           log.fine("Got HeartBeat message, going to request data, flowCount=" + flowCount)
           requestActor ! RequestData(subscribedContracts)
         } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
         }
       } else {
         flowCount -= 1 // give chance to requestData
@@ -125,7 +125,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
           log.fine("Got RequestData message, going to request data, flowCount=" + flowCount)
           requestData(contracts)
         } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
         }
     }
   }
@@ -144,7 +144,7 @@ abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publi
             contract.loadedTime = math.max(loadedTime, contract.loadedTime)
           }
         } catch {
-          case ex => log.log(Level.WARNING, ex.getMessage, ex)
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
         }
       
         publish(DataProcessed(contract))
