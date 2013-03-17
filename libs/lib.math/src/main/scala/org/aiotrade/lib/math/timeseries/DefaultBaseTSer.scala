@@ -34,7 +34,6 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
-import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
@@ -129,7 +128,8 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
         vars foreach (_.addNull(time))
         // as timestamps includes this time, we just always put in a none-null item
         holders.insert(existIdx, holder)
-        return existIdx
+        
+        existIdx
       } else {
         val idx = timestamps.indexOfNearestOccurredTimeBehind(time)
         assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
@@ -144,7 +144,8 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
 
           vars foreach (_.addNull(time))
           holders.insert(idx, holder)
-          return idx
+          
+          idx
 
           // @todo Not remove it now
 //          if (timestamps.size > MAX_DATA_SIZE){
@@ -167,7 +168,8 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
 
         vars foreach (_.addNull(time))
         holders += holder
-        return this.size - 1
+        
+        this.size - 1
 
         // @todo Not remove it now.
 //        if (timestamps.size > MAX_DATA_SIZE){
@@ -184,14 +186,15 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       if (existIdx >= 0) {
         vars foreach (_.addNull(time))
         holders += holder
-        return size - 1
+        
+        size - 1
       } else {
         assert(false,
                "As it's an adding action, we should not reach here! " +
                "Check your code, you are probably from createOrReset(long), " +
                "Does timestamps.indexOfOccurredTime(itemTime) = " + timestamps.indexOfOccurredTime(time) +
                " return -1 ?")
-        return -1
+        -1
         // to avoid concurrent conflict, just do nothing here.
       }
     }
@@ -203,6 +206,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
   }
 
   /**
+   * Append TVals to ser.
    * To use this method, should define proper assignValue(value)
    */
   override 
@@ -232,8 +236,8 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
           log.warning("Value of i=" + i + " is null")
         }
 
-        /** shoudReverse: the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes */
-        /** otherwise:    the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes */
+        // shoudReverse: the recent quote's index is more in quotes, thus the order in timePositions[] is opposed to quotes
+        // otherwise:    the recent quote's index is less in quotes, thus the order in timePositions[] is the same as quotes
         if (shouldReverse)
           i -= 1
         else

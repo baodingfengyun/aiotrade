@@ -7,11 +7,11 @@ import scala.reflect.ClassTag
  * @author Caoyuan Deng
  */
 object Null {
-  val Byte    = java.lang.Byte      MIN_VALUE   // -128 ~ 127
-  val Short   = java.lang.Short     MIN_VALUE   // -32768 ~ 32767
-  val Char    = java.lang.Character MIN_VALUE   // 0(\u0000) ~ 65535(\uffff)
-  val Int     = java.lang.Integer   MIN_VALUE   // -2,147,483,648 ~ 2,147,483,647
-  val Long    = java.lang.Long      MIN_VALUE   // -9,223,372,036,854,775,808 ~ 9,223,372,036,854,775,807
+  val Byte    = java.lang.Byte      MIN_VALUE   // -128 to 127
+  val Short   = java.lang.Short     MIN_VALUE   // -32768 to 32767
+  val Char    = java.lang.Character MIN_VALUE   // 0(\u0000) to 65535(\uffff)
+  val Int     = java.lang.Integer   MIN_VALUE   // -2,147,483,648 to 2,147,483,647
+  val Long    = java.lang.Long      MIN_VALUE   // -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807
   val Float   = java.lang.Float     NaN
   val Double  = java.lang.Double    NaN
   val Boolean = false
@@ -39,11 +39,11 @@ object Null {
   def value[T](implicit m: ClassTag[T]): T = {
     val v = m.toString match {
       case "Boolean"  => Null.Boolean
-      case "Byte"     => Null.Byte   // -128 ~ 127
-      case "Short"    => Null.Short  // -32768 ~ 32767
-      case "Char"     => Null.Char   // 0(\u0000) ~ 65535(\uffff)
-      case "Int"      => Null.Int    // -2,147,483,648 ~ 2,147,483,647
-      case "Long"     => Null.Long   // -9,223,372,036,854,775,808 ~ 9,223,372,036,854,775,807
+      case "Byte"     => Null.Byte   
+      case "Short"    => Null.Short  
+      case "Char"     => Null.Char   
+      case "Int"      => Null.Int    
+      case "Long"     => Null.Long
       case "Float"    => Null.Float
       case "Double"   => Null.Double
       case _ => null
