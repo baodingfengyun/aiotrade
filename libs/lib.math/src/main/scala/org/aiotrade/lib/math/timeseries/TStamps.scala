@@ -152,6 +152,7 @@ final class TStampsLog(initialSize: Int) extends AbstractArrayList[Short](initia
       }
     }
   }
+  
   /* [0] = lowest order 16 bits; [1] = highest order 16 bits. */
   private def intToShorts(i: Int): Array[Short] = {
     Array((i >> 16).toShort, i.toShort)
@@ -289,9 +290,7 @@ abstract class TStamps(initialSize: Int) extends AbstractArrayList[Long](initial
  */
 object TStamps {
 
-  def apply(initialCapacity: Int): TStamps = {
-    new TStampsOnOccurred(initialCapacity)
-  }
+  def apply(initialCapacity: Int): TStamps = new TStampsOnOccurred(initialCapacity)
     
   private class TStampsOnOccurred(initialCapacity: Int) extends TStamps(initialCapacity) {
 
@@ -759,7 +758,7 @@ object TStamps {
     def toArray: Array[Long] = delegateTimestamps.toArray
     
     override 
-    def copyToArray[B >: Long](xs:Array[B], start:Int) = delegateTimestamps.copyToArray(xs, start)
+    def copyToArray[B >: Long](xs: Array[B], start: Int) = delegateTimestamps.copyToArray(xs, start)
 
     override 
     def sliceToArray(start: Int, len: Int): Array[Long] = delegateTimestamps.sliceToArray(start, len)
@@ -768,18 +767,37 @@ object TStamps {
     def +(elem: Long) = {delegateTimestamps + elem; this}
         
     override 
+    def +=(elem: Long) = this.+(elem)
+    
+    override 
+    def ++(xs: TraversableOnce[Long]) = {delegateTimestamps ++ xs; this}
+    
+    override 
+    def ++=(xs: TraversableOnce[Long]) = this.++(xs)
+    
+    override 
+    def +:(elem: Long) = {delegateTimestamps.+:(elem); this}
+    
+    override 
+    def +=:(elem: Long) = this.+:(elem)
+    
+    override 
+    def ++:(xs: TraversableOnce[Long]) = {delegateTimestamps.insertAll(0, xs.toTraversable); this}
+      
+    override 
+    def ++=:(xs: TraversableOnce[Long]) = this.++:(xs)
+    
+    override
+    def insert(n: Int, elems: Long*) = this.insertAll(n, elems)
+
+    override 
+    def insertAll(n: Int, elems: scala.collection.Traversable[Long]) = delegateTimestamps.insertAll(n, elems)
+        
+    override 
     def remove(idx: Int) = delegateTimestamps.remove(idx)
         
     override 
     def contains(elem: Any) = delegateTimestamps.contains(elem)
-        
-    override 
-    def ++(xs: TraversableOnce[Long]) = {delegateTimestamps ++ xs; this}
-
-    def insert(n:Int, elems: Long) = delegateTimestamps.insert(n, elems)
-
-    override 
-    def insertAll(n: Int, seq: Traversable[Long]) = {delegateTimestamps.insertAll(n, seq)}
         
     override 
     def clear = delegateTimestamps.clear
@@ -802,22 +820,16 @@ object TStamps {
     override 
     def lastIndexOf[B >: Long](o: B) = delegateTimestamps.lastIndexOf(o)
                         
-    def iterator(freq: TFreq): TStampsIterator = {
-      new ItrOnCalendar(freq)
-    }
+    def iterator(freq: TFreq) = new ItrOnCalendar(freq)
         
-    def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone): TStampsIterator = {
-      new ItrOnCalendar(freq, fromTime, toTime, timeZone)
-    }
+    def iterator(freq: TFreq, fromTime: Long, toTime: Long, timeZone: TimeZone) = new ItrOnCalendar(freq, fromTime, toTime, timeZone)
 
     @transient @volatile
     protected
     var modCount: Long = 0
 
     override 
-    def clone: TStampsOnCalendar = {
-      new TStampsOnCalendar(delegateTimestamps.clone)
-    }
+    def clone: TStampsOnCalendar = new TStampsOnCalendar(delegateTimestamps.clone)
 
     class ItrOnCalendar(freq: TFreq, _fromTime: Long, toTime: Long, timeZone: TimeZone) extends TStampsIterator {
       private val cal = Calendar.getInstance(timeZone)
