@@ -24,6 +24,8 @@ import org.apache.avro.reflect.Union
 import org.apache.avro.io.BinaryData
 
 import com.thoughtworks.paranamer.CachingParanamer
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 object ReflectData {
   /** {@link ReflectData} implementation that permits null field values.  The
@@ -268,7 +270,7 @@ class ReflectData protected() extends SpecificData {
     tpe.getGenericComponentType match {
       case ByteType => Schema.create(Schema.Type.BYTES) // byte array
       case c: Class[_] =>
-        val c1 = c.asInstanceOf[Class[_]] // cheat createSchema for lack of Manifest
+        val c1 = c.asInstanceOf[Class[_]] // cheat createSchema for lack of ClassTag
         val schema = Schema.createArray(createSchema(c1, names))
         setElement(schema, c)
         schema
@@ -308,7 +310,7 @@ class ReflectData protected() extends SpecificData {
   }
 
   override
-  protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
+  protected def createSchema[T: ClassTag : TypeTag](tpe: Class[T], names: java.util.Map[String, Schema]): Schema = {
     import ClassHelper._
     tpe match {
       case ShortClass | JShortClass | ShortType =>

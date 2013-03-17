@@ -41,6 +41,8 @@ import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.io.BinaryData
 import scala.collection.mutable
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
 /**
  * A sketch of business message protocals (APIs) design
@@ -81,7 +83,7 @@ final case class Msg[T](tag: Int, value: T)
  * yet when you call its static 'apply', 'unapply' methods.
  */
 @throws(classOf[RuntimeException])
-final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: String)(implicit m: Manifest[T]) {
+final class Evt[T: ClassTag : TypeTag] private (val tag: Int, val doc: String = "", schemaJson: String) {
   type ValType = T
   type MsgType = Msg[T]
   
@@ -90,9 +92,9 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
   checkRegister
   
   /** class of msg value */
-  val tpe: Class[T] = m.runtimeClass.asInstanceOf[Class[T]]
+  val tpe: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
   /** typeParams of msg value */
-  private val tpeParams = m.typeArguments map (_.runtimeClass)
+  private val tpeParams: List[Class[_]] = Avro.tpeParams[T]
   
   @throws(classOf[RuntimeException])
   private def checkRegister {
@@ -128,7 +130,7 @@ final class Evt[T] private (val tag: Int, val doc: String = "", schemaJson: Stri
 
   /** 
    * @Note Since T is erasued after compiled, should check type of evt message 
-   * via Manifest instead of v.isInstanceOf[T]
+   * via ClassTag instead of v.isInstanceOf[T]
    * 1. Don't write to unapply(evtMsg: Msg[T]), which will confuse the compiler 
    *    to generate wrong code for match {case .. case ..}
    * 2. Don't write to unapply(evtMsg: Msg[_]), which will cause sth like:
@@ -254,7 +256,7 @@ object Evt {
     sb.toString
   }
   
-  def apply[T: Manifest](tag: Int, doc: String = "", schemaJson: String = null) = new Evt[T](tag, doc, schemaJson)
+  def apply[T: ClassTag : TypeTag](tag: Int, doc: String = "", schemaJson: String = null) = new Evt[T](tag, doc, schemaJson)
   
   // -- simple test
   def main(args: Array[String]) {
@@ -271,11 +273,12 @@ object Evt {
     import TestAPIs._
 
     println("\n==== apis: ")
-    println(StringEvt)
-    println(IntEvt)
-    println(ArrayEvt)
-    println(ListEvt)
-    println(TupleEvt)
+    println(StringEvt.schema)
+    println(IntEvt.schema)
+    println(ArrayEvt.schema)
+    println(ListEvt.schema)
+    println(TupleEvt.schema)
+    println(TupleWithPrimitiveArrayEvt.schema)
     
     val goodEvtMsgs = List(
       BadEmpEvt,
@@ -286,7 +289,8 @@ object Evt {
       ArrayEvt(Array("a", "b")),
       ListEvt(List("a", "b")),
       TupleEvt(8, "a", 8.0, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))),
-      TupleEvt(8, "a", 8, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f))))
+      TupleEvt(8, "a", 8, Array(TestData("a", 1, 1.0, Array(1.0f, 2.0f, 3.0f)))),
+      TupleWithPrimitiveArrayEvt("user", "abcdefghijk".getBytes("utf-8"), 1000000L)
     )
 
     val badEvtMsgs = List(
@@ -326,6 +330,7 @@ object Evt {
       case Msg(ArrayEvt.tag, aval: ArrayEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case Msg(ListEvt.tag, aval: ListEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case Msg(TupleEvt.tag, aval: TupleEvt.ValType) => println("Matched: " + v + " => " + aval); true
+      case Msg(TupleWithPrimitiveArrayEvt.tag, aval: TupleWithPrimitiveArrayEvt.ValType) => println("Matched: " + v + " => " + aval); true
       case _ => println("Unmatched: " + v); false
     }
     
@@ -346,6 +351,7 @@ object Evt {
       case ArrayEvt(aval) => println("Matched: " + v + " => " + aval); true
       case ListEvt(aval@List(a: String, b: String)) => println("Matched: " + v + " => " + aval); true
       case TupleEvt(aint: Int, astr: String, adou: Double, xs: Array[TestData]) => println("Matched: " + v + " => (" + aint + ", " + astr + ", " + adou + ")"); true
+      case TupleWithPrimitiveArrayEvt(user: String, bytes: Array[Byte], productId: Long) => println("Matched: " + v + " => (" + user + ", " + new String(bytes) + ", " + productId + ")"); true
       case BadEmpEvt => println("Matched emp evt"); true 
       case _ => println("Unmatched: " + v); false
     }
@@ -469,8 +475,9 @@ private[avro] object TestAPIs {
   val ArrayEvt = Evt[Array[String]](-11)
   val TupleEvt = Evt[(Int, String, Double, Array[TestData])](-12, "id, name, value")
   val TEvt = Evt[(Int, String, collection.Map[String, Array[Int]])](-14, "")
+  val TupleWithPrimitiveArrayEvt = Evt[(String, Array[Byte], Long)](-2002, "")
 
-  val BadEmpEvt = Evt(-13) // T will be AnyRef or Nothing(scala 2.10.0)
+  val BadEmpEvt = Evt[AnyRef](-13) // T will be AnyRef or Nothing(scala 2.10.0)
   
   val TestDataEvt = Evt[TestData](-100)
   val TestTransientFieldEvt = Evt[TestTransientField](-101)
@@ -541,8 +548,7 @@ private[avro] object TestAPIs {
     def isEmpty = map.isEmpty
   }
 
-  @serializable
-  class PriceDistribution extends BelongsToSec with TVal with Flag {
+  class PriceDistribution extends BelongsToSec with TVal with Flag with Serializable {
 
     private var _time: Long = _
     def time = _time

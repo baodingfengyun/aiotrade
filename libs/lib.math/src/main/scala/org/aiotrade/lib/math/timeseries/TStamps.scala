@@ -35,6 +35,7 @@ import java.util.ConcurrentModificationException
 import java.util.GregorianCalendar
 import java.util.TimeZone
 import org.aiotrade.lib.collection.AbstractArrayList
+import scala.reflect.ClassTag
 
 /**
  *
@@ -752,7 +753,7 @@ object TStamps {
     def iterator = delegateTimestamps.iterator
 
     override
-    def toArray[B >: Long](implicit m: ClassManifest[B]): Array[B] = delegateTimestamps.toArray(m)
+    def toArray[B >: Long](implicit m: ClassTag[B]): Array[B] = delegateTimestamps.toArray(m)
         
     override
     def toArray: Array[Long] = delegateTimestamps.toArray

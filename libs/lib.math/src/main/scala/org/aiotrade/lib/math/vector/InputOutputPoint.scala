@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math.vector
 
 import java.util.Random
+import scala.reflect.ClassTag
 
 /**
  * An (Input, Output) pair: one point of combined input-output space.
@@ -45,7 +46,7 @@ object InputOutputPoint {
   
   def unapply(iop: InputOutputPoint): Option[(Vec, Vec)] = Some(iop.input, iop.output)
   
-  def randomizeOrder_createNew[T <: InputOutputPoint: Manifest](iops: Array[T]): Array[T] = {
+  def randomizeOrder_createNew[T <: InputOutputPoint: ClassTag](iops: Array[T]): Array[T] = {
     val size = iops.length
     val result = Array.ofDim[T](size)
 

@@ -34,13 +34,14 @@ package org.aiotrade.lib.math.timeseries
  *
  * @author Caoyuan Deng
  */
+import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.datasource.SerProvider
 
 class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends DefaultTSer($freq) with BaseTSer {
   def this() = this(null, TFreq.DAILY)
 
-  private val log = Logger.getLogger(this.getClass.getName)
+  private val log = Logger.getLogger(getClass.getName)
   
   private var _isOnCalendarMode = false
     

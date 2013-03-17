@@ -31,11 +31,12 @@
 package org.aiotrade.lib.math.vector
 
 import java.util.Random
+import scala.reflect.ClassTag
 
 /**
  * @author Caoyuan Deng
  */
-class InputOutputPointSet[T <: InputOutputPoint: Manifest] protected (val inputOutputPoints: Array[T]) {
+class InputOutputPointSet[T <: InputOutputPoint: ClassTag] protected (val inputOutputPoints: Array[T]) {
 
   private val inputDimension = inputOutputPoints(0).input.dimension
   private var inputMeans = Array.ofDim[Double](inputDimension)
@@ -448,5 +449,5 @@ class InputOutputPointSet[T <: InputOutputPoint: Manifest] protected (val inputO
 }
 
 object InputOutputPointSet {
-  def apply[T <: InputOutputPoint: Manifest](inputOutputPoints: Array[T]) = new InputOutputPointSet(inputOutputPoints)
+  def apply[T <: InputOutputPoint: ClassTag](inputOutputPoints: Array[T]) = new InputOutputPointSet(inputOutputPoints)
 }

@@ -36,6 +36,7 @@ import org.aiotrade.lib.math.timeseries.Null
 import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.math.indicator.Plot
 import scala.collection.immutable
+import scala.reflect.ClassTag
 
 /**
  * 
@@ -74,12 +75,12 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
   protected def computeSpot(time: Long, baseIdx: Int)
   
   object STVar {
-    def apply[V: Manifest](): TVar[V] = new SpotTVar[V]("", Plot.None)
-    def apply[V: Manifest](name: String): TVar[V] = new SpotTVar[V](name, Plot.None)
-    def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new SpotTVar[V](name, plot)
+    def apply[V: ClassTag](): TVar[V] = new SpotTVar[V]("", Plot.None)
+    def apply[V: ClassTag](name: String): TVar[V] = new SpotTVar[V](name, Plot.None)
+    def apply[V: ClassTag](name: String, plot: Plot): TVar[V] = new SpotTVar[V](name, plot)
   }
   
-  final protected class SpotTVar[V: Manifest](
+  final protected class SpotTVar[V: ClassTag](
     _name: String, _plot: Plot
   ) extends AbstractInnerTVar[V](_name, _plot) {
 

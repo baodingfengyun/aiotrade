@@ -7,17 +7,18 @@ import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.AvroRuntimeException
 import org.apache.avro.Schema
 import org.apache.avro.io.Decoder
+import org.apache.avro.io.ResolvingDecoder
 
 import scala.collection.mutable
-import org.apache.avro.io.ResolvingDecoder
 import scala.collection.immutable
-
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 object ReflectDatumReader {
   def apply[T](writer: Schema, reader: Schema, data: ReflectData): ReflectDatumReader[T] = new ReflectDatumReader[T](writer, reader, data)
   def apply[T](writer: Schema, reader: Schema): ReflectDatumReader[T] = new ReflectDatumReader[T](writer, reader, ReflectData.get)
   def apply[T](root: Schema): ReflectDatumReader[T] = new ReflectDatumReader[T](root, root, ReflectData.get)
-  def apply[T: Manifest](c: Class[T]): ReflectDatumReader[T] = apply[T](ReflectData.get.getSchema(c))
+  def apply[T: ClassTag : TypeTag](c: Class[T]): ReflectDatumReader[T] = apply[T](ReflectData.get.getSchema(c))
   def apply[T](): ReflectDatumReader[T] = new ReflectDatumReader[T](null, null, ReflectData.get)
 }
 
@@ -108,7 +109,7 @@ class ReflectDatumReader[T] protected (writer: Schema, reader: Schema, data: Ref
   @throws(classOf[IOException])
   override protected def readBytes(old: Any, in: Decoder): Any = {
     val bytes = in.readBytes(null)
-    val result = new Array[Byte](bytes.remaining)
+    val result = Array.ofDim[Byte](bytes.remaining)
     bytes.get(result)
     result
   }

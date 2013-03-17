@@ -5,9 +5,10 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
+import scala.reflect.ClassTag
 
 @SerialVersionUID(1L)
-final class WeakIdentityBiHashMap[A, B](protected implicit val m: Manifest[A]) extends Map[A, B]
+final class WeakIdentityBiHashMap[A, B](protected implicit val m: ClassTag[A]) extends Map[A, B]
                                                                                   with MapLike[A, B, WeakIdentityBiHashMap[A, B]]
                                                                                   with WeakIdentityBiHashTable[A, B]
                                                                                   with Serializable {

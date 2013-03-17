@@ -35,6 +35,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
+import scala.reflect.ClassTag
 
 /**
  * Securities' data source request contract. It know how to find and invoke
@@ -48,7 +49,7 @@ import org.aiotrade.lib.math.timeseries.descriptor.Descriptor
  * @param [S] DataServer
  * @author Caoyuan Deng
  */
-abstract class DataContract[S: Manifest] extends Descriptor[S] {
+abstract class DataContract[S: ClassTag] extends Descriptor[S] {
   private val log = Logger.getLogger(this.getClass.getName)
   
   @transient var reqId = 0

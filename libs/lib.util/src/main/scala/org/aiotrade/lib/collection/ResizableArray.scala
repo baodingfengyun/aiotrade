@@ -15,6 +15,7 @@ import scala.collection.generic._
 import scala.collection.mutable.Builder
 import scala.collection.mutable.IndexedSeq
 import scala.collection.mutable.IndexedSeqOptimized
+import scala.reflect.ClassTag
 
 /** This class is used internally to implement data structures that
  *  are based on resizable arrays.
@@ -31,7 +32,8 @@ trait ResizableArray[A] extends IndexedSeq[A]
                            with GenericTraversableTemplate[A, ResizableArray]
                            with IndexedSeqOptimized[A, ResizableArray[A]] {
 
-  protected implicit val m: Manifest[A]
+  /** trait can not have type parameters like ResizableArray[A : ClassTag], so we have define a implicit val here */
+  protected implicit val m: ClassTag[A]
   
   protected val elementClass: Option[Class[A]]
   

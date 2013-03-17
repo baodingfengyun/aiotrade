@@ -36,6 +36,7 @@ import scala.collection.mutable
 import scala.collection.mutable.BufferLike
 import scala.collection.mutable.Builder
 import scala.collection.mutable.IndexedSeqOptimized
+import scala.reflect.ClassTag
 
 /**
  * A package class that implements timestamped Map based List, used to store
@@ -127,7 +128,7 @@ import scala.collection.mutable.IndexedSeqOptimized
  * @version 1.0, 11/22/2006
  * @since   1.0.4
  */
-final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends AbstractArrayList[A](16, None) 
+final class TStampedMapBasedList[A: ClassTag](timestamps: TStamps) extends AbstractArrayList[A](16, None) 
                                                                       with GenericTraversableTemplate[A, TStampedMapBasedList]
                                                                       with BufferLike[A, TStampedMapBasedList[A]]
                                                                       with IndexedSeqOptimized[A, TStampedMapBasedList[A]]
@@ -144,7 +145,8 @@ final class TStampedMapBasedList[A: Manifest](timestamps: TStamps) extends Abstr
   override 
   def contains(o: Any): Boolean = timeToElementData.valuesIterator.contains(o)
     
-  def toArray[B >: A: Manifest]: Array[B] = {
+  override 
+  def toArray[B >: A: ClassTag]: Array[B] = {
     val length = timestamps.size
     val array = new Array[B](length)
     copyToArray(array, 0)

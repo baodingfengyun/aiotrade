@@ -52,6 +52,8 @@ package org.aiotrade.lib.securities.model
  *    
  * @author Caoyuan Deng
  */ 
+import scala.reflect.ClassTag
+
 trait CRCLongId {
   /** 
    * 
@@ -93,7 +95,7 @@ object CRCLongId {
  * 
  * Table with the corresponding id and crckey column.
  */
-abstract class CRCLongPKTable[R <: CRCLongId: Manifest] extends ru.circumflex.orm.Table[R] { 
+abstract class CRCLongPKTable[R <: CRCLongId: ClassTag] extends ru.circumflex.orm.Table[R] { 
   override val id = "id" BIGINT()
   val crckey = "crckey" VARCHAR(30)
 }

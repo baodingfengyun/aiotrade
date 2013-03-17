@@ -1,5 +1,7 @@
 package org.aiotrade.lib.collection
 
+import scala.reflect.ClassTag
+
 object WeakIdentityBiHashMapTest {
   def main(args: Array[String]) {
     test[String](
@@ -13,7 +15,7 @@ object WeakIdentityBiHashMapTest {
     testLots
   }
 
-  def test[T: Manifest](keys: Array[T]) {
+  def test[T: ClassTag](keys: Array[T]) {
     var k1 = keys(0)
     var k2 = keys(1)
     var k3 = keys(2)

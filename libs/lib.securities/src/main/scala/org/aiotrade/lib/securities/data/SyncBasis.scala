@@ -45,6 +45,7 @@ import org.aiotrade.lib.securities.model._
 import org.eclipse.jgit.api.MergeResult
 import ru.circumflex.orm._
 import ru.circumflex.orm.avro.AvroReader
+import scala.reflect.ClassTag
 
 /**
  *
@@ -84,7 +85,7 @@ abstract class SyncBasis {
     cal.getTime
   }
   
-  private def test[R: Manifest](table: Table[R]) {
+  private def test[R: ClassTag](table: Table[R]) {
     //org.aiotrade.lib.util.config.Config(srcMainResources + File.separator + "import_to_test.conf")
     val records = selectAvroRecords(exportDataDirPath + File.separator + table.relationName + ".avro", table).toArray
     records foreach println
@@ -154,7 +155,7 @@ abstract class SyncBasis {
    * per: tables foreach {x => ...}, 'x' will be infered by Scala as ScalaObject, we have to define
    * this standalone function to get type right
    */
-  private def importAvroToDb[R: Manifest](avroFile: String, table: Table[R]) {
+  private def importAvroToDb[R: ClassTag](avroFile: String, table: Table[R]) {
     val records = selectAvroRecords(avroFile, table).toArray
     table.insertBatch(records, false)
   }

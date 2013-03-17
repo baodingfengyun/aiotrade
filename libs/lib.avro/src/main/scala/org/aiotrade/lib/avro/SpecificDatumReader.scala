@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.avro.Schema;import org.apache.avro.generic.IndexedRecord
 import org.apache.avro.io.ResolvingDecoder
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 
 object SpecificDatumReader {
@@ -76,7 +78,7 @@ object SpecificDatumReader {
   def apply[T](writer: Schema, reader: Schema): SpecificDatumReader[T] = new SpecificDatumReader[T](writer, reader, SpecificData.get)
   /** Construct where the writer's and reader's schemas are the same. */
   def apply[T](schema: Schema): SpecificDatumReader[T] = new SpecificDatumReader[T](schema, schema, SpecificData.get)
-  def apply[T: Manifest](c: Class[T]): SpecificDatumReader[T] = apply[T](SpecificData.get.getSchema(c))
+  def apply[T: ClassTag : TypeTag](c: Class[T]): SpecificDatumReader[T] = apply[T](SpecificData.get.getSchema(c))
   def apply[T](): SpecificDatumReader[T] = new SpecificDatumReader[T](null, null, SpecificData.get)
 }
 

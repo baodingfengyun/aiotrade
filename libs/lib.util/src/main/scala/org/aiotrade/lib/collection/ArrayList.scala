@@ -21,6 +21,7 @@ import scala.collection.mutable.IndexedSeqOptimized
 import scala.collection.mutable.Seq
 import scala.collection.mutable.WrappedArray
 import scala.collection.parallel.mutable.ParArray
+import scala.reflect.ClassTag
 
 
 /** An implementation of the <code>Buffer</code> class using an array to
@@ -42,7 +43,7 @@ import scala.collection.parallel.mutable.ParArray
 @SerialVersionUID(1529165946227428979L)
 final class ArrayList[A](  
   _initialSize: Int, _elementClass: Option[Class[A]] = None
-)(implicit _m: Manifest[A]) extends AbstractArrayList[A](_initialSize, _elementClass)(_m) 
+)(implicit _m: ClassTag[A]) extends AbstractArrayList[A](_initialSize, _elementClass)(_m) 
                                with GenericTraversableTemplate[A, ArrayList]
                                with BufferLike[A, ArrayList[A]]
                                with IndexedSeqOptimized[A, ArrayList[A]]
@@ -51,7 +52,7 @@ final class ArrayList[A](
   override 
   def companion: GenericCompanion[ArrayList] = ArrayList
 
-  def this()(implicit m: Manifest[A]) = this(16)
+  def this()(implicit m: ClassTag[A]) = this(16)
   
   def result: ArrayList[A] = this
 
@@ -97,12 +98,12 @@ final class ArrayList[A](
 object ArrayList extends SeqFactory[ArrayList] {
   implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, ArrayList[A]] = new GenericCanBuildFrom[A]
   /**
-   * we implement newBuilder for extending SeqFactory only. Since it's with no manifest arg,
+   * we implement newBuilder for extending SeqFactory only. Since it's with no ClassTag arg,
    * we can only create a ArrayList[Any] instead of ArrayList[A], but we'll define another
    * apply method to create ArrayList[A]
    */
   def newBuilder[A]: Builder[A, ArrayList[A]] = new ArrayList[Any]().asInstanceOf[ArrayList[A]]
-  def apply[A: Manifest]() = new ArrayList[A]
+  def apply[A: ClassTag]() = new ArrayList[A]
 }
 
 /** Explicit instantiation of the `Buffer` trait to reduce class file size in subclasses. */
@@ -115,7 +116,7 @@ private[collection] abstract class AbstractBuffer[A] extends AbstractSeq[A] with
 abstract class AbstractArrayList[A](  
   override protected val initialSize: Int, 
   protected val elementClass: Option[Class[A]]
-)(protected implicit val m: Manifest[A]) extends AbstractBuffer[A]
+)(protected implicit val m: ClassTag[A]) extends AbstractBuffer[A]
                                             with Buffer[A]
                                             with GenericTraversableTemplate[A, AbstractArrayList]
                                             with BufferLike[A, AbstractArrayList[A]]
@@ -317,8 +318,8 @@ abstract class AbstractArrayList[A](
 
   /**
    * We need this toArray to export an array with the original type element instead of
-   * scala.collection.TraversableOnce#toArray[B >: A : ClassManifest]: Array[B]:
-   * def toArray[B >: A : ClassManifest]: Array[B] = {
+   * scala.collection.TraversableOnce#toArray[B >: A : ClassTag]: Array[B]:
+   * def toArray[B >: A : ClassTag]: Array[B] = {
    *   if (isTraversableAgain) {
    *     val result = new Array[B](size)
    *     copyToArray(result, 0)
@@ -358,7 +359,7 @@ abstract class AbstractArrayList[A](
 object AbstractArrayList extends SeqFactory[AbstractArrayList] {
   implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, AbstractArrayList[A]] = new GenericCanBuildFrom[A]
   /**
-   * we implement newBuilder for extending SeqFactory only. Since it's with no manifest arg,
+   * we implement newBuilder for extending SeqFactory only. Since it's with no ClassTag arg,
    * we can only create a ArrayList[Any] instead of ArrayList[A], but we'll define another
    * apply method to create ArrayList[A]
    */

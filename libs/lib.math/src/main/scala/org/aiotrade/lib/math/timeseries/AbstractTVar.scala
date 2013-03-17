@@ -31,6 +31,7 @@
 package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.math.indicator.Plot
+import scala.reflect.ClassTag
 
 /**
  * This is a horizotal view of DefaultSer. Is' a reference of one of
@@ -38,7 +39,7 @@ import org.aiotrade.lib.math.indicator.Plot
  *
  * @author Caoyuan Deng
  */
-abstract class AbstractTVar[V](var name: String, var plot: Plot)(protected implicit val m: Manifest[V]) extends TVar[V] {
+abstract class AbstractTVar[V](var name: String, var plot: Plot)(protected implicit val m: ClassTag[V]) extends TVar[V] {
   val LAYER_NOT_SET = -1
 
   var layer = LAYER_NOT_SET

@@ -4,6 +4,7 @@ import java.util.Collections
 import java.util.Random
 import java.util.WeakHashMap
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 /**
  * <p>
@@ -140,7 +141,7 @@ object RandomUtils {
     }
   }
   
-  def shuffle[T: Manifest](seq: Seq[T]): Seq[T] = {
+  def shuffle[T: ClassTag](seq: Seq[T]): Seq[T] = {
     val rnd = getRandom
     seq match {
       case xs: mutable.IndexedSeq[T] =>

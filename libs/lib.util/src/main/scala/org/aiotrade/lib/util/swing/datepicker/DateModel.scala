@@ -6,6 +6,7 @@ import java.util.Calendar
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 import scala.collection.mutable.HashSet
+import scala.reflect.ClassTag
 
 object DateModel {
   private val CalendarClass = classOf[java.util.Calendar]
@@ -25,7 +26,7 @@ object DateModel {
   }
 }
 
-class DateModel[T] protected(value$: T)(protected implicit val m: Manifest[T]) {
+class DateModel[T] protected(value$: T)(protected implicit val m: ClassTag[T]) {
   private var _value = Calendar.getInstance
 
   private val changeListeners = new HashSet[ChangeListener]
@@ -34,7 +35,7 @@ class DateModel[T] protected(value$: T)(protected implicit val m: Manifest[T]) {
   value_=(value$)
   setToMidnight
 
-  def this()(implicit m: Manifest[T]) = this(null.asInstanceOf[T])
+  def this()(implicit m: ClassTag[T]) = this(null.asInstanceOf[T])
 
   def value: T = {
     m.toString match {

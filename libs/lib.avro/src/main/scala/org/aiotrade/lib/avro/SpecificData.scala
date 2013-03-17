@@ -15,6 +15,8 @@ import org.apache.avro.AvroTypeException
 import org.apache.avro.Schema.Type
 import org.apache.avro.generic.GenericData
 import scala.collection.mutable
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 object SpecificData {
   private val INSTANCE = new SpecificData
@@ -113,8 +115,9 @@ class SpecificData protected () extends GenericData {
   }
 
   /** Find the schema for a Java type. */
-  def getSchema[T](tpe: Class[T])(implicit m: Manifest[T]): Schema = {
-    if (m.typeArguments.isEmpty) { // don't cache Type what has type parameters
+  def getSchema[T: ClassTag : TypeTag](tpe: Class[T]): Schema = {
+    val tpeParams = Avro.tpeParams[T]
+    if (tpeParams.isEmpty) { // don't cache Type that has type parameters
       schemaCache.get(tpe) match {
         case null =>
           val schema = createSchema(tpe, new java.util.LinkedHashMap[String, Schema]())
@@ -159,7 +162,7 @@ class SpecificData protected () extends GenericData {
   }
   
   /** Create the schema for a Java class. */
-  protected def createSchema[T](tpe: Class[T], names: java.util.Map[String, Schema])(implicit m: Manifest[T]): Schema = {
+  protected def createSchema[T: ClassTag : TypeTag](tpe: Class[T], names: java.util.Map[String, Schema]): Schema = {
     tpe match {
       case VoidType    | JVoidClass                   => Schema.create(Type.NULL)
       case ByteType    | ByteClass    | JByteClass    => Schema.create(Type.INT)
@@ -175,8 +178,8 @@ class SpecificData protected () extends GenericData {
         val schema = Schema.createRecord("tuple", null, "", false)
         val fields = new java.util.ArrayList[Schema.Field]()
         var i = 1 // tuple indexed from 1
-        for (param <- m.typeArguments) {
-          val fieldSchema = createSchema(param.runtimeClass, names)
+        for (param <- Avro.tpeParams[T]) {
+          val fieldSchema = createSchema(param, names)
           // make nullable
           Schema.createUnion(java.util.Arrays.asList(Schema.create(Schema.Type.NULL), fieldSchema))
           fields.add(new Schema.Field("_" + i, fieldSchema, null /* doc */, null))
@@ -185,19 +188,16 @@ class SpecificData protected () extends GenericData {
         schema.setFields(fields)
         schema
       case c: Class[T] if isCollectionClass(c) => // array
-        m.typeArguments.headOption match {
+        Avro.tpeParams[T].headOption match {
           case Some(etype) => 
-            val etypex = etype.runtimeClass.asInstanceOf[Class[_]]
-            Schema.createArray(createSchema(etypex, names))
+            Schema.createArray(createSchema(etype, names))
           case None => throw new AvroTypeException("No array type specified.")
         }
       case c: Class[T] if isMapClass(c) => // map
-        m.typeArguments match {
+        Avro.tpeParams[T] match {
           case List(key, value) => 
-            val keyx = key.runtimeClass.asInstanceOf[Class[_]]
-            val valuex = value.runtimeClass.asInstanceOf[Class[_]]
-            if (CharSequenceClass.isAssignableFrom(keyx)) {
-              Schema.createMap(createSchema(valuex, names))
+            if (CharSequenceClass.isAssignableFrom(key)) {
+              Schema.createMap(createSchema(value, names))
             } else {
               throw new AvroTypeException("Map key class not CharSequence: " + key)
             }

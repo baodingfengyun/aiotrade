@@ -1,10 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.aiotrade.lib.math.timeseries
 
+import scala.reflect.ClassTag
+
+/**
+ * 
+ * @author Caoyuan Deng
+ */
 object Null {
   val Byte    = java.lang.Byte      MIN_VALUE   // -128 ~ 127
   val Short   = java.lang.Short     MIN_VALUE   // -32768 ~ 32767
@@ -35,7 +36,7 @@ object Null {
   def not(v: Double)  = !java.lang.Double.isNaN(v)
   def not(v: AnyRef)  = v ne null
 
-  def value[T](implicit m: Manifest[T]): T = {
+  def value[T](implicit m: ClassTag[T]): T = {
     val v = m.toString match {
       case "Boolean"  => Null.Boolean
       case "Byte"     => Null.Byte   // -128 ~ 127

@@ -3,6 +3,7 @@ package org.aiotrade.lib.collection
 import java.lang.ref.ReferenceQueue
 import java.lang.ref.WeakReference
 import scala.collection.mutable.HashMap
+import scala.reflect.ClassTag
 import scala.runtime.BoxesRunTime
 
 
@@ -85,7 +86,7 @@ trait WeakIdentityBiHashTable[K, V] {
     }
   }
 
-  protected implicit val m: Manifest[K]
+  protected implicit val m: ClassTag[K]
 
   /** The load factor for the hash table (in 0.001 step).
    */

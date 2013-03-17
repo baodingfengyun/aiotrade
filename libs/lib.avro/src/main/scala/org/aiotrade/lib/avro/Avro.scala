@@ -39,6 +39,8 @@ import org.aiotrade.lib.util.ClassHelper
 import org.apache.avro.Schema
 import org.apache.avro.io.DecoderFactory
 import org.apache.avro.io.EncoderFactory
+import scala.reflect._
+import scala.reflect.runtime.universe._
 
 /**
  * 
@@ -97,6 +99,32 @@ object Avro {
       case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
     } finally {
       if (in != null) try {in.close} catch {case _: Throwable =>}
+    }
+  }
+  
+  protected[avro] def tpeParams[T: TypeTag : ClassTag]: List[Class[_]] = tpeParams(typeOf[T])
+  protected[avro] def tpeParams(tp: Type): List[Class[_]] = {
+    tp match {
+      case TypeRef(_, _, args) => 
+        val m = runtimeMirror(Thread.currentThread.getContextClassLoader) // must use currentThread's classLoader
+        args map {tpParam => 
+          if (tpParam.typeSymbol == definitions.ArrayClass) { 
+            // m.runtimeClass(..): If the Scala symbol is ArrayClass, a ClassNotFound exception is thrown
+            // because there is no unique Java class corresponding to a Scala generic array
+            tpeParams(tpParam) match {
+              case Nil => 
+                // @Note: classOf[Array[_]] returns: class java.lang.Object, meanwhile
+                //   classOf[Array[AnyRef]] returns: class [Ljava.lang.Object;
+                // We choose class java.lang.Object here, why? 
+                classOf[Array[_]] 
+              case componentTp :: _ =>
+                java.lang.reflect.Array.newInstance(componentTp, 0).getClass
+            }
+          } else {
+            m.runtimeClass(tpParam.typeSymbol.asClass)
+          }
+        }
+      case _ => Nil
     }
   }
 }

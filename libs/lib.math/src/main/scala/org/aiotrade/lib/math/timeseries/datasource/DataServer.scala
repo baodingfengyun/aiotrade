@@ -43,6 +43,7 @@ import java.util.logging.Logger
 import org.aiotrade.lib.util.actors.Publisher
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 /**
  * This class will load the quote datas from data source to its data storage: quotes.
@@ -50,7 +51,7 @@ import scala.collection.mutable
  * @param [V] data storege type
  * @author Caoyuan Deng
  */
-abstract class DataServer[V: Manifest] extends Ordered[DataServer[V]] with Publisher {
+abstract class DataServer[V: ClassTag] extends Ordered[DataServer[V]] with Publisher {
   import DataServer._
   private val log = Logger.getLogger(this.getClass.getName)
 

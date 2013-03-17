@@ -37,6 +37,7 @@ import org.aiotrade.lib.math.PersistenceManager
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.util.swing.action.WithActions
 import org.aiotrade.lib.util.swing.action.WithActionsHelper
+import scala.reflect.ClassTag
 
 /**
  * Descriptor is something like NetBeans' DataObject
@@ -49,7 +50,7 @@ abstract class Descriptor[S](
   private var _serviceClassName: String,
   private var _freq: TFreq,
   private var _active: Boolean
-)(protected implicit val m: Manifest[S]) extends WithActions with Cloneable {
+)(protected implicit val m: ClassTag[S]) extends WithActions with Cloneable {
 
   private val log = Logger.getLogger(this.getClass.getName)
 
@@ -74,7 +75,7 @@ abstract class Descriptor[S](
   /** @Note: covariant type S can not occur in contravariant position in type S of parameter of setter */
   private var _serviceInstance: Option[_] = None
     
-  def this()(implicit m: Manifest[S]) {
+  def this()(implicit m: ClassTag[S]) {
     this(null, TFreq.DAILY, false)
   }
             

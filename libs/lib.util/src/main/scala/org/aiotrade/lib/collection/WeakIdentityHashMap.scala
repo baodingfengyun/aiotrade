@@ -4,10 +4,11 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.generic.MutableMapFactory
 import scala.collection.mutable.Map
 import scala.collection.mutable.MapLike
+import scala.reflect.ClassTag
 
 @SerialVersionUID(1L)
 final class WeakIdentityHashMap[A, B](
-  protected implicit val m: Manifest[A]
+  protected implicit val m: ClassTag[A]
 ) extends Map[A, B]
      with MapLike[A, B, WeakIdentityHashMap[A, B]]
      with WeakIdentityHashTable[A, B]

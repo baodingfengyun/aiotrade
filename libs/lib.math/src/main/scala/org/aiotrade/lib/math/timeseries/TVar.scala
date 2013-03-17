@@ -32,7 +32,7 @@ package org.aiotrade.lib.math.timeseries
 
 import org.aiotrade.lib.math.indicator.Plottable
 import org.aiotrade.lib.collection.ArrayList
-
+import scala.reflect.ClassTag
 
 /**
  * A horizontal view of Ser. Is' a reference of one of the field vars.
@@ -41,7 +41,7 @@ import org.aiotrade.lib.collection.ArrayList
  * @author Caoyuan Deng
  */
 trait TVar[V] extends Plottable {
-  protected implicit val m: Manifest[V]
+  protected implicit val m: ClassTag[V]
   
   def name: String
   def name_=(name: String)

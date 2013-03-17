@@ -34,6 +34,8 @@ import org.aiotrade.lib.collection.ArrayList
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
 import scala.collection.mutable
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 object MainTest {
 
@@ -241,7 +243,7 @@ object MainTest {
   }
   
   
-  private def getSchema[T: Manifest](c: Class[T]) = {
+  private def getSchema[T: ClassTag: TypeTag](c: Class[T]) = {
     ReflectData.AllowNull.getSchema(c)
   }
   

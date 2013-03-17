@@ -37,6 +37,7 @@ import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.indicator.Plot
 import org.aiotrade.lib.util
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 
 /**
@@ -418,12 +419,12 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   def hashCode: Int = _hashCode
 
   object TVar {
-    def apply[V: Manifest](): TVar[V] = new InnerTVar[V]("", Plot.None)
-    def apply[V: Manifest](name: String): TVar[V] = new InnerTVar[V](name, Plot.None)
-    def apply[V: Manifest](name: String, plot: Plot): TVar[V] = new InnerTVar[V](name, plot)
+    def apply[V: ClassTag](): TVar[V] = new InnerTVar[V]("", Plot.None)
+    def apply[V: ClassTag](name: String): TVar[V] = new InnerTVar[V](name, Plot.None)
+    def apply[V: ClassTag](name: String, plot: Plot): TVar[V] = new InnerTVar[V](name, plot)
   }
   
-  final protected class InnerTVar[V: Manifest](
+  final protected class InnerTVar[V: ClassTag](
     _name: String, _plot: Plot
   ) extends AbstractInnerTVar[V](_name, _plot) {
 
@@ -504,7 +505,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   }
   
   //@todo SparseTVar
-  /* protected class SparseTVar[V: Manifest](
+  /* protected class SparseTVar[V: ClassTag](
    name: String, plot: Plot
    ) extends AbstractInnerTVar[V](name, plot) {
 
@@ -566,7 +567,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerTVar[V: Manifest](
+  abstract class AbstractInnerTVar[V: ClassTag](
     _name: String, _plot: Plot
   ) extends AbstractTVar[V](_name, _plot) {
 

@@ -18,6 +18,7 @@ import org.apache.avro.util.Utf8
 import org.apache.avro.util.WeakIdentityHashMap
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 object GenericDatumReader {
   private val RESOLVER_CACHE = new ThreadLocal[java.util.Map[Schema, java.util.Map[Schema, ResolvingDecoder]]]() {
@@ -324,9 +325,9 @@ class GenericDatumReader[T] protected (private var actual: Schema, private var e
   }
   
   /**
-   * We need 'elementClass: Class[T]' to get the Manifest[T]
+   * We need 'elementClass: Class[T]' to get the ClassTag[T]
    */
-  protected def newArray[T: Manifest](old: Any, size: Int, schema: Schema, elementClass: Class[T]): AnyRef = {
+  protected def newArray[T: ClassTag](old: Any, size: Int, schema: Schema, elementClass: Class[T]): AnyRef = {
     import Schema.Type._
     schema.getElementType.getType match {
       case INT =>     new ArrayList[Int](size)

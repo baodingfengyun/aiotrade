@@ -35,11 +35,12 @@ import java.util.logging.Logger
 import org.aiotrade.lib.collection.ArrayList
 import scala.collection.mutable
 import org.aiotrade.lib.math.signal._
+import scala.reflect.ClassTag
 
 /**
  * @author Caoyuan Deng
  */
-final class TimeQueue[V: Manifest](freq: TFreq, limit: Int, onlyOneValue: Boolean = false) {
+final class TimeQueue[V: ClassTag](freq: TFreq, limit: Int, onlyOneValue: Boolean = false) {
 
   private val log = Logger.getLogger(getClass.getName)
   private val lastIdx = limit - 1

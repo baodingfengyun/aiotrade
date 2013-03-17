@@ -45,11 +45,12 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
+import scala.reflect._
 
 /**
  * @author Caoyuan Deng
  */
-abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest[T]) extends FreeIndicator(null, $freq) {
+abstract class PanelIndicator[T <: Indicator : ClassTag]($freq: TFreq) extends FreeIndicator(null, $freq) {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _sectorKey: String = ""
@@ -95,7 +96,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   def addSec(secValidTime: ValidTime[Sec]): Option[T] = {
     secValidTime.ref.serOf(freq) match {
       case Some(baseSer) =>
-        val ind = org.aiotrade.lib.math.indicator.Indicator(m.runtimeClass.asInstanceOf[Class[T]], baseSer, factors: _*)
+        val ind = org.aiotrade.lib.math.indicator.Indicator(classTag[T].runtimeClass.asInstanceOf[Class[T]], baseSer, factors: _*)
         listenTo(ind)
         indicators += ((ind, secValidTime))
         Some(ind)
@@ -106,7 +107,7 @@ abstract class PanelIndicator[T <: Indicator]($freq: TFreq)(implicit m: Manifest
   def removeSec(secValidTime: ValidTime[Sec]): Option[T] = {
     secValidTime.ref.serOf(freq) match {
       case Some(baseSer) =>
-        val ind = org.aiotrade.lib.math.indicator.Indicator(m.runtimeClass.asInstanceOf[Class[T]], baseSer, factors: _*)
+        val ind = org.aiotrade.lib.math.indicator.Indicator(classTag[T].asInstanceOf[Class[T]], baseSer, factors: _*)
         deafTo(ind)
         indicators -= ((ind, secValidTime))
         Some(ind)
