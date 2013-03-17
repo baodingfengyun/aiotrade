@@ -180,7 +180,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
       var checkingCursor = tsLogCheckedCursor
       while (tlogCursor > -1 && checkingCursor <= tlogCursor) {
         val cursorMoved = if (checkingCursor != tsLogCheckedCursor) {
-          // * Is checking a new log, should reset tsLogCheckedSize
+          // is checking a new log, should reset tsLogCheckedSize
           tsLogCheckedSize = 0
           true
         } else false
@@ -188,14 +188,14 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         val tlogFlag = tlog(checkingCursor)
         val tlogCurrSize = tlog.checkSize(tlogFlag)
         if (!cursorMoved && tlogCurrSize == tsLogCheckedSize) {
-          // * same log with same size, actually nothing changed
+          // same log with same size, actually nothing changed
         } else {
           tlog.checkKind(tlogFlag) match {
             case TStampsLog.INSERT =>
               val begIdx = tlog.insertIndexOfLog(checkingCursor)
 
               val begIdx1 = if (!cursorMoved) {
-                // * if insert log is a merged one, means the inserts were continually happening one behind one
+                // if insert log is a merged one, means the inserts were continually happening one behind one
                 begIdx + tsLogCheckedSize
               } else begIdx
                                     
@@ -207,7 +207,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
               var i = 0
               while (i < insertSize) {
                 val time = timestamps(begIdx1 + i)
-                vars foreach (_.addNull(time))
+                vars foreach (_.putNull(time))
                 newHolders(i) = createItem(time)
                 i += 1
               }
@@ -225,7 +225,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
               var i = 0
               while (i < appendSize) {
                 val time = timestamps(begIdx + i)
-                vars foreach (_.addNull(time))
+                vars foreach (_.putNull(time))
                 newHolders(i) = createItem(time)
                 i += 1
               }
@@ -407,7 +407,9 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     sb.toString
   }
 
-  /** Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: */
+  /** 
+   * Ser may be used as the HashMap key, for efficient reason, we define equals and hashCode method as it: 
+   */
   override 
   def equals(a: Any) = a match {
     case x: TSer => this.getClass == x.getClass && this.hashCode == x.hashCode

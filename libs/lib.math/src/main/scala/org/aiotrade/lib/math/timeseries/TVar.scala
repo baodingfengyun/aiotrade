@@ -92,8 +92,8 @@ trait TVar[V] extends Plottable {
   def valuesIterator: Iterator[V]
 
   final val nullVal = Null.value[V]
-  final def addNull(time: Long): Boolean = add(time, nullVal)
-  final def addNull(idx: Int): Boolean = add(idx, nullVal)
+  final def putNull(time: Long): Boolean = add(time, nullVal)
+  final def putNull(idx: Int): Boolean = add(idx, nullVal)
   final def setNull(time: Long) = update(time, nullVal)
   final def setNull(idx: Int) = update(idx, nullVal)
 

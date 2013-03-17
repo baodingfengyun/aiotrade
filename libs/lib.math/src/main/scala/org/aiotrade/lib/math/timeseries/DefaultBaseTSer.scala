@@ -125,7 +125,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
     if (time < lastOccurredTime) {
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach (_.addNull(time))
+        vars foreach (_.putNull(time))
         // as timestamps includes this time, we just always put in a none-null item
         holders.insert(existIdx, holder)
         
@@ -142,7 +142,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
           timestamps.insert(idx, time)
           timestamps.log.logInsert(1, idx)
 
-          vars foreach (_.addNull(time))
+          vars foreach (_.putNull(time))
           holders.insert(idx, holder)
           
           idx
@@ -162,11 +162,11 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       try {
         timestamps.writeLock.lock
 
-        /** should append timestamps first */
+        // should append timestamps first
         timestamps += time
         timestamps.log.logAppend(1)
 
-        vars foreach (_.addNull(time))
+        vars foreach (_.putNull(time))
         holders += holder
         
         this.size - 1
@@ -184,7 +184,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       // time == lastOccurredTime, keep same time and append vars and holders.
       val existIdx = timestamps.indexOfOccurredTime(time)
       if (existIdx >= 0) {
-        vars foreach (_.addNull(time))
+        vars foreach (_.putNull(time))
         holders += holder
         
         size - 1
