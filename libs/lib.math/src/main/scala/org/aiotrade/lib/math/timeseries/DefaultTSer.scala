@@ -426,12 +426,9 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     def apply[V: ClassTag](name: String, plot: Plot): TVar[V] = new InnerTVar[V](name, plot)
   }
   
-  final protected class InnerTVar[V: ClassTag](
-    _name: String, _plot: Plot
-  ) extends AbstractInnerTVar[V](_name, _plot) {
+  final protected class InnerTVar[V: ClassTag](_name: String, _plot: Plot) extends AbstractInnerTVar[V](_name, _plot) {
 
     private var _values = new ArrayList[V](INIT_CAPACITY)
-
     def values = _values
     
     def add(time: Long, value: V): Boolean = {
@@ -444,7 +441,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         }
         true
       } else {
-        assert(false, "Add timestamps first before add an element! " + ": " + "idx=" + idx + ", time=" + time)
+        assert(false, "Fill timestamps first before put an element! " + ": " + "idx=" + idx + ", time=" + time)
         false
       }
     }
@@ -462,7 +459,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
         }
         true
       } else {
-        assert(false, "Add timestamps first before update an element! " + ": " + "idx=" + idx + ", time=" + time)
+        assert(false, "Fill timestamps first before put an element! " + ": " + "idx=" + idx + ", time=" + time)
         false
       }
     }
@@ -494,14 +491,6 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
       super.update(idx, value)
     }
     
-    def reset(idx: Int) {
-      update(idx, Null.value)
-    }
-    
-    def reset(time: Long) {
-      update(time, Null.value)
-    }
-
     def timesIterator: Iterator[Long] = timestamps.iterator
     def valuesIterator: Iterator[V] = _values.iterator
   }
@@ -569,9 +558,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerTVar[V: ClassTag](
-    _name: String, _plot: Plot
-  ) extends AbstractTVar[V](_name, _plot) {
+  abstract class AbstractInnerTVar[V: ClassTag](_name: String, _plot: Plot) extends AbstractTVar[V](_name, _plot) {
 
     addVar(this.asInstanceOf[TVar[Any]])
 

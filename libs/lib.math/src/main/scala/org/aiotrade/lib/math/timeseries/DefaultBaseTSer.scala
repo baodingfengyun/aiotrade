@@ -78,7 +78,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, $freq: => TFreq) extends Defaul
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0 && idx < holders.size) {
         // existed, reset it
-        vars foreach (_.setNull(idx))
+        vars foreach (_.reset(idx))
         holders(idx) = false
       } else {
         // append at the end: create a new one, add placeholder

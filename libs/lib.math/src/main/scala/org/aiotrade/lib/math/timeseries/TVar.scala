@@ -79,23 +79,16 @@ trait TVar[V] extends Plottable {
     
   def values: ArrayList[V]
   
-  /**
-   * reset to Null.value
-   */
-  def reset(idx: Int)
-  /**
-   * reset to Null.value
-   */
-  def reset(time: Long)
-  
   def timesIterator: Iterator[Long]
   def valuesIterator: Iterator[V]
 
   final val nullVal = Null.value[V]
   final def putNull(time: Long): Boolean = add(time, nullVal)
   final def putNull(idx: Int): Boolean = add(idx, nullVal)
-  final def setNull(time: Long) = update(time, nullVal)
-  final def setNull(idx: Int) = update(idx, nullVal)
+  /** reset to nullValue */
+  final def reset(time: Long) = update(time, nullVal)
+  /** reset to nullValue */
+  final def reset(idx: Int) = update(idx, nullVal)
 
   private val _hashCode = System.identityHashCode(this)
   override def hashCode: Int = _hashCode
