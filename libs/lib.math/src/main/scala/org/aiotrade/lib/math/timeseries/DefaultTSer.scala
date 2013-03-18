@@ -437,12 +437,7 @@ class DefaultTSer(private var _freq: TFreq) extends TSer {
         if (idx == values.size) {
           values += value
         } else {
-          /* val v = value match {
-           case x: java.lang.Float => x.floatValue
-           case x: java.lang.Double => x.doubleValue
-           case x => x 
-           } */
-          values.insert(idx, value.asInstanceOf[V])
+          values.insert(idx, value)
         }
         true
       } else {

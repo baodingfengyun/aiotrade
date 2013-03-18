@@ -36,18 +36,33 @@ object Null {
   def not(v: Double)  = !v.isNaN
   def not(v: AnyRef)  = v ne null
 
-  def value[T](implicit m: ClassTag[T]): T = {
-    (m match {
-        case ClassTag.Boolean  => Null.Boolean
-        case ClassTag.Byte     => Null.Byte   
-        case ClassTag.Short    => Null.Short  
-        case ClassTag.Char     => Null.Char   
-        case ClassTag.Int      => Null.Int    
-        case ClassTag.Long     => Null.Long
-        case ClassTag.Float    => Null.Float
-        case ClassTag.Double   => Null.Double
+  def value[T: ClassTag]: T = {
+    (reflect.classTag[T] match {
+        case ClassTag.Boolean => Boolean
+        case ClassTag.Byte    => Byte
+        case ClassTag.Short   => Short
+        case ClassTag.Char    => Char
+        case ClassTag.Int     => Int
+        case ClassTag.Long    => Long
+        case ClassTag.Float   => Float
+        case ClassTag.Double  => Double
         case _ => null
       }
     ).asInstanceOf[T]
+  }
+  
+  // --- simple test
+  def main(args: Array[String]) {
+    println(value[Boolean] + " type: " + value[Boolean].getClass)
+    println(value[Byte] + " type: " + value[Byte].getClass)
+    println(value[Short] + " type: " + value[Short].getClass)
+    println(value[Char] + " type: " + value[Char].getClass)
+    println(value[Int] + " type: " + value[Int].getClass)
+    println(value[Long] + " type: " + value[Long].getClass)
+    println(value[Float] + " type: " + value[Float].getClass)
+    println(value[Double] + " type: " + value[Double].getClass)
+    println(value[String])
+    println(is(scala.Double.NaN))
+    println(is(java.lang.Double.NaN))
   }
 }
