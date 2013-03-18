@@ -437,7 +437,7 @@ class DefaultTSer(private var _freq: TFreq) extends TSer {
         if (idx == values.size) {
           values += value
         } else {
-          values.insert(idx, value)
+          values.insertOne(idx, value)
         }
         true
       } else {
@@ -455,7 +455,7 @@ class DefaultTSer(private var _freq: TFreq) extends TSer {
         if (idx == _values.size) {
           _values += value
         } else {
-          _values.insert(idx, value)
+          _values.insertOne(idx, value)
         }
         true
       } else {

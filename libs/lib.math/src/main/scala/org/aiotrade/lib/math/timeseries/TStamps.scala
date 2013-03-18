@@ -788,7 +788,7 @@ object TStamps {
     def ++=:(xs: TraversableOnce[Long]) = this.++:(xs)
     
     override
-    def insert(n: Int, elems: Long*) = this.insertAll(n, elems)
+    def insertOne(n: Int, elem: Long) = delegateTimestamps.insertOne(n, elem)
 
     override 
     def insertAll(n: Int, elems: scala.collection.Traversable[Long]) = delegateTimestamps.insertAll(n, elems)

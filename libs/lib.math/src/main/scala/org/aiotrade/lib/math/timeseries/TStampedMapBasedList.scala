@@ -200,8 +200,15 @@ final class TStampedMapBasedList[A: ClassTag](timestamps: TStamps) extends Abstr
     
   @deprecated
   override 
-  def insert(n: Int, elems: A*): Unit = {
-    assert(false, "insert(n: Int, elems:A*) is not supported by this collection! " +
+  def insertOne(n: Int, elem: A) {
+    assert(false, "insertOne(n: Int, elems:A*) is not supported by this collection! " +
+           ", please use put(long time, E o)")
+  }
+
+  @deprecated
+  override 
+  def insertAll(n: Int, elems: scala.collection.Traversable[A]) {
+    assert(false, "insertAll(n: Int, elems:Traversable[A]) is not supported by this collection! " +
            ", please use put(long time, E o)")
   }
                     

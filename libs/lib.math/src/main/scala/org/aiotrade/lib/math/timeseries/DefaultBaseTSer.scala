@@ -127,7 +127,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, _freq: TFreq) extends DefaultTS
       if (existIdx >= 0) {
         vars foreach (_.putNull(time))
         // as timestamps includes this time, we just always put in a none-null item
-        holders.insert(existIdx, holder)
+        holders.insertOne(existIdx, holder)
         
         existIdx
       } else {
@@ -139,11 +139,11 @@ class DefaultBaseTSer(_serProvider: SerProvider, _freq: TFreq) extends DefaultTS
           timestamps.writeLock.lock
 
           // should add timestamps first
-          timestamps.insert(idx, time)
+          timestamps.insertOne(idx, time)
           timestamps.log.logInsert(1, idx)
 
           vars foreach (_.putNull(time))
-          holders.insert(idx, holder)
+          holders.insertOne(idx, holder)
           
           idx
 

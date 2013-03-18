@@ -129,8 +129,6 @@ abstract class AbstractArrayList[A](
   override 
   def companion: GenericCompanion[AbstractArrayList] = AbstractArrayList
   
-  import scala.collection.Traversable
-  
   def clear() {
     reduceToSize(0)
   }
@@ -256,6 +254,29 @@ abstract class AbstractArrayList[A](
   def ++=:(xs: TraversableOnce[A]): this.type = {
     this.++:(xs)
   }
+  
+  /** Inserts new elements at a given index into this buffer.
+   *
+   *  @param n      the index where new elements are inserted.
+   *  @param elems  the traversable collection containing the elements to insert.
+   *  @throws   IndexOutOfBoundsException if the index `n` is not in the valid range
+   *            `0 <= n <= length`.
+   *  
+   *  override scala.collection.mutable.BufferLike.insert
+   */
+  @deprecated("Use insertAll(n: Int, elems: Traversable[A]) or insertOne(n: Int, elem: A), this method may cause ArrayStoreException.", "Since Scala 2.10.0")
+  override 
+  def insert(n: Int, elems: A*) {
+    throw new UnsupportedOperationException("Use insertAll(n: Int, elems: Traversable[A]) or insertOne(n: Int, elem: A), this method may cause ArrayStoreException.")
+  }
+  
+  def insertOne(n: Int, elem: A) {
+    if ((n < 0) || (n > size0)) throw new IndexOutOfBoundsException(n.toString)
+    ensureSize(size0 + 1)
+    copy(n, n + 1, size0 - n)
+    array(n) = elem
+    size0 += 1
+  }
 
   /** Inserts new elements at the index <code>n</code>. Opposed to method
    *  <code>update</code>, this method will not replace an element with a
@@ -265,22 +286,22 @@ abstract class AbstractArrayList[A](
    *  @param iter  the iterable object providing all elements to insert.
    *  @throws Predef.IndexOutOfBoundsException if <code>n</code> is out of bounds.
    */
-  def insertAll(n: Int, seq: Traversable[A]) {
+  def insertAll(n: Int, elems: scala.collection.Traversable[A]) {
     if ((n < 0) || (n > size0)) throw new IndexOutOfBoundsException(n.toString)
-    val len = seq match {
+    val len = elems match {
       case xs: IndexedSeq[A] => xs.length
-      case _ => seq.size
+      case _ => elems.size
     }
     ensureSize(size0 + len)
     copy(n, n + len, size0 - n)
-    seq match {
+    elems match {
       // according to the way arrays work in 2.8: An implicit conversion takes 
       // Java arrays to `WrappedArray` if you need a `Traversable` instance.  
       // @see https://lampsvn.epfl.ch/trac/scala/ticket/2564
       case xs: WrappedArray[A] =>
         scala.compat.Platform.arraycopy(xs.array, 0, array, n, len)
       case _ =>
-        seq.copyToArray(array, n)
+        elems.copyToArray(array, n)
     }
     size0 += len
   }
