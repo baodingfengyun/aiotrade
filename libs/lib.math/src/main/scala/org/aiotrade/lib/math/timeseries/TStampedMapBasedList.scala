@@ -164,7 +164,7 @@ final class TStampedMapBasedList[A: ClassTag](timestamps: TStamps) extends Abstr
     }
   }
     
-  def add(time: Long, elem:A): Boolean = {
+  def put(time: Long, elem:A): Boolean = {
     if (elem == null) {
       /** null value does not need to be put in map, this will spare the memory usage */
       return true
@@ -194,7 +194,7 @@ final class TStampedMapBasedList[A: ClassTag](timestamps: TStamps) extends Abstr
   override 
   def +(elem: A): this.type = {
     assert(false, "+(elem:A) is not supported by this collection! " +
-           ", please use add(long time, E o)")
+           ", please use put(long time, E o)")
     this
   }
     
@@ -202,7 +202,7 @@ final class TStampedMapBasedList[A: ClassTag](timestamps: TStamps) extends Abstr
   override 
   def insert(n: Int, elems: A*): Unit = {
     assert(false, "insert(n: Int, elems:A*) is not supported by this collection! " +
-           ", please use add(long time, E o)")
+           ", please use put(long time, E o)")
   }
                     
   override 

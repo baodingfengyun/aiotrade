@@ -56,7 +56,7 @@ import scala.reflect.ClassTag
  *
  * @author Caoyuan Deng
  */
-class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
+class DefaultTSer(private var _freq: TFreq) extends TSer {
   private val log = Logger.getLogger(getClass.getName)
 
   protected val INIT_CAPACITY = 100
@@ -92,17 +92,17 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
   private var tsLogCheckedCursor = 0
   private var tsLogCheckedSize = 0
 
-  /**
-   * Long description
-   */
+  /**  Long description */
   protected var lname = ""
-  
-  /**
-   * Short description
-   */
+  /** Short description */
   protected var sname = ""
 
   def this() = this(TFreq.DAILY)
+
+  def freq = _freq
+  def set(freq: TFreq) {
+    _freq = freq
+  }
 
   def timestamps: TStamps = _timestamps
   def attach(timestamps: TStamps) {
@@ -431,13 +431,18 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     private var _values = new ArrayList[V](INIT_CAPACITY)
     def values = _values
     
-    def add(time: Long, value: V): Boolean = {
+    def put(time: Long, value: V): Boolean = {
       val idx = timestamps.indexOfOccurredTime(time)
       if (idx >= 0) {
         if (idx == values.size) {
           values += value
         } else {
-          values.insert(idx, value)
+          /* val v = value match {
+           case x: java.lang.Float => x.floatValue
+           case x: java.lang.Double => x.doubleValue
+           case x => x 
+           } */
+          values.insert(idx, value.asInstanceOf[V])
         }
         true
       } else {
@@ -449,7 +454,7 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
     /**
      * @todo ? update or put
      */
-    def add(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
+    def put(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
       val idx = if (fromHeadOrTail) DefaultTSer.this.indexOfOccurredTimeFromHead(time) else DefaultTSer.this.indexOfOccurredTimeFromTail(time)
       if (idx >= 0) {
         if (idx == _values.size) {
@@ -558,43 +563,18 @@ class DefaultTSer(_freq: TFreq) extends AbstractTSer(_freq) {
    * operation on values, including add, delete actions will be consistant by
    * cooperating with DefaultSer.
    */
-  abstract class AbstractInnerTVar[V: ClassTag](_name: String, _plot: Plot) extends AbstractTVar[V](_name, _plot) {
+  abstract class AbstractInnerTVar[V: ClassTag](var name: String, var plot: Plot) extends TVar[V] {
 
-    addVar(this.asInstanceOf[TVar[Any]])
-
-    // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
-    private lazy val colors = new TStampedMapBasedList[Color](timestamps)
+    addVar(this)
 
     def timestamps = DefaultTSer.this.timestamps
 
-    /**
-     * This method will never return null, return a nullValue at least.
-     */
-    def apply(idx: Int): V = {
-      if (idx >= 0 && idx < values.size) {
-        values(idx) match {
-          case null => nullVal
-          case value => value
-        }
-      } else nullVal
-    }
-
-    def update(idx: Int, value: V) {
-      if (idx >= 0 && idx < values.size) {
-        values(idx) = value
-      } else {
-        assert(false, "AbstractInnerVar.update(index, value): this index's value of Var not inited yet: " +
-               "idx=" + idx + ", value size=" + values.size + ", timestamps size=" + timestamps.size)
-      }
-    }
-
+    var layer = -1 // -1 means not set
+    // @todo: timestamps may be null when go here, use lazy val as a quick fix now, shoule review it
+    private lazy val colors = new TStampedMapBasedList[Color](timestamps)
     def getColor(idx: Int) = colors(idx)
     def setColor(idx: Int, color: Color) {
       colors(idx) = color
     }
   }
 }
-
-
-
-

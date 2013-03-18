@@ -80,9 +80,7 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
     def apply[V: ClassTag](name: String, plot: Plot): TVar[V] = new SpotTVar[V](name, plot)
   }
   
-  final protected class SpotTVar[V: ClassTag](
-    _name: String, _plot: Plot
-  ) extends AbstractInnerTVar[V](_name, _plot) {
+  final protected class SpotTVar[V: ClassTag](_name: String, _plot: Plot) extends AbstractInnerTVar[V](_name, _plot) {
 
     private var timeToValue = immutable.TreeMap[Long, V]() // must sort by time
 
@@ -90,12 +88,12 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
       throw new UnsupportedOperationException()
     }
     
-    def add(time: Long, value: V): Boolean = {
+    def put(time: Long, value: V): Boolean = {
       timeToValue += time-> value
       true
     }
 
-    def add(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
+    def put(time: Long, fromHeadOrTail: Boolean, value: V): Boolean = {
       throw new UnsupportedOperationException("Can only be accessed via time.")
     }
 
@@ -124,10 +122,12 @@ abstract class SpotIndicator(_baseSer: BaseTSer) extends Indicator(_baseSer) wit
       throw new UnsupportedOperationException("Can only be accessed via time.")
     }
     
+    override 
     def reset(idx: Int) {
       throw new UnsupportedOperationException("Can only be accessed via time.")
     }
 
+    override 
     def reset(time: Long) {
       timeToValue -= time
     }
