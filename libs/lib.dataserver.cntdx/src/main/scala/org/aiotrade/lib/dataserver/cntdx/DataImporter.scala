@@ -50,7 +50,7 @@ object DataImporter {
     try {
       importTdxDayFilesToTestMysql
     } catch {
-      case _ => System.exit(1)
+      case _: Throwable => System.exit(1)
     }
     System.exit(0)
   }
@@ -83,7 +83,7 @@ object DataImporter {
                 COMMIT
                 println("Commited")
               } catch {
-                case _ =>
+                case _: Throwable =>
               }
             }
               

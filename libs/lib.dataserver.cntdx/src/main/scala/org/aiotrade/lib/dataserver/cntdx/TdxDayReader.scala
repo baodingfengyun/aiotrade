@@ -61,99 +61,9 @@ import org.aiotrade.lib.securities.model.Quote
  * 
  * @author Caoyuan Deng
  */
-object TdxDayReader {
-  private val nBytesRecord = 32 // size of bytes per record
-
-  val nBytesFields = Array(
-    4,  // date, int
-    4,  // open, int
-    4,  // high, int
-    4,  // low, int
-    4,  // close, int
-    4,  // amount float
-    4,  // volumn, int
-    4   // reserve, or prev_close, int
-  )
-  
-
-  @throws(classOf[IOException])
-  def apply(is: InputStream): TdxDayReader = is match {
-    case x: FileInputStream =>
-      val fileChannel = x.getChannel
-      apply(fileChannel)
-    case _ => new TdxDayReader(Right(is))
-  }
-
-  @throws(classOf[IOException])
-  def apply(file: File): TdxDayReader = {
-    val fileChannel = (new FileInputStream(file)).getChannel
-    apply(fileChannel)
-  }
-
-  @throws(classOf[IOException])
-  def apply(fileName: String): TdxDayReader = {
-    val fileChannel = (new RandomAccessFile(fileName, "r")).getChannel
-    apply(fileChannel)
-  }
-  
-  def apply(fileChannel: FileChannel): TdxDayReader = {
-    try {
-      new TdxDayReader(Left(fileChannel))
-    } catch {
-      case ex => tryCloseFileChannel(fileChannel); throw ex
-    }
-  }
-
-  private def tryCloseFileChannel(fileChannel: FileChannel) {
-    if (fileChannel != null) {
-      try {
-        fileChannel.close
-      } catch {
-        case ex =>
-      }
-    }
-  }
-
-  def readQuotes(file: File): Array[Quote] = {
-    val quotes = ArrayList[Quote]
-    val reader = TdxDayReader(file)
-    while (reader.hasNext) {
-      val quote = reader.nextRecord
-      quotes += quote
-      if (debug) println(quote)
-    }
-    reader.close
-    quotes.toArray
-  }
-    
-  // --- smiple test
-  private val debug = false
-  def main(args: Array[String]) {
-    try {
-      test
-    } catch {
-      case _ => System.exit(1)
-    }
-    System.exit(0)
-  }
-  
-  def test {
-    for (fileName <- List("sh000001.day", "sh600000.day")) {
-      val ex = fileName.substring(0, 2)
-      val symbol = fileName.substring(2, 8) + (if (ex.equalsIgnoreCase("SH")) ".SS" else ".SZ")
-    
-      val file = new File(fileName)
-      if (file.exists) {
-        val quotes = readQuotes(file)
-        println(symbol + " -- total count: " + quotes.length)
-      }
-    }
-  }
-}
-
-import TdxDayReader._
 @throws(classOf[IOException])
 class TdxDayReader private (input: Either[FileChannel, InputStream]) {
+  import TdxDayReader._
   
   private val timeZone = TimeZone.getTimeZone("Asia/Shanghai")
   private val cal = Calendar.getInstance
@@ -283,3 +193,92 @@ class TdxDayReader private (input: Either[FileChannel, InputStream]) {
   }
 }
 
+object TdxDayReader {
+  private val nBytesRecord = 32 // size of bytes per record
+
+  val nBytesFields = Array(
+    4,  // date, int
+    4,  // open, int
+    4,  // high, int
+    4,  // low, int
+    4,  // close, int
+    4,  // amount float
+    4,  // volumn, int
+    4   // reserve, or prev_close, int
+  )
+  
+
+  @throws(classOf[IOException])
+  def apply(is: InputStream): TdxDayReader = is match {
+    case x: FileInputStream =>
+      val fileChannel = x.getChannel
+      apply(fileChannel)
+    case _ => new TdxDayReader(Right(is))
+  }
+
+  @throws(classOf[IOException])
+  def apply(file: File): TdxDayReader = {
+    val fileChannel = (new FileInputStream(file)).getChannel
+    apply(fileChannel)
+  }
+
+  @throws(classOf[IOException])
+  def apply(fileName: String): TdxDayReader = {
+    val fileChannel = (new RandomAccessFile(fileName, "r")).getChannel
+    apply(fileChannel)
+  }
+  
+  def apply(fileChannel: FileChannel): TdxDayReader = {
+    try {
+      new TdxDayReader(Left(fileChannel))
+    } catch {
+      case ex: Throwable => tryCloseFileChannel(fileChannel); throw ex
+    }
+  }
+
+  private def tryCloseFileChannel(fileChannel: FileChannel) {
+    if (fileChannel != null) {
+      try {
+        fileChannel.close
+      } catch {
+        case ex: Throwable =>
+      }
+    }
+  }
+
+  def readQuotes(file: File): Array[Quote] = {
+    val quotes = ArrayList[Quote]
+    val reader = TdxDayReader(file)
+    while (reader.hasNext) {
+      val quote = reader.nextRecord
+      quotes += quote
+      if (debug) println(quote)
+    }
+    reader.close
+    quotes.toArray
+  }
+    
+  // --- smiple test
+  private val debug = false
+  def main(args: Array[String]) {
+    try {
+      test
+      System.exit(0)
+    } catch {
+      case _: Throwable => System.exit(1)
+    }
+  }
+  
+  def test {
+    for (fileName <- List("sh000001.day", "sh600000.day")) {
+      val ex = fileName.substring(0, 2)
+      val symbol = fileName.substring(2, 8) + (if (ex.equalsIgnoreCase("SH")) ".SS" else ".SZ")
+    
+      val file = new File(fileName)
+      if (file.exists) {
+        val quotes = readQuotes(file)
+        println(symbol + " -- quotes:\n " + quotes.mkString("\n"))
+      }
+    }
+  }
+}
