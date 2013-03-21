@@ -32,6 +32,8 @@
 package org.aiotrade.lib.dataserver.cntdx
 
 import java.io.File
+import java.util.logging.Level
+import java.util.logging.Logger
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.securities.model.Quotes1d
 import ru.circumflex.orm._
@@ -40,6 +42,8 @@ import ru.circumflex.orm._
  * @author Caoyuan Deng
  */
 object DataImporter {
+  private val log = Logger.getLogger(getClass.getName)
+  
   private val debug = false
   
   private val srcMainResources = "src/main/resources/"
@@ -50,7 +54,9 @@ object DataImporter {
     try {
       importTdxDayFilesToTestMysql
     } catch {
-      case _: Throwable => System.exit(1)
+      case ex: Throwable => 
+        log.log(Level.SEVERE, ex.getMessage, ex)
+        System.exit(1)
     }
     System.exit(0)
   }
@@ -82,13 +88,13 @@ object DataImporter {
                 Quotes1d.insertBatch_!(quotes)
                 COMMIT
                 println("Commited")
+                success += 1
+                println("Success " + symbol + ": " + quotes.length)
               } catch {
-                case _: Throwable =>
+                case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
               }
             }
               
-            success += 1
-            println("Success " + symbol + ": " + quotes.length)
           case None =>
             failure += 1
             println("!!!! Failed to find sec of " + symbol + ": " + quotes.length)
