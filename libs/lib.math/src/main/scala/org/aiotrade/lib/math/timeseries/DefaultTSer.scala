@@ -259,7 +259,7 @@ class DefaultTSer(private var _freq: TFreq) extends TSer {
       writeLock.lock
       //timestamps.readLock.lock
             
-      val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+      val fromIdx = timestamps.indexOrNextIndexOfOccurredTime(fromTime)
       if (fromIdx < 0) {
         return
       }

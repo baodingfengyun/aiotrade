@@ -97,8 +97,8 @@ abstract class TVar[V: ClassTag] extends Plottable {
     try {
       timestamps.readLock.lock
 
-      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-      val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      val frIdx = timestamps.indexOrNextIndexOfOccurredTime(fromTime)
+      val toIdx = timestamps.indexOrPrevIndexOfOccurredTime(toTime)
       val len = toIdx - frIdx + 1
       val values1 = new Array[V](len)
 
@@ -114,8 +114,8 @@ abstract class TVar[V: ClassTag] extends Plottable {
     try {
       timestamps.readLock.lock
 
-      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-      val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      val frIdx = timestamps.indexOrNextIndexOfOccurredTime(fromTime)
+      val toIdx = timestamps.indexOrPrevIndexOfOccurredTime(toTime)
       val len = toIdx - frIdx + 1
       val times1 = new Array[Long](len)
       val values1 = new Array[V](len)

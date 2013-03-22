@@ -98,9 +98,9 @@ trait TSer extends Publisher {
       timestamps.readLock.lock
 
       if (size > 0) {
-        val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
+        val frIdx = timestamps.indexOrNextIndexOfOccurredTime(fromTime)
         if (frIdx >= 0) {
-          var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+          var toIdx = timestamps.indexOrPrevIndexOfOccurredTime(toTime)
           if (toIdx >= 0) {
             // best effort to avoid index out of bounds
             val vs = exportableVars filter (v => v.name != null && v.name != "")

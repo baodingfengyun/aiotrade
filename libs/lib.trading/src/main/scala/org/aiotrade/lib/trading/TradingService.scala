@@ -212,8 +212,8 @@ class TradingService(val broker: Broker, val accounts: List[Account], val param:
   private def goBacktest(fromTime: Long, toTime: Long) {
     accounts foreach broker.updateAccount
     
-    val fromIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-    val toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+    val fromIdx = timestamps.indexOrNextIndexOfOccurredTime(fromTime)
+    val toIdx = timestamps.indexOrPrevIndexOfOccurredTime(toTime)
     println("Backtest from %s to %s, referIdx: from %s to %s, total referPeriods: %s".format(new Date(timestamps(fromIdx)), new Date(timestamps(toIdx)), fromIdx, toIdx, timestamps.length))
     
     var i = fromIdx

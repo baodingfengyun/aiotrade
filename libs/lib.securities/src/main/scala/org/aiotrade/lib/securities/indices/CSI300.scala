@@ -13,6 +13,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.logging.Level
 import java.util.logging.Logger
+import java.util.zip.ZipInputStream
 import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
@@ -23,10 +24,13 @@ import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.securities.model.SecInfo
 import org.aiotrade.lib.securities.model.Sector
 import org.aiotrade.lib.util.ValidTime
+import scala.collection.mutable
 
 object CSI300 {
   private val log = Logger.getLogger(getClass.getName)
   private val config = org.aiotrade.lib.util.config.Config()
+  
+  private val ONE_DAY = 24 * 60 * 60 * 1000
 
   val indexCurrentMonthSymbol    = "IF0001.FF"
   val indexNextMonthSymbol       = "IF0002.FF"
@@ -34,15 +38,29 @@ object CSI300 {
   val indexAfterNextSeasonSymbol = "IF0004.FF"
 
   private val IFDataHome = "org/aiotrade/lib/securities/indices/"
-  private val IFQuoteFileName  = "IF0000Quote.txt"
-  private val IFMemberFileName = "IF0000Member.txt"
+  private val IFQuoteFileName  = "IF0000Quote"
+  private val IFMemberFileName = "IF0000Member"
+  private val IFWeightFileName = "IF0000Weight"
   
-  private def getInputStream(filePath: String, viaResource: Boolean): Option[InputStream] = {
+  /**
+   * @param file path without ext, will be try filePath + ".txt", then filePath + ".zip"
+   * @return Option inputstream
+   */
+  private def getInputStream(filePath: String): Option[InputStream] = {
+    getInputStream(filePath + ".txt", false) match {
+      case None => getInputStream(filePath + ".zip", true)
+      case some => some
+    }
+  }
+  
+  private def getInputStream(fullFilePath: String, isZip: Boolean): Option[InputStream] = {
     try {
-      if (viaResource) {
-        Option(getClass.getClassLoader.getResourceAsStream(filePath))
-      } else {
-        Option(new FileInputStream(filePath))
+      // try resource first
+      Option(getClass.getClassLoader.getResourceAsStream(fullFilePath)) match {
+        case None =>
+          val is = new FileInputStream(fullFilePath)
+          Option(if (isZip) new ZipInputStream(is) else is)
+        case some => some
       }
     } catch {
       case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
@@ -53,10 +71,10 @@ object CSI300 {
     val inOpt = config.getString("csi300.member") match {
       case Some(memberFile) => 
         log.info("Loading members from " + memberFile)
-        getInputStream(memberFile, false)
+        getInputStream(memberFile)
       case None => 
         log.info("Loading members from " + IFDataHome + IFMemberFileName)
-        getInputStream(IFDataHome + IFMemberFileName, true)
+        getInputStream(IFDataHome + IFMemberFileName)
     }
     
     inOpt map (is => new BufferedReader(new InputStreamReader(is, "utf-8"))) match {
@@ -102,12 +120,87 @@ object CSI300 {
             }
           }
         } catch {
-          case ex: Throwable => println(ex.getMessage)
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
         } finally {
           try {
             reader.close
           } catch {
-            case ex: Throwable => println(ex.getMessage)
+            case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
+          }
+        }
+        
+      case None =>
+    }
+  }
+  
+  def loadIFWeights(secPicking: SecPicking) {
+    val inOpt = config.getString("csi300.weight") match {
+      case Some(weightFile) => 
+        log.info("Loading weights from " + weightFile)
+        getInputStream(weightFile)
+      case None => 
+        log.info("Loading weights from " + IFDataHome + IFWeightFileName)
+        getInputStream(IFDataHome + IFWeightFileName)
+    }
+    
+    inOpt map (is => new BufferedReader(new InputStreamReader(is, "utf-8"))) match {
+      case Some(reader) =>
+        val df = new SimpleDateFormat("yyyy-M-d")
+        val cal = Calendar.getInstance(Exchange.SS.timeZone)
+        
+        val secToEndTimes = new mutable.HashMap[Sec, ArrayList[(Long, Double)]]()
+        
+        // skip first line
+        reader.readLine
+
+        var line: String = null
+        var lineNum = 0
+        try {
+          while ({line = reader.readLine; line != null}) {
+            lineNum += 1
+            line = line.trim
+            if (line.length != 0 && !line.startsWith("#")) {
+              line.split("\\s?,\\s?") match {
+                case Array(endDateStr, weightStr, symbol) =>
+                  val uniSymbol = if (symbol.length == 6 && symbol.startsWith("6")) {
+                    symbol + ".SS"
+                  } else {
+                    val preceding = Array.fill(6 - symbol.length)('0')
+                    new String(preceding) + symbol + ".SZ"
+                  }
+                  Exchange.secOf(uniSymbol) match {
+                    case Some(sec) =>
+                      val date = df.parse(endDateStr)
+                      cal.clear
+                      cal.setTime(date)
+                      val time = cal.getTimeInMillis
+                  
+                      val weight = weightStr.toDouble / 100.0
+                      secToEndTimes(sec) = secToEndTimes.getOrElse(sec, new ArrayList[(Long, Double)]()) += time -> weight
+                    case None =>
+                      log.info("There is no sec of symbol: " + uniSymbol)
+                  }
+                case xs =>
+                  log.info("Wrong or empty line at line(" + lineNum + "): " + line + ", was split to: " + xs.mkString("(", "," ,")"))
+              }
+            }
+          }
+          
+          for ((sec, timeToWeights) <- secToEndTimes) {
+            var validFrom = 0L
+            for ((validTo, weight) <- timeToWeights.sortBy(_._1)) {
+              secPicking += (sec, ValidTime(weight, validFrom, validTo))
+              validFrom = validTo + ONE_DAY
+            }
+            log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeights.length))
+          }
+        } catch {
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
+        } finally {
+          try {
+            reader.close
+          } catch {
+            case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
           }
         }
         
@@ -124,12 +217,14 @@ object CSI300 {
   def buildSecPicking() = {
     val secPicking = new SecPicking()
     loadIFMembers(secPicking)
+    loadIFWeights(secPicking)
     secPicking
   }
   
   def buildSecPicking(lastSecs: Array[Sec]) = {
     val secPicking = new SecPicking()
     loadIFMembers(secPicking)
+    loadIFWeights(secPicking)
     for (sec <- lastSecs) {
       secPicking.secToValidTimes.getOrElse(sec, Nil).sortBy(_.validTo * -1).headOption match {
         case Some(lastValidTime) => 
@@ -176,7 +271,7 @@ object CSI300 {
     val ser = new QuoteSer(sec, csi300Ser.freq)
     sec.setSer(ser)
 
-    getInputStream(IFDataHome + IFQuoteFileName, true) match {
+    getInputStream(IFDataHome + IFQuoteFileName) match {
       case Some(is) =>
         try {
           val quotes = new ArrayList[Quote]()
@@ -203,20 +298,20 @@ object CSI300 {
             i += 1
           }
 
-          println(quotes.length + " quotes are added to " + sec.uniSymbol)
+          log.info(quotes.length + " quotes are added to " + sec.uniSymbol)
           ser ++= quotes.toArray
           
         } catch {
-          case ex: Throwable => println(ex.getMessage) 
+          case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
         } finally {
           try {
             is.close
           } catch {
-            case ex: Throwable => println(ex.getMessage) 
+            case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
           }
         }
       case _ =>
-        log.info("Can't load IFData from file!")
+        log.warning("Can't load IF quotes from file!")
     }
   }
   
@@ -244,19 +339,19 @@ object CSI300 {
               val quote = new Quote
               quotes += quote
               quote.time = time
-              quote.open = java.lang.Double.parseDouble(open)
-              quote.high = java.lang.Double.parseDouble(high)
-              quote.low = java.lang.Double.parseDouble(low)
-              quote.close = java.lang.Double.parseDouble(close)
-              quote.volume = java.lang.Double.parseDouble(volume)
-              quote.amount = java.lang.Double.parseDouble(amount)
-              quote.prevClose = java.lang.Double.parseDouble(prevClose)
+              quote.open = open.toDouble
+              quote.high = high.toDouble
+              quote.low = low.toDouble
+              quote.close = close.toDouble
+              quote.volume = volume.toDouble
+              quote.amount = amount.toDouble
+              quote.prevClose = prevClose.toDouble
             case _ =>
           }
         }
       }
     } catch {
-      case ex: Exception => println(ex)
+      case ex: Exception => log.log(Level.WARNING, ex.getMessage, ex)
     }
 	
     quotes
@@ -343,12 +438,11 @@ object CSI300 {
       
       cal.set(2013, 0, 1)
       printSecs(cal)
+
+      System.exit(0)
     } catch {
-      case ex: Throwable => 
-        println(ex.getMessage)
-        System.exit(-1)
+      case ex: Throwable => println(ex.getMessage); System.exit(-1)
     }
-    System.exit(0)
     
     def printSecs(cal: Calendar) {
       val secs = secPicking.at(cal.getTimeInMillis).toSet

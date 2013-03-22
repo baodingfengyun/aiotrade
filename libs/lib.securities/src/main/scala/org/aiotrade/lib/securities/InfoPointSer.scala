@@ -44,8 +44,8 @@ class InfoPointSer ($sec: Sec, $freq: TFreq) extends DefaultBaseTSer($sec, $freq
       timestamps.readLock.lock
 
       val vs = vars filter (v => v.name != "" && v.name != null)
-      val frIdx = timestamps.indexOfNearestOccurredTimeBehind(fromTime)
-      var toIdx = timestamps.indexOfNearestOccurredTimeBefore(toTime)
+      val frIdx = timestamps.indexOrNextIndexOfOccurredTime(fromTime)
+      var toIdx = timestamps.indexOrPrevIndexOfOccurredTime(toTime)
       toIdx = vs.foldLeft(toIdx){(acc, v) => math.min(acc, v.values.length)}
       val RichInfos = ArrayList[mutable.Map[String, Any]]()
       for(i : Int <- 0 to infos.size) {

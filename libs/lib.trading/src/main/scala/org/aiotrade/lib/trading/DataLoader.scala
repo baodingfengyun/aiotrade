@@ -10,20 +10,19 @@ import org.aiotrade.lib.math.timeseries.descriptor.Content
 
 
 /**
- * 
- * @Noet If we implement DataLoader as actor to async load data from db, the db performance 
+ * @Note If we implement DataLoader as actor to async load data from db, the db performance 
  * may become the bottleneck, and the worse, the db connections may be exhausted, and causes
  * series problems.
  * 
  * @author Caoyuan Deng
  */
-class DataLoader(val sec: Sec, quoteFreqs: List[TFreq], indFreqs: List[TFreq],
+class DataLoader(quoteFreqs: List[TFreq], indFreqs: List[TFreq],
                  quoteServerClass: String = NullQuoteServer.getClass.getName, 
                  tickerServerClass: String = NullTickerServer.getClass.getName
 ) {
   private val log = Logger.getLogger(this.getClass.getName)
 
-  def act() {
+  def load(sec: Sec) {
     val symbol = sec.uniSymbol
     
     val content = sec.content
@@ -35,10 +34,7 @@ class DataLoader(val sec: Sec, quoteFreqs: List[TFreq], indFreqs: List[TFreq],
     val tickerContract = securities.createTickerContract(symbol, "", "", TFreq.ONE_MIN, tickerServerClass)
     sec.tickerContract = tickerContract
 
-    for (freq <- indFreqs) {
-      createAndAddIndicatorDescritors(content, freq)
-    }
-  
+    indFreqs foreach createAndAddIndicatorDescritors(content)
 
     // * init indicators before loadSer, so, they can receive the Loaded evt
     val inds = for (freq <- indFreqs; ser <- sec.serOf(freq)) yield securities.initIndicators(content, ser) 
@@ -63,7 +59,5 @@ class DataLoader(val sec: Sec, quoteFreqs: List[TFreq], indFreqs: List[TFreq],
   /**
    * Added indicators that want to load here. @Todo specify indicator via config ?
    */
-  def createAndAddIndicatorDescritors(content: Content, freq: TFreq) {}
-
-  act
+  def createAndAddIndicatorDescritors(content: Content)(freq: TFreq) {}
 }

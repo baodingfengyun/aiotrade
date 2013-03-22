@@ -256,13 +256,13 @@ abstract class TStamps(initialSize: Int) extends AbstractArrayList[Long](initial
    * @param time the time, inclusive
    * @return index of nearest behind time (include this time (if exist)),
    */
-  def indexOfNearestOccurredTimeBehind(time: Long): Int
+  def indexOrNextIndexOfOccurredTime(time: Long): Int
     
   /** 
    * @param time the time, inclusive
    * @return index of nearest before or equal(if exist) time 
    */
-  def indexOfNearestOccurredTimeBefore(time: Long): Int
+  def indexOrPrevIndexOfOccurredTime(time: Long): Int
     
   def firstOccurredTime: Long
     
@@ -439,7 +439,7 @@ object TStamps {
      * return index of nearest behind time (include this time (if exist)),
      * @param time the time, inclusive
      */
-    def indexOfNearestOccurredTimeBehind(time: Long): Int = {
+    def indexOrNextIndexOfOccurredTime(time: Long): Int = {
       val size1 = size
       if (size1 == 0) {
         return -1
@@ -483,7 +483,7 @@ object TStamps {
     }
         
     /** return index of nearest before or equal(if exist) time */
-    def indexOfNearestOccurredTimeBefore(time: Long): Int = {
+    def indexOrPrevIndexOfOccurredTime(time: Long): Int = {
       val size1 = size
       if (size1 == 0) {
         return -1
@@ -628,11 +628,11 @@ object TStamps {
       }
             
       def nextOccurredIndex: Int = {
-        indexOfNearestOccurredTimeBehind(cursorTime)
+        indexOrNextIndexOfOccurredTime(cursorTime)
       }
             
       def previousOccurredIndex: Int = {
-        indexOfNearestOccurredTimeBefore(cursorTime)
+        indexOrPrevIndexOfOccurredTime(cursorTime)
       }
             
       def nextRow: Int = {
@@ -733,10 +733,10 @@ object TStamps {
         
     def nearestIndexOfOccurredTime(time: Long) = delegateTimestamps.nearestIndexOfOccurredTime(time)
         
-    def indexOfNearestOccurredTimeBehind(time: Long) = delegateTimestamps.indexOfNearestOccurredTimeBehind(time)
+    def indexOrNextIndexOfOccurredTime(time: Long) = delegateTimestamps.indexOrNextIndexOfOccurredTime(time)
         
     /** return index of nearest before or equal (if exist) time */
-    def indexOfNearestOccurredTimeBefore(time: Long) = delegateTimestamps.indexOfNearestOccurredTimeBefore(time)
+    def indexOrPrevIndexOfOccurredTime(time: Long) = delegateTimestamps.indexOrPrevIndexOfOccurredTime(time)
         
     def firstOccurredTime = delegateTimestamps.firstOccurredTime
         
@@ -908,11 +908,11 @@ object TStamps {
       }
             
       def nextOccurredIndex: Int = {
-        indexOfNearestOccurredTimeBehind(cursorTime)
+        indexOrNextIndexOfOccurredTime(cursorTime)
       }
             
       def previousOccurredIndex: Int = {
-        indexOfNearestOccurredTimeBefore(cursorTime)
+        indexOrPrevIndexOfOccurredTime(cursorTime)
       }
             
       def nextRow: Int = cursorRow

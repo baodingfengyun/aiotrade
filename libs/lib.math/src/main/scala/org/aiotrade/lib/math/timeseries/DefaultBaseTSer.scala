@@ -131,7 +131,7 @@ class DefaultBaseTSer(_serProvider: SerProvider, _freq: TFreq) extends DefaultTS
         
         existIdx
       } else {
-        val idx = timestamps.indexOfNearestOccurredTimeBehind(time)
+        val idx = timestamps.indexOrNextIndexOfOccurredTime(time)
         assert(idx >= 0,  "Since itemTime < lastOccurredTime, the idx=" + idx + " should be >= 0")
 
         // (time at idx) > itemTime, insert this new item at the same idx, so the followed elems will be pushed behind

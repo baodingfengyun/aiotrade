@@ -73,7 +73,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
     val cal = Calendar.getInstance(timeZone)
     cal.setTimeInMillis(fromTime)
     val masterFromTime = freq.round(fromTime, cal)
-    val masterFromIdx1 = srcSer.timestamps.indexOfNearestOccurredTimeBehind(masterFromTime)
+    val masterFromIdx1 = srcSer.timestamps.indexOrNextIndexOfOccurredTime(masterFromTime)
     val masterFromIdx = if (masterFromIdx1 < 0) 0 else masterFromIdx1
 
     //targetQuoteSer.clear(myFromTime);
@@ -171,7 +171,7 @@ class QuoteSerCombiner(srcSer: QuoteSer, tarSer: QuoteSer, timeZone: TimeZone) e
     cal.setTimeInMillis(fromTime)
     val roundedFromTime = freq.round(fromTime, cal)
     cal.setTimeInMillis(roundedFromTime)
-    val srcFromIdx = math.max(0, srcSer.timestamps.indexOfNearestOccurredTimeBehind(roundedFromTime))
+    val srcFromIdx = math.max(0, srcSer.timestamps.indexOrNextIndexOfOccurredTime(roundedFromTime))
 
     // --- begin combining
 
