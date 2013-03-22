@@ -15,6 +15,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.ZipInputStream
 import org.aiotrade.lib.collection.ArrayList
+import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities
 import org.aiotrade.lib.securities.QuoteSer
 import org.aiotrade.lib.securities.SecPicking
@@ -56,11 +57,16 @@ object CSI300 {
   private def getInputStream(fullFilePath: String, isZip: Boolean): Option[InputStream] = {
     try {
       // try resource first
-      Option(getClass.getClassLoader.getResourceAsStream(fullFilePath)) match {
-        case None =>
-          val is = new FileInputStream(fullFilePath)
-          Option(if (isZip) new ZipInputStream(is) else is)
-        case some => some
+      val is = getClass.getClassLoader.getResourceAsStream(fullFilePath) match {
+        case null => new FileInputStream(fullFilePath)
+        case x => x
+      }
+      if (isZip) {
+        val zis = new ZipInputStream(is)
+        // @Note should call zis.getNextEntry to go ahead to wrapped file's position
+        if (zis.getNextEntry != null) Some(zis) else None
+      } else {
+        Option(is)
       }
     } catch {
       case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex); None
@@ -147,6 +153,7 @@ object CSI300 {
       case Some(reader) =>
         val df = new SimpleDateFormat("yyyy-M-d")
         val cal = Calendar.getInstance(Exchange.SS.timeZone)
+        val dayFreq = TFreq.DAILY
         
         val secToEndTimes = new mutable.HashMap[Sec, ArrayList[(Long, Double)]]()
         
@@ -173,8 +180,8 @@ object CSI300 {
                       val date = df.parse(endDateStr)
                       cal.clear
                       cal.setTime(date)
-                      val time = cal.getTimeInMillis
-                  
+                      val time = dayFreq.round(cal.getTimeInMillis, cal) // round to 0:00 at the day
+
                       val weight = weightStr.toDouble / 100.0
                       secToEndTimes(sec) = secToEndTimes.getOrElse(sec, new ArrayList[(Long, Double)]()) += time -> weight
                     case None =>
@@ -186,13 +193,12 @@ object CSI300 {
             }
           }
           
-          for ((sec, timeToWeights) <- secToEndTimes) {
-            var validFrom = 0L
-            for ((validTo, weight) <- timeToWeights.sortBy(_._1)) {
-              secPicking += (sec, ValidTime(weight, validFrom, validTo))
-              validFrom = validTo + ONE_DAY
-            }
-            log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeights.length))
+          for {
+            (sec, timeToWeights) <- secToEndTimes
+            val logit = log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeights.length))
+            (time, weight) <- timeToWeights.sortBy(_._1)
+          } {
+            secPicking += (sec, ValidTime(weight, time, time + ONE_DAY - 1))
           }
         } catch {
           case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
@@ -221,12 +227,12 @@ object CSI300 {
     secPicking
   }
   
-  def buildSecPicking(lastSecs: Array[Sec]) = {
+  def buildSecPicking(knownLastSecs: Array[Sec]) = {
     val secPicking = new SecPicking()
     loadIFMembers(secPicking)
     loadIFWeights(secPicking)
-    for (sec <- lastSecs) {
-      secPicking.secToValidTimes.getOrElse(sec, Nil).sortBy(_.validTo * -1).headOption match {
+    for (sec <- knownLastSecs) {
+      secPicking.secToValidTimes.getOrElse(sec, Nil).sortBy(-1 * _.validTo).headOption match {
         case Some(lastValidTime) => 
           if (lastValidTime.validTo != 0) {
             log.info("Warning: the lastValidTime of %s is at %s".format(sec.uniSymbol, new Date(lastValidTime.validTo)))
@@ -438,6 +444,13 @@ object CSI300 {
       
       cal.set(2013, 0, 1)
       printSecs(cal)
+      
+      cal.setTime(new Date()) // today
+      printSecs(cal)
+      val secs = secPicking.at(cal.getTimeInMillis)
+      val secToWeights = secPicking.weightsAt(cal.getTimeInMillis)
+      println(secs.map(_.uniSymbol).mkString(" "))
+      println(secToWeights map (x => x._1.uniSymbol -> x._2))
 
       System.exit(0)
     } catch {
@@ -446,9 +459,14 @@ object CSI300 {
     
     def printSecs(cal: Calendar) {
       val secs = secPicking.at(cal.getTimeInMillis).toSet
-      println(cal.getTime + ": size=" + secs.size)
+      val secToWeight = secPicking.weightsAt(cal.getTimeInMillis)
+      val (secsWithWeight, secsLackWeight) = secs partition secToWeight.contains
+      val sumWeight = secToWeight.filter(x => secsWithWeight.contains(x._1)).values.sum
+      println(cal.getTime + ": members=" + secs.size + ", weights=" + secToWeight.size + ", secLackWeights=" + secsLackWeight.size + ", sumWeight=" + sumWeight)
       println("Out: \n" + secsStr((prevSecs -- secs)))
       println("In: \n"  + secsStr((secs -- prevSecs)))
+      println("Sec lacks weight: \n" + secsLackWeight.map(_.uniSymbol).mkString(" "))
+      println("===============================\n")
       prevSecs = secs
     }
     

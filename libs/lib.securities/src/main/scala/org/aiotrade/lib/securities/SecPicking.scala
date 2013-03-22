@@ -24,7 +24,7 @@ class SecPicking extends Publisher {
   private var prevTime = 0L
   private val validTimes = new ArrayList[ValidTime[Sec]]
   val secToValidTimes = new mutable.HashMap[Sec, List[ValidTime[Sec]]]()
-  val setToWeightValidTimes = new mutable.HashMap[Sec, List[ValidTime[Double]]]
+  val secToWeightValidTimes = new mutable.HashMap[Sec, List[ValidTime[Double]]]
   
   private def addToMap(secValidTime: ValidTime[Sec]) {
     secToValidTimes(secValidTime.ref) = secValidTime :: secToValidTimes.getOrElse(secValidTime.ref, Nil)
@@ -38,13 +38,13 @@ class SecPicking extends Publisher {
   }
   
   private def addToMap(sec: Sec, weightValidTime: ValidTime[Double]) {
-    setToWeightValidTimes(sec) = weightValidTime :: setToWeightValidTimes.getOrElse(sec, Nil)
+    secToWeightValidTimes(sec) = weightValidTime :: secToWeightValidTimes.getOrElse(sec, Nil)
   }
 
   private def removeFromMap(sec: Sec, weightValidTime: ValidTime[Double]) {
-    setToWeightValidTimes.getOrElse(sec, Nil) filter (_ != weightValidTime) match {
-      case Nil => setToWeightValidTimes -= sec
-      case xs => setToWeightValidTimes(sec) = xs
+    secToWeightValidTimes.getOrElse(sec, Nil) filter (_ != weightValidTime) match {
+      case Nil => secToWeightValidTimes -= sec
+      case xs => secToWeightValidTimes(sec) = xs
     }
   }
 
@@ -176,9 +176,20 @@ class SecPicking extends Publisher {
    * @return weight of sec at time, NaN if none
    */
   def weightAt(sec: Sec)(time: Long): Double = {
-    setToWeightValidTimes.getOrElse(sec, Nil) find (_.isValid(time)) map (_.ref) getOrElse(Double.NaN)
+    secToWeightValidTimes.getOrElse(sec, Nil) find (_.isValid(time)) map (_.ref) getOrElse(Double.NaN)
   }
   
+  def weightsAt(time: Long): mutable.HashMap[Sec, Double] = {
+    val secToWeight = new mutable.HashMap[Sec, Double]()
+    for ((sec, weightValidTimes) <- secToWeightValidTimes) {
+      weightValidTimes find (_.isValid(time)) map (_.ref) match {
+        case Some(weight) => secToWeight(sec) = weight
+        case _ =>
+      }
+    }
+    secToWeight
+  }
+
   /**
    * CSI300 = SUM(Price * AdjustedShares) / BaseDayIndex * 1000
    *        = SUM(AdjustedMarketCapitalization) / SUM(BaseDayAdjustedMarketCapitalization) * 1000
@@ -200,36 +211,49 @@ class SecPicking extends Publisher {
    */
   def weightedValueAt(freq: TFreq)(prevValue: Double, prevTime: Long, time: Long): Double = {
     val secs = at(time)
+    
+    val weightDate = new Date(prevTime)
+    val assetDate = new Date(time)
+    
+    val secToWeight = weightsAt(prevTime)
+    val secsLackWeight = secs filterNot secToWeight.keySet.contains
+    // best try
+    if (secsLackWeight.length > 0) {
+      val sumWeight = secToWeight.values filterNot (_.isNaN) sum
+      val bestTryWeight = math.max(1.0 - sumWeight, 0.0) / secsLackWeight.length
+      val secToBestTryWeight = secsLackWeight map (_ -> bestTryWeight)
+      secToWeight ++= secToBestTryWeight
+      secToBestTryWeight foreach {x => log.warning("%s none weight for %s, add bestTry: %s".format(weightDate, x._1.uniSymbol, x._2))}
+    }
+    
     var value = 0.0
     var assignedWeight = 0.0
     var i = 0
     while (i < secs.length) {
       val sec = secs(i)
       for (ser <- sec.serOf(freq)) {
-        var weight = weightAt(sec)(prevTime)
+        var weight = secToWeight.getOrElse(sec, Double.NaN)
         if (!weight.isNaN) {
-          weight = if (assignedWeight + weight > 1) {
-            1 - assignedWeight
-          } else weight
+          weight = if (assignedWeight + weight > 1) 1 - assignedWeight else weight
           assignedWeight += weight
           val funds = prevValue * weight
-          val prevIdx = ser.timestamps.indexOfOccurredTime(prevTime)
           val idx = ser.timestamps.indexOfOccurredTime(time)
-          if (prevIdx >= 0 && idx >= 0) {
-            val weightPrice = ser.close(prevIdx) // price when weight is calculated
+          if (idx >= 1) {
+            val priceWhenWeight = ser.close(idx - 1) // price when weight was calculated, must be the last previous traded day 
             val price = ser.close(idx)
-            value += funds * price / weightPrice // positionSize = funds / weightPrice
+            value += funds * price / priceWhenWeight // positionSize = funds / weightPrice
           } else {
+            log.warning("%s NaN price of %s".format(sec.uniSymbol, assetDate))
             value += funds // funds substitute
           }
         } else {
-          log.warning("NaN weight of " + sec.uniSymbol + ", time=" + new Date(time))
+          log.warning("%s NaN weight of %s".format(sec.uniSymbol, weightDate))
         }
       }
       i += 1
     }
     
-    log.info("Sum of weights: " + assignedWeight)
+    log.info("%s sum of weights: %s".format(weightDate, assignedWeight))
     value + (1 - assignedWeight) * prevValue
   }
   
