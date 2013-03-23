@@ -87,6 +87,7 @@ object CSI300 {
       case Some(reader) =>
         val df = new SimpleDateFormat("M/d/yyyy")
         val cal = Calendar.getInstance(Exchange.SS.timeZone)
+        val dayFreq = TFreq.DAILY
         
         var line: String = null
         var lineNum = 0
@@ -103,7 +104,7 @@ object CSI300 {
                       val date = df.parse(dateStr)
                       cal.clear
                       cal.setTime(date)
-                      val time = cal.getTimeInMillis
+                      val time = dayFreq.round(cal.getTimeInMillis, cal)
                   
                       val existedValidTimes = secPicking.secToValidTimes.getOrElse(sec, Nil)
                       if (inOut.toLowerCase == "in") {
@@ -113,8 +114,8 @@ object CSI300 {
                         }
                       } else { // out
                         existedValidTimes.find(_.isValid(time)) match {
-                          case Some(validTime) => validTime.validTo = time
-                          case None => secPicking += ValidTime(sec, 0, time)
+                          case Some(validTime) => validTime.validTo = time - 1
+                          case None => secPicking += ValidTime(sec, 0, time - 1)
                         }
                       }
                     case None =>
@@ -155,7 +156,7 @@ object CSI300 {
         val cal = Calendar.getInstance(Exchange.SS.timeZone)
         val dayFreq = TFreq.DAILY
         
-        val secToEndTimes = new mutable.HashMap[Sec, ArrayList[(Long, Double)]]()
+        val secToTimes = new mutable.HashMap[Sec, ArrayList[(Long, Double)]]()
         
         // skip first line
         reader.readLine
@@ -183,7 +184,7 @@ object CSI300 {
                       val time = dayFreq.round(cal.getTimeInMillis, cal) // round to 0:00 at the day
 
                       val weight = weightStr.toDouble / 100.0
-                      secToEndTimes(sec) = secToEndTimes.getOrElse(sec, new ArrayList[(Long, Double)]()) += time -> weight
+                      secToTimes(sec) = secToTimes.getOrElse(sec, new ArrayList[(Long, Double)]()) += time -> weight
                     case None =>
                       log.info("There is no sec of symbol: " + uniSymbol)
                   }
@@ -193,12 +194,14 @@ object CSI300 {
             }
           }
           
-          for {
-            (sec, timeToWeights) <- secToEndTimes
-            val logit = log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeights.length))
-            (time, weight) <- timeToWeights.sortBy(_._1)
-          } {
-            secPicking += (sec, ValidTime(weight, time, time + ONE_DAY - 1))
+          for ((sec, timeToWeights) <- secToTimes) {
+            var prevValidTo = -1L
+            for ((validFrom, weight) <- timeToWeights.sortBy(-1 * _._1)) {
+              val validTo = if (prevValidTo == -1) 0 /* validFrom + ONE_DAY - 1 */ else prevValidTo
+              secPicking += (sec, ValidTime(weight, validFrom, validTo))
+              prevValidTo = validFrom - 1
+            }
+            log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeights.length))
           }
         } catch {
           case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
@@ -384,6 +387,7 @@ object CSI300 {
       println(secPicking.toString)
       
       val cal = Calendar.getInstance
+      cal.clear
       // begin
       cal.set(2005, 3, 28)
       printSecs(cal)
@@ -462,10 +466,10 @@ object CSI300 {
       val secToWeight = secPicking.weightsAt(cal.getTimeInMillis)
       val (secsWithWeight, secsLackWeight) = secs partition secToWeight.contains
       val sumWeight = secToWeight.filter(x => secsWithWeight.contains(x._1)).values.sum
-      println(cal.getTime + ": members=" + secs.size + ", weights=" + secToWeight.size + ", secLackWeights=" + secsLackWeight.size + ", sumWeight=" + sumWeight)
+      println(cal.getTime + ": members=" + secs.size + ", weights=" + secToWeight.size + ", secsWithWeight=" + secsWithWeight.size + ", secsLackWeight=" + secsLackWeight.size + ", sumWeight=" + sumWeight)
       println("Out: \n" + secsStr((prevSecs -- secs)))
       println("In: \n"  + secsStr((secs -- prevSecs)))
-      println("Sec lacks weight: \n" + secsLackWeight.map(_.uniSymbol).mkString(" "))
+      println("Secs lack weight: \n" + secsLackWeight.map(_.uniSymbol).mkString(" "))
       println("===============================\n")
       prevSecs = secs
     }

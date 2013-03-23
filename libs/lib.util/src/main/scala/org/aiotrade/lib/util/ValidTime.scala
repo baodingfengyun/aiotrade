@@ -35,12 +35,16 @@ package org.aiotrade.lib.util
  * 
  * @param ref       What the valid time is talking about
  * @param validFrom the time valid from, included
- * @param validTo   the time valid to, excluded.
+ * @param validTo   the time valid to, included.
  * 
  * @author Caoyuan Deng
  */
 final case class ValidTime[T](ref: T, var validFrom: Long, var validTo: Long) extends Ordered[ValidTime[T]] {
   def isInvalid(time: Long): Boolean = !isValid(time)
+
+  /** 
+   * time >= validFrom && (validTo == 0 || time <= validTo) 
+   */
   def isValid(time: Long): Boolean = {
     time >= validFrom && (validTo == 0 || time <= validTo)
   }

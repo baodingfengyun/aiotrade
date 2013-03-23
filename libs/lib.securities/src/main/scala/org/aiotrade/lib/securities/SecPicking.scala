@@ -216,7 +216,7 @@ class SecPicking extends Publisher {
     val assetDate = new Date(time)
     
     val secToWeight = weightsAt(prevTime)
-    val secsLackWeight = secs filterNot secToWeight.keySet.contains
+    val (secsWithWeight, secsLackWeight) = secs partition secToWeight.contains
     // best try
     if (secsLackWeight.length > 0) {
       val sumWeight = secToWeight.values filterNot (_.isNaN) sum
