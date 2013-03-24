@@ -51,7 +51,7 @@ class SecPicking extends Publisher {
   def allSecs = secToValidTimes.keySet
   
   def at(times: Long*): Array[Sec] = {
-    val secs = for ((sec, validTimes) <- secToValidTimes if validTimes.exists{x => times.exists(x.isValid)}) yield sec
+    val secs = for ((sec, validTimes) <- secToValidTimes if times.forall{time => validTimes.exists(_.isValid(time))}) yield sec
     secs.toArray
   }
 
@@ -253,30 +253,31 @@ class SecPicking extends Publisher {
     value + (1 - assignedWeight) * prevValue
   }
   
-  def isInvalid(sec: Sec, time: Long) = !isValid(sec, time)
-  def isValid(sec: Sec, time: Long): Boolean = {
+  def isInvalid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
+  def nonValid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
+  def isValid(sec: Sec, times: Long*): Boolean = {
     secToValidTimes.get(sec) match {
-      case Some(xs) => xs.exists(_.isValid(time))
+      case Some(xs) => times.forall{time => xs.exists(_.isValid(time))}
       case None => false
     }
   }
 
-  def iterator(time: Long): Iterator[Sec] = new IteratorAtTime(time)
+  def iterator(times: Long*): Iterator[Sec] = new IteratorAtTime(times: _*)
   
   /**
    * Do (block) for each valid sec
    */
-  def foreach(time: Long)(block: Sec => Unit) {
-    val itr = iterator(time)
+  def foreach(times: Long*)(block: Sec => Unit) {
+    val itr = iterator(times: _*)
     while (itr.hasNext) {
       val sec = itr.next
       block(sec)
     }
   }
 
-  def foldLeft[T](time: Long)(block: (Sec, T) => T)(result: T) = {
+  def foldLeft[T](times: Long*)(block: (Sec, T) => T)(result: T) = {
     var acc = result
-    val itr = iterator(time)
+    val itr = iterator(times: _*)
     while (itr.hasNext) {
       val sec = itr.next
       acc = block(sec, acc)
@@ -300,7 +301,7 @@ class SecPicking extends Publisher {
   }
   
   private class IteratorAtTime(times: Long*) extends Iterator[Sec] {
-    private val _validTimes = validTimes.filter{x => times.exists(x.isValid)}
+    private val _validTimes = validTimes.filter(x => times.forall{time => x.isValid(time)})
     private var index = 0
       
     def hasNext = index < _validTimes.length

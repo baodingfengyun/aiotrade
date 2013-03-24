@@ -449,12 +449,12 @@ object CSI300 {
       cal.set(2013, 0, 1)
       printSecs(cal)
       
-      cal.setTime(new Date()) // today
+      cal.setTime(new Date()) // now
       printSecs(cal)
       val secs = secPicking.at(cal.getTimeInMillis).sortBy(_.uniSymbol)
-      val secToWeights = secPicking.weightsAt(cal.getTimeInMillis)
-      println(secs.map(_.uniSymbol).mkString(" "))
-      println(secToWeights map (x => x._1.uniSymbol -> x._2))
+      val secToWeight = secPicking.weightsAt(cal.getTimeInMillis)
+      println(secs.map(_.uniSymbol).mkString("=== members ===\n", "\n", "\n"))
+      println(secToWeight.map(x => x._1.uniSymbol -> x._2).mkString("=== weights ===\n", "\n", "\n"))
 
       System.exit(0)
     } catch {
