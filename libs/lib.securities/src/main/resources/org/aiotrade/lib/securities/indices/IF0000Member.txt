@@ -1,4 +1,4 @@
-# http://www.csindex.com.cn/sseportal/csiportal/zs/jbxx/report.do?code=000300&&subdir=7#
+# http://www.csindex.com.cn/sseportal/csiportal/zs/report.do?type=2
 
 In      04/08/2005      000001	深发展Ａ
 In      04/08/2005      000002	万科Ａ

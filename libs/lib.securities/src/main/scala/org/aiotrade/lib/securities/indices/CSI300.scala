@@ -451,7 +451,7 @@ object CSI300 {
       
       cal.setTime(new Date()) // today
       printSecs(cal)
-      val secs = secPicking.at(cal.getTimeInMillis)
+      val secs = secPicking.at(cal.getTimeInMillis).sortBy(_.uniSymbol)
       val secToWeights = secPicking.weightsAt(cal.getTimeInMillis)
       println(secs.map(_.uniSymbol).mkString(" "))
       println(secToWeights map (x => x._1.uniSymbol -> x._2))

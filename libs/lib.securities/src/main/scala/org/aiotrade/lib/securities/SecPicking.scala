@@ -51,11 +51,7 @@ class SecPicking extends Publisher {
   def allSecs = secToValidTimes.keySet
   
   def at(times: Long*): Array[Sec] = {
-    val secs = new ArrayList[Sec]()
-    val itr = new IteratorAtTime(times: _*)
-    while (itr.hasNext) {
-      secs += itr.next
-    }
+    val secs = for ((sec, validTimes) <- secToValidTimes if validTimes.exists{x => times.exists(x.isValid)}) yield sec
     secs.toArray
   }
 
@@ -293,8 +289,8 @@ class SecPicking extends Publisher {
     val df = new SimpleDateFormat("yyyy-MM-dd")
     val sb = new StringBuilder()
     for {
-      (sec, validTimes) <- secToValidTimes
-      validTime <- validTimes
+      sec <- secToValidTimes.keySet.toList.sortBy(_.uniSymbol)
+      validTime <- secToValidTimes(sec).sorted
     } {
       val validFrom = if (validTime.validFrom == 0) "__________" else df.format(new Date(validTime.validFrom))
       val validTo = if (validTime.validTo == 0) "----------" else df.format(new Date(validTime.validTo))
@@ -303,19 +299,15 @@ class SecPicking extends Publisher {
     sb.toString
   }
   
-  final class IteratorAtTime(times: Long*) extends Iterator[Sec] {
+  private class IteratorAtTime(times: Long*) extends Iterator[Sec] {
+    private val _validTimes = validTimes.filter{x => times.exists(x.isValid)}
     private var index = 0
       
-    def hasNext = {
-      while (index < validTimes.length && times.foldLeft(false){(s, x) => s || validTimes(index).isInvalid(x)}) {
-        index += 1
-      }
-      index < validTimes.length
-    }
+    def hasNext = index < _validTimes.length
       
     def next = {
       if (hasNext) {
-        val sec = validTimes(index).ref
+        val sec = _validTimes(index).ref
         index += 1
         sec
       } else {
@@ -327,8 +319,8 @@ class SecPicking extends Publisher {
 }
 
 object SecPicking {
-  val a = new SecPicking()
-  val b = a += (new Sec, 1, 1)
+  private val a = new SecPicking()
+  private val b = a += (new Sec, 1, 1)
   
   
   /**
