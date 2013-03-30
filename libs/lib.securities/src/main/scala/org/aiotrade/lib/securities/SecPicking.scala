@@ -3,7 +3,6 @@ package org.aiotrade.lib.securities
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
-import org.aiotrade.lib.collection.ArrayList
 import org.aiotrade.lib.math.signal.Side
 import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.securities.model.Sec
@@ -22,7 +21,6 @@ class SecPicking extends Publisher {
   private val log = Logger.getLogger(getClass.getName)
   
   private var prevTime = 0L
-  private val validTimes = new ArrayList[ValidTime[Sec]]
   val secToValidTimes = new mutable.HashMap[Sec, List[ValidTime[Sec]]]()
   val secToWeightValidTimes = new mutable.HashMap[Sec, List[ValidTime[Double]]]
   
@@ -51,29 +49,26 @@ class SecPicking extends Publisher {
   def allSecs = secToValidTimes.keySet
   
   def at(times: Long*): Array[Sec] = {
-    val secs = for ((sec, validTimes) <- secToValidTimes if times.forall{time => validTimes.exists(_.isValid(time))}) yield sec
-    secs.toArray
+    (for ((sec, validTimes) <- secToValidTimes if times.forall{time => validTimes.exists(_.isValid(time))}) yield sec) toArray
   }
 
   def go(time: Long) {
-    var i = 0
-    while (i < validTimes.length) {
-      val validTime = validTimes(i)
-      if (validTime.isValid(time) && !validTime.isValid(prevTime)) {
+    for {
+      (sec, validTimes) <- secToValidTimes
+      validTime <- validTimes
+    } {
+      if (validTime.isValid(time) && validTime.isInvalid(prevTime)) {
         publish(SecPickingEvent(validTime, Side.EnterPicking))
-      } else if (!validTime.isValid(time) && validTime.isValid(prevTime)) {
+      } else if (validTime.isInvalid(time) && validTime.isValid(prevTime)) {
         publish(SecPickingEvent(validTime, Side.ExitPicking))
       }
-      i += 1
     }
     prevTime = time
   }
   
-  
   // --- secs
   
   def +(secValidTime: ValidTime[Sec]) {
-    validTimes += secValidTime
     addToMap(secValidTime)
   }
   
@@ -82,7 +77,6 @@ class SecPicking extends Publisher {
   }
   
   def -(secValidTime: ValidTime[Sec]) {
-    validTimes -= secValidTime
     removeFromMap(secValidTime)
   }
   
@@ -111,7 +105,6 @@ class SecPicking extends Publisher {
   }
 
   def ++(secValidTimes: Seq[ValidTime[Sec]]) {
-    this.validTimes ++= secValidTimes
     secValidTimes foreach addToMap
   }
   
@@ -121,7 +114,6 @@ class SecPicking extends Publisher {
   }
   
   def --(secValidTimes: Seq[ValidTime[Sec]]) {
-    this.validTimes --= secValidTimes
     secValidTimes foreach removeFromMap
   }
   
@@ -301,14 +293,14 @@ class SecPicking extends Publisher {
   }
   
   private class IteratorAtTime(times: Long*) extends Iterator[Sec] {
-    private val _validTimes = validTimes.filter(x => times.forall{time => x.isValid(time)})
+    private val secs = at(times: _*)
     private var index = 0
       
-    def hasNext = index < _validTimes.length
+    def hasNext = index < secs.length
       
     def next = {
       if (hasNext) {
-        val sec = _validTimes(index).ref
+        val sec = secs(index)
         index += 1
         sec
       } else {
