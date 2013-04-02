@@ -292,6 +292,16 @@ class SecPicking extends Publisher {
     sb.toString
   }
   
+  def printWeights(sec: Sec) {
+    println(
+      sec.uniSymbol + secToWeightValidTimes.getOrElse(sec, Nil).map{x => 
+        "%1$tY.%1$tm.%1$td-%2$tY.%2$tm.%2$td: %3$2.4f%%".format(
+          new Date(x.validFrom), new Date(x.validTo), x.ref * 100
+        )
+      }.mkString("\n", "\n", "\n=======")
+    )
+  }
+  
   private class IteratorAtTime(times: Long*) extends Iterator[Sec] {
     private val secs = at(times: _*)
     private var index = 0

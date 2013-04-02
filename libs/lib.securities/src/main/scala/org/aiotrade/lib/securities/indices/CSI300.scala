@@ -156,7 +156,7 @@ object CSI300 {
         val cal = Calendar.getInstance(Exchange.SS.timeZone)
         val dayFreq = TFreq.DAILY
         
-        val secToTimes = new mutable.HashMap[Sec, ArrayList[(Long, Double)]]()
+        val secToTimes = new mutable.HashMap[Sec, mutable.HashMap[Long, Double]]()
         
         // skip first line
         reader.readLine
@@ -168,8 +168,8 @@ object CSI300 {
             lineNum += 1
             line = line.trim
             if (line.length != 0 && !line.startsWith("#")) {
-              line.split("\\s?,\\s?") match {
-                case Array(endDateStr, weightStr, symbol) =>
+              line.split("\\s?,\\s?").map(_.replaceAll("\"", "")) match {
+                case Array(symbol, weightStr, endDateStr) =>
                   val uniSymbol = if (symbol.length == 6 && symbol.startsWith("6")) {
                     symbol + ".SS"
                   } else {
@@ -184,7 +184,7 @@ object CSI300 {
                       val time = dayFreq.round(cal.getTimeInMillis, cal) // round to 0:00 at the day
 
                       val weight = weightStr.toDouble / 100.0
-                      secToTimes(sec) = secToTimes.getOrElse(sec, new ArrayList[(Long, Double)]()) += time -> weight
+                      secToTimes(sec) = secToTimes.getOrElse(sec, new mutable.HashMap[Long, Double]()) += time -> weight
                     case None =>
                       log.info("There is no sec of symbol: " + uniSymbol)
                   }
@@ -194,14 +194,15 @@ object CSI300 {
             }
           }
           
-          for ((sec, timeToWeights) <- secToTimes) {
-            var prevValidTo = -1L
-            for ((validFrom, weight) <- timeToWeights.sortBy(-1 * _._1)) {
-              val validTo = if (prevValidTo == -1) 0 /* validFrom + ONE_DAY - 1 */ else prevValidTo
-              secPicking += (sec, ValidTime(weight, validFrom, validTo))
-              prevValidTo = validFrom - 1
+          for ((sec, _timeToWeight) <- secToTimes; timeToWeight = _timeToWeight.toArray.sortBy(-1 * _._1)) {
+            //var prevValidTo = -1L
+            for ((time, weight) <- timeToWeight) {
+              //val validFrom = time
+              //val validTo = if (prevValidTo == -1) 0 /* validFrom + ONE_DAY - 1 */ else prevValidTo
+              secPicking += (sec, ValidTime(weight, time, time))
+              //prevValidTo = validFrom - 1
             }
-            log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeights.length))
+            log.info("Loaded weights for %s: %s".format(sec.uniSymbol, timeToWeight.length))
           }
         } catch {
           case ex: Throwable => log.log(Level.WARNING, ex.getMessage, ex)
@@ -372,7 +373,7 @@ object CSI300 {
     try {
       val fc = is.getChannel
       val bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size)
-      /* Instead of using default, pass in a decoder. */
+      // instead of using default, pass in a decoder.
       Charset.forName("UTF-8").decode(bb).toString
     } finally {
       is.close
@@ -384,7 +385,8 @@ object CSI300 {
     val secPicking = buildSecPicking()
     var prevSecs = Set[Sec]()
     try {
-      println(secPicking.toString)
+      secPicking.allSecs foreach secPicking.printWeights
+      println(secPicking)
       
       val cal = Calendar.getInstance
       cal.clear
@@ -449,7 +451,7 @@ object CSI300 {
       cal.set(2013, 0, 1)
       printSecs(cal)
       
-      cal.setTime(new Date()) // now
+      cal.set(2013, 2, 29)
       printSecs(cal)
       val secs = secPicking.at(cal.getTimeInMillis).sortBy(_.uniSymbol)
       val secToWeight = secPicking.weightsAt(cal.getTimeInMillis)

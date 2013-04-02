@@ -78,5 +78,5 @@ final case class ValidTime[T](ref: T, var validFrom: Long, var validTo: Long) ex
   }
   
   override 
-  def toString = ref + "(" + validFrom + " - " + validTo + ")"
+  def toString = "" + validFrom + " - " + validTo + ": " + ref
 }
