@@ -10,6 +10,7 @@ import org.aiotrade.lib.securities.model.SectorSec
 import org.aiotrade.lib.util.ValidTime
 import org.aiotrade.lib.util.actors.Publisher
 import scala.collection.mutable
+import scala.collection.immutable
 
 final case class SecPickingEvent(secValidTime: ValidTime[Sec], side: Side)
 
@@ -210,8 +211,8 @@ class SecPicking extends Publisher {
       val sumWeight = secToWeight.values filterNot (_.isNaN) sum
       val bestTryWeight = math.max(1.0 - sumWeight, 0.0) / secsLackWeight.length
       val secToBestTryWeight = secsLackWeight map (_ -> bestTryWeight)
-      secToWeight ++= secToBestTryWeight
       secToBestTryWeight foreach {x => log.warning("%s none weight for %s, add bestTry: %s".format(weightDate, x._1.uniSymbol, x._2))}
+      secToWeight ++= secToBestTryWeight
     }
     
     var value = 0.0
@@ -245,6 +246,27 @@ class SecPicking extends Publisher {
     value + (1 - assignedWeight) * prevValue
   }
   
+  def reversedWeights(secToWeight: mutable.HashMap[Sec, Double]) = {
+    val adjustedSecToWeight = secToWeight map {case (sec, weight) => sec -> (if (weight >= 0.00001) (1.0 / weight) else 10000.0)}
+    val sumWeight = adjustedSecToWeight.values.filterNot(_.isNaN).sum
+    adjustedSecToWeight map {case (sec, weight) => (sec -> weight / sumWeight)}
+  }
+  
+  def calcWeights(chosenSecs: Array[Sec], time: Long): immutable.Map[Sec, Double] = {
+    val allSecToWeight = weightsAt(time)
+    val (secsWithWeight, secsLackWeight) = at(time) partition allSecToWeight.contains
+    // best try
+    if (secsLackWeight.length > 0) {
+      val sumWeight = allSecToWeight.values filterNot (_.isNaN) sum
+      val bestTryWeight = math.max(1.0 - sumWeight, 0.0) / secsLackWeight.length
+      val secToBestTryWeight = secsLackWeight map (_ -> bestTryWeight)
+      allSecToWeight ++= secToBestTryWeight
+    }
+    val secToWeight = allSecToWeight filter (x => chosenSecs.contains(x._1))
+    val sumWeights = secToWeight.values.sum
+    secToWeight map {case (sec, weight) => sec -> weight / sumWeights} toMap
+  }
+
   def isInvalid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
   def nonValid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
   def isValid(sec: Sec, times: Long*): Boolean = {
