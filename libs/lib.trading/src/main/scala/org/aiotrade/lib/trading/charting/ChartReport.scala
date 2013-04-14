@@ -177,8 +177,8 @@ class ChartReport(
       runInFXThread {
         val serieId = data.name + data.id
         val serieName = data.name + "-" + data.id
-        val isRefer = data.name.contains("Refer")
-        val series = idToSeries.getOrElseUpdate(serieId, createSeries(serieName, isRefer))
+        val chart = if (data.name.contains("Refer")) referChart else valueChart
+        val series = idToSeries.getOrElseUpdate(serieId, createSeries(serieName, chart))
         series.getData.add(new XYChart.Data(df.format(new Date(data.time)), data.value))
 
         val styleSelector = "series-" + serieId
@@ -187,7 +187,6 @@ class ChartReport(
         }
         
         if (color != null) {
-          val chart = if (isRefer) referChart else valueChart
           val nodes = chart.lookupAll("." + styleSelector)
           nodes foreach (_.setStyle("-fx-stroke: #" + toHexColor(color) +  "; "))
         }
@@ -199,10 +198,10 @@ class ChartReport(
      */
     private def toHexColor(color: Color) = Integer.toHexString((color.getRGB & 0xffffff) | 0x1000000).substring(1)
     
-    private def createSeries(name: String, isRefer: Boolean): XYChart.Series[String, Number] = {
+    private def createSeries(name: String, chart: XYChart[String, Number]): XYChart.Series[String, Number] = {
       val series = new XYChart.Series[String, Number]()
       series.setName(name)
-      (if (isRefer) referChart else valueChart).getData.add(series)
+      chart.getData.add(series)
       series
     }
   
