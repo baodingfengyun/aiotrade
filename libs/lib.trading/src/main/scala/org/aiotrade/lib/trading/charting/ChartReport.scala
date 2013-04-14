@@ -1,6 +1,7 @@
 package org.aiotrade.lib.trading.charting
 
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Container
 import java.awt.event.ActionListener
 import java.awt.image.BufferedImage
@@ -33,6 +34,7 @@ import org.aiotrade.lib.trading.Param
 import org.aiotrade.lib.trading.ReportData
 import org.aiotrade.lib.util.actors.Reactor
 import scala.collection.mutable
+import scala.collection.JavaConversions._
 import scala.concurrent.SyncVar
 
 /**
@@ -112,7 +114,7 @@ class ChartReport(
   
   private class ChartTab(param: Param) extends Reactor {
     private val idToSeries = new mutable.HashMap[String, XYChart.Series[String, Number]]()
-    private var dataChart: LineChart[String, Number] = _
+    private var valueChart: LineChart[String, Number] = _
     private var referChart: LineChart[String, Number] = _
 
     private val df = new SimpleDateFormat("yy.MM.dd")
@@ -123,8 +125,8 @@ class ChartReport(
     initAndShowGUI
   
     reactions += {
-      case data: ReportData => 
-        updateData(data)
+      case (data: ReportData, color: Color) => updateData(data, color)
+      case data: ReportData => updateData(data, null)
     }
     listenTo(param)
   
@@ -139,11 +141,11 @@ class ChartReport(
         yAxis.setUpperBound(upperBound)
         yAxis.setLowerBound(lowerBound)
       
-        dataChart = new LineChart[String, Number](xAxis, yAxis)
-        dataChart.setTitle("Equity Monitoring - " + param.titleDescription)
-        dataChart.setCreateSymbols(false)
-        dataChart.setLegendVisible(false)
-        dataChart.setPrefHeight(0.9 * height)
+        valueChart = new LineChart[String, Number](xAxis, yAxis)
+        valueChart.setTitle("Equity Monitoring - " + param.titleDescription)
+        valueChart.setCreateSymbols(false)
+        valueChart.setLegendVisible(false)
+        valueChart.setPrefHeight(0.9 * height)
 
         val xAxisRef = new CategoryAxis()
         xAxisRef.setLabel("Time")
@@ -153,7 +155,7 @@ class ChartReport(
         referChart.setCreateSymbols(false)
         referChart.setLegendVisible(false)
       
-        root.getChildren.add(dataChart)
+        root.getChildren.add(valueChart)
         root.getChildren.add(referChart)
         tab.setContent(root)
         tab.setText(param.titleDescription)
@@ -165,25 +167,47 @@ class ChartReport(
     private def resetData {
       runInFXThread {
         idToSeries.clear
-        dataChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
+        valueChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
         referChart.setData(FXCollections.observableArrayList[XYChart.Series[String, Number]]())
       }
     }
   
-    private def updateData(data: ReportData) {
+    private def updateData(data: ReportData, color: Color) {
       // should run in FX application thread
       runInFXThread {
         val serieId = data.name + data.id
-        val series = idToSeries.getOrElseUpdate(serieId, 
-                                                createSeries(data.name + "-" + data.id, data.name.contains("Refer")))
+        val serieName = data.name + "-" + data.id
+        val isRefer = data.name.contains("Refer")
+        val series = idToSeries.getOrElseUpdate(serieId, createSeries(serieName, isRefer))
         series.getData.add(new XYChart.Data(df.format(new Date(data.time)), data.value))
+
+        val styleSelector = "series-" + serieId
+        if (!series.getNode.getStyleClass.contains(styleSelector)) {
+          series.getNode.getStyleClass.add(styleSelector)
+        }
+        
+        if (color != null) {
+          val chart = if (isRefer) referChart else valueChart
+          val nodes = chart.lookupAll("." + styleSelector)
+          nodes foreach (_.setStyle("-fx-stroke: " + toCSSHexColor(color) +  "; "))
+        }
       }
+    }
+    
+    private def toCSSHexColor(color: Color) = {
+      "#" + toHex(color.getRed) + toHex(color.getGreen) + toHex(color.getBlue)
+    }
+    
+    private def toHex(value: Int) = {
+      val sb = new StringBuilder(Integer.toHexString(value & 0xff))
+      while (sb.length < 2) sb.append("0")
+      sb.toString
     }
   
     private def createSeries(name: String, isRefer: Boolean): XYChart.Series[String, Number] = {
       val series = new XYChart.Series[String, Number]()
       series.setName(name)
-      (if (isRefer) referChart else dataChart).getData.add(series)
+      (if (isRefer) referChart else valueChart).getData.add(series)
       series
     }
   
@@ -267,7 +291,7 @@ object ChartReport {
     cal.add(Calendar.DAY_OF_YEAR, -10)
     for (i <- 1 to 10) {
       cal.add(Calendar.DAY_OF_YEAR, i)
-      params foreach {_.publish(ReportData("series", 0, cal.getTimeInMillis, random.nextDouble))}
+      params foreach {_.publish((ReportData("series", 0, cal.getTimeInMillis, random.nextDouble), Color.CYAN))}
     }
     
     chartReport.roundFinished
