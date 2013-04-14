@@ -189,21 +189,16 @@ class ChartReport(
         if (color != null) {
           val chart = if (isRefer) referChart else valueChart
           val nodes = chart.lookupAll("." + styleSelector)
-          nodes foreach (_.setStyle("-fx-stroke: " + toCSSHexColor(color) +  "; "))
+          nodes foreach (_.setStyle("-fx-stroke: #" + toHexColor(color) +  "; "))
         }
       }
     }
     
-    private def toCSSHexColor(color: Color) = {
-      "#" + toHex(color.getRed) + toHex(color.getGreen) + toHex(color.getBlue)
-    }
+    /**
+     * Should mask first 2 digits of "XX"-contribution from the Alpha-component (which is not always the case)
+     */
+    private def toHexColor(color: Color) = Integer.toHexString((color.getRGB & 0xffffff) | 0x1000000).substring(1)
     
-    private def toHex(value: Int) = {
-      val sb = new StringBuilder(Integer.toHexString(value & 0xff))
-      while (sb.length < 2) sb.append("0")
-      sb.toString
-    }
-  
     private def createSeries(name: String, isRefer: Boolean): XYChart.Series[String, Number] = {
       val series = new XYChart.Series[String, Number]()
       series.setName(name)
