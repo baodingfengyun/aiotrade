@@ -40,17 +40,15 @@ package org.aiotrade.lib.util
  * @author Caoyuan Deng
  */
 final case class ValidTime[T](ref: T, var validFrom: Long, var validTo: Long) extends Ordered[ValidTime[T]] {
-  def isInvalid(time: Long): Boolean = !isValid(time)
 
   /** 
    * time >= validFrom && (validTo == 0 || time <= validTo) 
    */
-  def isValid(time: Long): Boolean = {
-    time >= validFrom && (validTo == 0 || time <= validTo)
-  }
+  def isValid(time: Long): Boolean = time >= validFrom && (validTo == 0 || time <= validTo)
+  def nonValid(time: Long): Boolean = !isValid(time)
   
-  def isIn (prevTime: Long, time: Long): Boolean = isInvalid(prevTime) && isValid(time)
-  def isOut(prevTime: Long, time: Long): Boolean = isValid(prevTime) && isInvalid(time)
+  def isIn (prevTime: Long, time: Long): Boolean = nonValid(prevTime) && isValid(time)
+  def isOut(prevTime: Long, time: Long): Boolean = isValid(prevTime) && nonValid(time)
   
   override 
   def hashCode = {

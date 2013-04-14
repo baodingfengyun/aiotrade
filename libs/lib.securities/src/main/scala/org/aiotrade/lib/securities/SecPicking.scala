@@ -1,5 +1,6 @@
 package org.aiotrade.lib.securities
 
+import java.awt.Color
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
@@ -58,9 +59,9 @@ class SecPicking extends Publisher {
       (sec, validTimes) <- secToValidTimes
       validTime <- validTimes
     } {
-      if (validTime.isValid(time) && validTime.isInvalid(prevTime)) {
+      if (validTime.isValid(time) && validTime.nonValid(prevTime)) {
         publish(SecPickingEvent(validTime, Side.EnterPicking))
-      } else if (validTime.isInvalid(time) && validTime.isValid(prevTime)) {
+      } else if (validTime.nonValid(time) && validTime.isValid(prevTime)) {
         publish(SecPickingEvent(validTime, Side.ExitPicking))
       }
     }
@@ -266,8 +267,9 @@ class SecPicking extends Publisher {
     val sumWeights = secToWeight.values.sum
     secToWeight map {case (sec, weight) => sec -> weight / sumWeights} toMap
   }
+  
+  def weightToColor(weight: Float) = new Color(1.0f, weight, 0.0f)
 
-  def isInvalid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
   def nonValid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
   def isValid(sec: Sec, times: Long*): Boolean = {
     secToValidTimes.get(sec) match {
