@@ -71,7 +71,7 @@ class ChartReport(
   
   private def runInFXThread(block: => Unit) {
     Platform.runLater(new Runnable {
-        def run = block // @Note don't write as: def run {block}
+        def run = block // @Note don't write to: def run {block}
       })
   }
   
@@ -174,21 +174,13 @@ class ChartReport(
       // should run in FX application thread
       runInFXThread {
         val serieId = data.name + data.id
-        val series = idToSeries.getOrElse(serieId, {
-            val x = if (data.name.contains("Refer")) {
-              createSeries(data.name + "-" + data.id, true)
-            } else {
-              createSeries(data.name + "-" + data.id)
-            }
-            idToSeries(serieId) = x
-            x
-          }
-        )
+        val series = idToSeries.getOrElseUpdate(serieId, 
+                                                createSeries(data.name + "-" + data.id, data.name.contains("Refer")))
         series.getData.add(new XYChart.Data(df.format(new Date(data.time)), data.value))
       }
     }
   
-    private def createSeries(name: String, isRefer: Boolean = false): XYChart.Series[String, Number] = {
+    private def createSeries(name: String, isRefer: Boolean): XYChart.Series[String, Number] = {
       val series = new XYChart.Series[String, Number]()
       series.setName(name)
       (if (isRefer) referChart else dataChart).getData.add(series)
@@ -198,7 +190,7 @@ class ChartReport(
     /**
      * @return SyncVar[ChartTab](this)
      */
-    def saveImage: SyncVar[ChartTab] = {
+    def saveImage {
       val done = new SyncVar[ChartTab]()
       val file = new File(imageFileDir, fileDf.format(new Date(System.currentTimeMillis)) + "_" + param.shortDescription + ".png")
       tabPane.getSelectionModel.select(tab)
@@ -209,7 +201,7 @@ class ChartReport(
           def actionPerformed(e: java.awt.event.ActionEvent) {
             ChartReport.saveImage(jfxPanel, file)
             tabPane.getTabs.remove(tab)
-            done.set(ChartTab.this)
+            done.put(ChartTab.this)
             imageSavingLatch.countDown
             timer.stop
           }
@@ -217,7 +209,7 @@ class ChartReport(
       )
       timer.start
       
-      done
+      done.take
     }
   }
   
