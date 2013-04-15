@@ -6,8 +6,35 @@
         Purpose of the stylesheet follows.
 */
 
+.chart-plot-background { -fx-background-color: #e8e6db; }
+
+.chart-vertical-grid-lines { 
+    -fx-stroke: #ffffff; 
+    -fx-stroke-width: 1;
+}
+.chart-horizontal-grid-lines {
+    -fx-stroke: #ffffff; 
+    -fx-stroke-width: 1;
+}
+
+.chart-alternative-row-fill {
+    -fx-fill: transparent;
+    -fx-stroke: transparent;
+    -fx-stroke-width: 0;
+}
+
+.axis {
+    -fx-tick-label-fill: #000000;
+    -fx-font-family: Helvetica;
+}
+
+.axis-label {
+    -fx-font-family: Helvetica;
+    -fx-text-fill: #000000; 
+}
+
 .chart-series-line {    
-    -fx-stroke-width: 2px;
+    -fx-stroke-width: 1px;
     -fx-effect: null;
 }
 
