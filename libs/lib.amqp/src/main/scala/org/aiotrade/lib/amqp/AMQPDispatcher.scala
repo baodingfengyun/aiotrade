@@ -414,7 +414,6 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
         else process(content, fwProps, envelope)
 
         log.fine("Forward amqp message: " + content)
-        log.fine(processors.map(_.getState.toString).mkString("(", ",", ")"))
       } catch {
         // should catch it when old version classes were sent by old version of clients.
         case ex: InvalidClassException => log.log(Level.WARNING, ex.getMessage, ex)

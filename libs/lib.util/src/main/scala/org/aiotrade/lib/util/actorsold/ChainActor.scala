@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.aiotrade.lib.util.actors
+package org.aiotrade.lib.util.actorsold
 
 import scala.actors.Actor
 import scala.collection.mutable.ListBuffer

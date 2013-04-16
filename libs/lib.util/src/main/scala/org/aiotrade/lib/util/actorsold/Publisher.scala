@@ -1,6 +1,21 @@
-package org.aiotrade.lib.util.actors
+/*                     __                                               *\
+ **     ________ ___   / /  ___     Scala API                            **
+ **    / __/ __// _ | / /  / _ |    (c) 2007-2010, LAMP/EPFL             **
+ **  __\ \/ /__/ __ |/ /__/ __ |    http://scala-lang.org/               **
+ ** /____/\___/_/ |_/____/_/ | |                                         **
+ **                          |/                                          **
+ \*                                                                      */
 
-import scala.collection.mutable
+
+
+package org.aiotrade.lib.util.actorsold
+
+import scala.collection._
+import scala.collection.mutable.HashSet
+import org.aiotrade.lib.util.reactors.Reactions
+import org.aiotrade.lib.util.reactors.RefSet
+import org.aiotrade.lib.util.reactors.StrongReference
+
 
 
 /** <p>
@@ -19,24 +34,24 @@ import scala.collection.mutable
  */
 trait Publisher extends Reactor {
   
-  final val listeners = new RefSet[Reactor] {
+  val listeners = new RefSet[Reactor] {
     import Reactions._
     import scala.ref._
-    val underlying = new mutable.HashSet[Reference[Reactor]]
+    val underlying = new HashSet[Reference[Reactor]]
     protected def Ref(a: Reactor) = a match {
       case a: StronglyReferenced => new StrongReference[Reactor](a) with super.Ref[Reactor]
       case _ => new WeakReference[Reactor](a, referenceQueue) with super.Ref[Reactor]
     }
   }
   
-  private[actors] def subscribe(listener: Reactor)   { listeners += listener }
-  private[actors] def unsubscribe(listener: Reactor) { listeners -= listener }
+  private[actorsold] def subscribe(listener: Reactor)   { listeners += listener }
+  private[actorsold] def unsubscribe(listener: Reactor) { listeners -= listener }
   
   /**
    * Notify all registered reactions.
    */
   def publish(e: Any) { 
-    for (l <- listeners) l.underlyingActor ! e 
+    for (l <- listeners) l ! e 
   }
 
   listenTo(this)
@@ -46,20 +61,17 @@ trait Publisher extends Reactor {
  * A publisher that subscribes itself to an underlying event source not before the first 
  * reaction is installed. Can unsubscribe itself when the last reaction is uninstalled.
  */
-private[actors] trait LazyPublisher extends Publisher {
+private[actorsold] trait LazyPublisher extends Publisher {
   import Reactions._
   
   protected def onFirstSubscribe()
   protected def onLastUnsubscribe()
   
-  override 
-  def subscribe(listener: Reactor) {
+  override def subscribe(listener: Reactor) {
     if (listeners.size == 1) onFirstSubscribe()
     super.subscribe(listener) 
   }
-  
-  override 
-  def unsubscribe(listener: Reactor) {
+  override def unsubscribe(listener: Reactor) {
     super.unsubscribe(listener) 
     if (listeners.size == 1) onLastUnsubscribe()
   }

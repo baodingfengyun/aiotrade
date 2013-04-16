@@ -46,6 +46,10 @@
                     <artifactId>akka-actor_${akka.scala.version}</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.typesafe.akka</groupId>
+                    <artifactId>akka-remote_${akka.scala.version}</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-actors</artifactId>
                 </exclusion>

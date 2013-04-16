@@ -32,7 +32,7 @@
         <netbeans.version>RELEASE73</netbeans.version>
         <scala.version>2.10.1</scala.version>
         <akka.version>2.1.2</akka.version>
-	    <akka.scala.version>2.10</akka.scala.version>
+        <akka.scala.version>2.10</akka.scala.version>
     </properties>
     
     <profiles>
@@ -170,6 +170,11 @@
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
                 <artifactId>akka-actor_${akka.scala.version}</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-remote_${akka.scala.version}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
             <dependency>

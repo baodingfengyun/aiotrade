@@ -24,6 +24,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_${akka.scala.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-remote_${akka.scala.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
             <groupId>net.lag</groupId>
             <artifactId>configgy</artifactId>
             <version>${configgy.version}</version>
