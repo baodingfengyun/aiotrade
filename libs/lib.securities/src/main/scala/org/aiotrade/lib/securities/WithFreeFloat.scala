@@ -7,11 +7,13 @@ package org.aiotrade.lib.securities
 
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{TVar, TVal, DefaultBaseTSer, TFreq}
+import org.aiotrade.lib.math.timeseries.DefaultBaseTSer
+import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.math.timeseries.TVar
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Sec
 
-abstract class FreeFloatSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq)  {
+trait WithFreeFloat {self: DefaultBaseTSer =>
 
   val freeFloat = TVar[Double]("FF", Plot.None)
 

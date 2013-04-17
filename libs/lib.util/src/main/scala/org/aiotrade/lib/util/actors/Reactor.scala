@@ -2,6 +2,7 @@ package org.aiotrade.lib.util.actors
 
 import akka.actor.Actor
 import akka.actor.ActorSystem
+import akka.actor.PoisonPill
 import akka.actor.Props
 
 /**
@@ -15,7 +16,6 @@ trait Reactor {
    * All reactions of this reactor.
    */
   val reactions: Reactions = new Reactions.Impl += {
-    case Reactor.Stop => Reactor.system.stop(underlyingActor)
     case x => //log.info("it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reaction for:\n" + x)
   }
 
@@ -27,7 +27,9 @@ trait Reactor {
   /**
    * Stop via message driven, so the reactor will react messages before finally exit.
    */
-  def stop {underlyingActor ! Reactor.Stop}
+  def stop {
+    underlyingActor ! PoisonPill
+  }
 
   def !(msg: Any) = {
     underlyingActor ! msg
@@ -45,8 +47,6 @@ trait Reactor {
 }
 
 object Reactor {
-  private case object Stop
-
   val system = ActorSystem("Default")
   
   final class UnderlyingActor(reactions: Reactions) extends Actor {

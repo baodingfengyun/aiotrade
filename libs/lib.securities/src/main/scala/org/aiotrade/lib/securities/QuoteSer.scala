@@ -32,7 +32,10 @@ package org.aiotrade.lib.securities
 
 import java.util.logging.Logger
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{TFreq, TSerEvent, TVal}
+import org.aiotrade.lib.math.timeseries.DefaultBaseTSer
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.securities.model.Exchanges
 import org.aiotrade.lib.securities.model.Quote
 import org.aiotrade.lib.securities.model.Sec
@@ -43,7 +46,7 @@ import scala.collection.mutable
  *
  * @author Caoyuan Deng
  */
-class QuoteSer(_sec: Sec, _freq: TFreq) extends FreeFloatSer(_sec, _freq) {
+class QuoteSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) with WithFreeFloat  {
   private val log = Logger.getLogger(this.getClass.getName)
   
   private var _shortName: String = _sec.uniSymbol

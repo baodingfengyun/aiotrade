@@ -31,15 +31,19 @@
 package org.aiotrade.lib.securities
 
 import org.aiotrade.lib.math.indicator.Plot
-import org.aiotrade.lib.math.timeseries.{TVal, TSerEvent, TFreq}
-import org.aiotrade.lib.securities.model._
+import org.aiotrade.lib.math.timeseries.DefaultBaseTSer
+import org.aiotrade.lib.math.timeseries.TFreq
+import org.aiotrade.lib.math.timeseries.TSerEvent
+import org.aiotrade.lib.math.timeseries.TVal
+import org.aiotrade.lib.securities.model.MoneyFlow
+import org.aiotrade.lib.securities.model.Sec
 import org.aiotrade.lib.util.reactors.Reactions
 
 /**
  *
  * @author Caoyuan Deng
  */
-class MoneyFlowSer($sec: Sec, $freq: TFreq) extends FreeFloatSer($sec, $freq) {
+class MoneyFlowSer(_sec: Sec, _freq: TFreq) extends DefaultBaseTSer(_sec, _freq) with WithFreeFloat {
 
   private var _shortName: String = ""
 
