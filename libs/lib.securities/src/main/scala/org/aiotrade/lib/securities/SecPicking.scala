@@ -1,6 +1,5 @@
 package org.aiotrade.lib.securities
 
-import java.awt.Color
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.logging.Logger
@@ -268,8 +267,6 @@ class SecPicking extends Publisher {
     secToWeight map {case (sec, weight) => sec -> weight / sumWeights} toMap
   }
   
-  def weightToColor(weight: Float) = new Color(255, weight * 256 - 1, 0)
-
   def nonValid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
   def isValid(sec: Sec, times: Long*): Boolean = {
     secToValidTimes.get(sec) match {

@@ -125,8 +125,7 @@ class ChartReport(
     initAndShowGUI
   
     reactions += {
-      case (data: ReportData, color: Color) => updateData(data, color)
-      case data: ReportData => updateData(data, null)
+      case data: ReportData => updateData(data)
     }
     listenTo(param)
   
@@ -172,7 +171,7 @@ class ChartReport(
       }
     }
   
-    private def updateData(data: ReportData, color: Color) {
+    private def updateData(data: ReportData) {
       // should run in FX application thread
       runInFXThread {
         val serieId = data.name + data.id
@@ -186,9 +185,9 @@ class ChartReport(
           series.getNode.getStyleClass.add(styleSelector)
         }
         
-        if (color != null) {
+        if (data.color != null) {
           val nodes = chart.lookupAll("." + styleSelector)
-          nodes foreach (_.setStyle("-fx-stroke: #" + toHexColor(color) +  "; "))
+          nodes foreach (_.setStyle("-fx-stroke: #" + toHexColor(data.color) +  "; "))
         }
       }
     }
@@ -432,7 +431,11 @@ object ChartReport {
     cal.add(Calendar.DAY_OF_YEAR, -10)
     for (i <- 1 to 10) {
       cal.add(Calendar.DAY_OF_YEAR, i)
-      params foreach {_.publish((ReportData("series", 0, cal.getTimeInMillis, random.nextDouble), Color.BLUE))}
+      val time = cal.getTimeInMillis
+      params foreach {_.publish(ReportData("series", 0, time, random.nextDouble, Color.RED))}
+      if (i != 5) {
+        params foreach {_.publish(ReportData("series", 1, time, random.nextDouble, Color.BLUE))}
+      }
     }
     
     chartReport.roundFinished

@@ -1,5 +1,6 @@
 package org.aiotrade.lib.trading
 
+import java.awt.Color
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -691,5 +692,5 @@ object NoParam extends Param {
 }
 
 final case class Trigger(sec: Sec, position: Position, time: Long, side: Side)
-final case class ReportData(name: String, id: Int, time: Long, value: Double)
+final case class ReportData(name: String, id: Int, time: Long, value: Double, color: Color = null)
 
