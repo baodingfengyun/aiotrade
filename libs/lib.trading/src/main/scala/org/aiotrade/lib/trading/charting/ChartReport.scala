@@ -69,6 +69,8 @@ class ChartReport(
   private val jfxPanel = new JFXPanel()
   private val tabPane = new TabPane()
   
+  var waitTimeBeforeSaving = 2000
+  
   initAndShowGUI
   
   private def runInFXThread(block: => Unit) {
@@ -108,7 +110,7 @@ class ChartReport(
   
   def roundFinished {
     imageSavingLatch = new CountDownLatch(chartTabs.length)
-    Thread.sleep(2000) // wait for chart painted in FX thread
+    Thread.sleep(waitTimeBeforeSaving) // wait for chart painted in FX thread
     chartTabs foreach (_.saveImage)
   }
   
