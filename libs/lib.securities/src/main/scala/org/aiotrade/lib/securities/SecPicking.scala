@@ -198,10 +198,10 @@ class SecPicking extends Publisher {
    *          = ∑(权重 x 报告期指数)
    * 1        = ∑(权重)          
    */
-  def weightedValueAt(freq: TFreq)(prevValue: Double, prevTime: Long, time: Long): Double = {
+  def weightedValueAt(freq: TFreq, prevValue: Double, prevTime: Long, time: Long, weightMapping: Double => Double = w => w): Double = {
     val secs = at(time)
     
-    val originWeights = chosenWeightsAt(secs, prevTime)
+    val originWeights = chosenWeightsAt(secs, prevTime, weightMapping)
     
     val secToWeight = originWeights
     
@@ -238,7 +238,7 @@ class SecPicking extends Publisher {
     value + (1 - assignedWeight) * prevValue
   }
   
-  def chosenWeightsAt(chosenSecs: Array[Sec], time: Long): immutable.Map[Sec, Double] = {
+  def chosenWeightsAt(chosenSecs: Array[Sec], time: Long, mapping: Double => Double = w => w): immutable.Map[Sec, Double] = {
     val originSecToWeight = weightsAt(time)
     val (secsWithWeight, secsLackWeight) = at(time) partition originSecToWeight.contains
     // best try
@@ -253,23 +253,11 @@ class SecPicking extends Publisher {
       originSecToWeight ++= secToBestTryWeight
     }
     
-    val secToWeight = originSecToWeight filter (x => chosenSecs.contains(x._1))
-    val sumWeights = secToWeight.values.sum
+    val secToWeight = originSecToWeight filter (x => chosenSecs.contains(x._1)) map {case (sec, weight) => sec -> mapping(weight * 10000.0)}
+    val sumWeights = secToWeight.values.filterNot(_.isNaN).sum
     secToWeight map {case (sec, weight) => sec -> weight / sumWeights} toMap
   }
   
-  def reversedWeights(secToWeight: collection.Map[Sec, Double]): immutable.Map[Sec, Double] = {
-    val adjustedSecToWeight = secToWeight map {case (sec, weight) => sec -> math.pow(weight * 100, -1)}
-    val sumWeight = adjustedSecToWeight.values.filterNot(_.isNaN).sum
-    adjustedSecToWeight map {case (sec, weight) => (sec -> weight / sumWeight)} toMap
-  }
-  
-  def squaredWeights(secToWeight: collection.Map[Sec, Double]): immutable.Map[Sec, Double] = {
-    val adjustedSecToWeight = secToWeight map {case (sec, weight) => sec -> math.pow(weight * 100, 2)}
-    val sumWeight = adjustedSecToWeight.values.filterNot(_.isNaN).sum
-    adjustedSecToWeight map {case (sec, weight) => (sec -> weight / sumWeight)} toMap
-  }
-
   def nonValid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
   def isValid(sec: Sec, times: Long*): Boolean = {
     secToValidTimes.get(sec) match {
