@@ -200,13 +200,8 @@ class SecPicking extends Publisher {
    */
   def weightedValueAt(freq: TFreq, prevValue: Double, prevTime: Long, time: Long, weightMapping: Double => Double = w => w): Double = {
     val secs = at(time)
+    val secToWeight = chosenWeightsAt(secs, prevTime, weightMapping)
     
-    val originWeights = chosenWeightsAt(secs, prevTime, weightMapping)
-    
-    val secToWeight = originWeights
-    
-    val weightDate = new Date(prevTime)
-    val assetDate = new Date(time)
     var value = 0.0
     var assignedWeight = 0.0
     var i = 0
@@ -224,21 +219,22 @@ class SecPicking extends Publisher {
             val price = ser.close(idx)
             value += funds * price / priceWhenWeight // positionSize = funds / weightPrice
           } else {
-            log.warning("%s NaN price of %s".format(sec.uniSymbol, assetDate))
+            log.warning("%s NaN price of %s".format(sec.uniSymbol, new Date(time)))
             value += funds // funds substitute
           }
         } else {
-          log.warning("%s NaN weight of %s".format(sec.uniSymbol, weightDate))
+          log.warning("%s NaN weight of %s".format(sec.uniSymbol, new Date(prevTime)))
         }
       }
       i += 1
     }
     
-    log.info("%s sum of weights: %s".format(weightDate, assignedWeight))
+    log.info("%s sum of weights: %s".format(new Date(prevTime), assignedWeight))
     value + (1 - assignedWeight) * prevValue
   }
   
-  def chosenWeightsAt(chosenSecs: Array[Sec], time: Long, mapping: Double => Double = w => w): immutable.Map[Sec, Double] = {
+  def chosenWeightsAt(_chosenSecs: Array[Sec], time: Long, mapping: Double => Double = w => w): immutable.Map[Sec, Double] = {
+    val chosenSecs = _chosenSecs.toSet
     val originSecToWeight = weightsAt(time)
     val (secsWithWeight, secsLackWeight) = at(time) partition originSecToWeight.contains
     // best try
@@ -253,9 +249,9 @@ class SecPicking extends Publisher {
       originSecToWeight ++= secToBestTryWeight
     }
     
-    val secToWeight = originSecToWeight filter (x => chosenSecs.contains(x._1)) map {case (sec, weight) => sec -> mapping(weight * 10000.0)}
-    val sumWeights = secToWeight.values.filterNot(_.isNaN).sum
-    secToWeight map {case (sec, weight) => sec -> weight / sumWeights} toMap
+    val mappedSecToWeight = originSecToWeight filter (x => chosenSecs.contains(x._1)) map {case (sec, weight) => sec -> mapping(weight * 10000.0)}
+    val sumWeights = mappedSecToWeight.values.filterNot(_.isNaN).sum
+    mappedSecToWeight map {case (sec, weight) => sec -> weight / sumWeights} toMap
   }
   
   def nonValid(sec: Sec, times: Long*) = !isValid(sec, times: _*)
