@@ -56,6 +56,7 @@ object CSI300 {
   
   private def getInputStream(fullFilePath: String, isZip: Boolean): Option[InputStream] = {
     try {
+      log.info("Getting inputstream for: " + fullFilePath)
       // try resource first
       val is = getClass.getClassLoader.getResourceAsStream(fullFilePath) match {
         case null => new FileInputStream(fullFilePath)
@@ -74,12 +75,12 @@ object CSI300 {
   }
   
   def loadIFMembers(secPicking: SecPicking) {
-    val inOpt = config.getString("csi300.member") match {
+    val inOpt = config.getString("if0000.member") match {
       case Some(memberFile) => 
-        log.info("Loading members from " + memberFile)
+        log.info("Loading IF0000 members from " + memberFile)
         getInputStream(memberFile)
       case None => 
-        log.info("Loading members from " + IFDataHome + IFMemberFileName)
+        log.info("Loading IF0000 members from " + IFDataHome + IFMemberFileName)
         getInputStream(IFDataHome + IFMemberFileName)
     }
     
@@ -141,12 +142,12 @@ object CSI300 {
   }
   
   def loadIFWeights(secPicking: SecPicking) {
-    val inOpt = config.getString("csi300.weight") match {
+    val inOpt = config.getString("if0000.weight") match {
       case Some(weightFile) => 
-        log.info("Loading weights from " + weightFile)
+        log.info("Loading IF0000 weights from " + weightFile)
         getInputStream(weightFile)
       case None => 
-        log.info("Loading weights from " + IFDataHome + IFWeightFileName)
+        log.info("Loading IF0000 weights from " + IFDataHome + IFWeightFileName)
         getInputStream(IFDataHome + IFWeightFileName)
     }
     
