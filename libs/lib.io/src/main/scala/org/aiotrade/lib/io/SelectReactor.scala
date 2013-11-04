@@ -13,10 +13,6 @@ final case class ProcessData(reactor: Actor, socket: SocketChannel, key: Selecti
 final case class SendData(channel: SocketChannel, data: ByteBuffer, rspHandler: Option[Actor])
 final case class SetResponseHandler(channel: SocketChannel, rspHandler: Option[Actor])
 
-object SelectReactor {
-
-}
-
 class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
   // The buffer into which we'll read data when it's available
   private val readBuffer = ByteBuffer.allocate(8192)

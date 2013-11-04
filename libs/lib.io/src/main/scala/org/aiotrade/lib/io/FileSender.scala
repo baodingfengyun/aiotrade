@@ -9,18 +9,7 @@ import java.nio.channels.SocketChannel
 import java.nio.channels.spi.SelectorProvider
 import Encoding._
 
-object FileSender {
 
-  // ----- simple test
-  def main(files: Array[String]) {
-    val files = Array("pom.xml", "pom.xml")
-    val sender = new FileSender("localhost", 4711)
-    sender.send(files)
-    sender.send(files)
-  }
-}
-
-import FileSender._
 /**
  * @param host host of receiver
  * @param port port of receiver
@@ -101,3 +90,15 @@ class FileSender(hostAddress: String, port: Int) {
   }
 
 }
+
+object FileSender {
+
+  // ----- simple test
+  def main(files: Array[String]) {
+    val files = Array("pom.xml", "pom.xml")
+    val sender = new FileSender("localhost", 4711)
+    sender.send(files)
+    sender.send(files)
+  }
+}
+

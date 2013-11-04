@@ -66,7 +66,9 @@ class SelectDispatcher(selector: Selector) extends Actor {
           }
         }
       }
-    } catch {case ex: Exception => ex.printStackTrace}
+    } catch {
+      case ex: Exception => ex.printStackTrace
+    }
   }
 
   /**
@@ -81,7 +83,8 @@ class SelectDispatcher(selector: Selector) extends Actor {
     // this will raise an IOException.
     try {
       socketChannel.finishConnect
-    } catch {case ex: IOException =>
+    } catch {
+      case ex: IOException =>
         // Cancel the channel's registration with our selector
         ex.printStackTrace
         key.cancel

@@ -12,6 +12,47 @@ import java.nio.channels.spi.SelectorProvider
 import scala.actors.Actor
 import Encoding._
 
+
+class FileReceiver(hostAddress: InetAddress, port: Int, storageDirPath: String) extends Actor {
+
+  val storageDir = new File(storageDirPath)
+  if (!storageDir.exists) {
+    storageDir.mkdirs
+  }
+
+  // Create a new non-blocking server socket channel
+  val serverChannel = ServerSocketChannel.open
+  serverChannel.configureBlocking(true)
+
+  // Bind the server socket to the specified address and port
+  serverChannel.socket.bind(new InetSocketAddress(hostAddress, port))
+
+  val selector = SelectorProvider.provider.openSelector
+
+  val selectorActor = new SelectDispatcher(selector)
+  val selectReactor = new SelectReactor(selectorActor)
+  selectReactor.start
+
+  selectorActor.addListener(selectReactor)
+  selectorActor.start
+
+  def act = loop {
+    val clientChannel = serverChannel.accept
+    if (clientChannel != null) {
+      clientChannel.configureBlocking(false)
+      println("new connection accepted")
+
+      val handler = new FileReceiver.FileReceiverHandler(storageDir)
+      handler.start
+      selectReactor ! SetResponseHandler(clientChannel, Some(handler))
+
+      // Register the new channel with our selector via selectorActor, interested in data waiting to be read
+      selectorActor.requestChange(InterestInOps(clientChannel, SelectionKey.OP_READ))
+    }
+  }
+}
+
+
 object FileReceiver {
 
   // ----- simple test
@@ -135,44 +176,4 @@ object FileReceiver {
     }
   }
 
-}
-
-import FileReceiver._
-class FileReceiver(hostAddress: InetAddress, port: Int, storageDirPath: String) extends Actor {
-
-  val storageDir = new File(storageDirPath)
-  if (!storageDir.exists) {
-    storageDir.mkdirs
-  }
-
-  // Create a new non-blocking server socket channel
-  val serverChannel = ServerSocketChannel.open
-  serverChannel.configureBlocking(true)
-
-  // Bind the server socket to the specified address and port
-  serverChannel.socket.bind(new InetSocketAddress(hostAddress, port))
-
-  val selector = SelectorProvider.provider.openSelector
-
-  val selectorActor = new SelectDispatcher(selector)
-  val selectReactor = new SelectReactor(selectorActor)
-  selectReactor.start
-
-  selectorActor.addListener(selectReactor)
-  selectorActor.start
-
-  def act = loop {
-    val clientChannel = serverChannel.accept
-    if (clientChannel != null) {
-      clientChannel.configureBlocking(false)
-      println("new connection accepted")
-
-      val handler = new FileReceiverHandler(storageDir)
-      handler.start
-      selectReactor ! SetResponseHandler(clientChannel, Some(handler))
-
-      // Register the new channel with our selector via selectorActor, interested in data waiting to be read
-      selectorActor.requestChange(InterestInOps(clientChannel, SelectionKey.OP_READ))
-    }
-  }
 }

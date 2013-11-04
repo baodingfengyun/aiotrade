@@ -8,15 +8,6 @@ import scala.actors.Actor
 import scala.collection.JavaConversions._
 
 
-object SelectActor {
-  sealed abstract class Event(sender: SelectActor)
-  final case class Read   (sender: SelectActor) extends Event(sender)
-  final case class Write  (sender: SelectActor) extends Event(sender)
-  final case class Connect(sender: SelectActor) extends Event(sender)
-  final case class Unknown(sender: SelectActor) extends Event(sender)
-}
-
-import SelectActor._
 class SelectActor(ops: Int) extends Actor {
 
   // @Note tried using ConcurrentMap here before, but no success
@@ -44,6 +35,7 @@ class SelectActor(ops: Int) extends Actor {
       keys.remove
 
       if (key.isValid) {
+        import SelectActor._
         val listener = key.attachment.asInstanceOf[ChannelListener]
         val event =
           if (key.isReadable) {
@@ -80,3 +72,12 @@ trait ChannelListener extends Actor {
   def isOpen: Boolean
   def channel: SelectableChannel
 }
+
+object SelectActor {
+  sealed abstract class Event(sender: SelectActor)
+  final case class Read   (sender: SelectActor) extends Event(sender)
+  final case class Write  (sender: SelectActor) extends Event(sender)
+  final case class Connect(sender: SelectActor) extends Event(sender)
+  final case class Unknown(sender: SelectActor) extends Event(sender)
+}
+

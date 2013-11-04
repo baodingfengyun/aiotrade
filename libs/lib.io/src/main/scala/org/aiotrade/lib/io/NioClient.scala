@@ -8,43 +8,6 @@ import java.nio.channels.SocketChannel
 import java.nio.channels.spi.SelectorProvider
 import scala.actors.Actor
 
-object NioClient {
-  // ----- simple test
-  def main(args: Array[String]) {
-    try {
-      val client = new NioClient(InetAddress.getByName("localhost"), 9090)
-      client.selectReactor.start
-      
-      val handler = new EchoRspHandler
-      handler.start
-
-      val channel = client.initiateConnection
-      client.selectReactor ! SendData(channel, ByteBuffer.wrap("Hello World".getBytes), Some(handler))
-    } catch {case ex: Exception => ex.printStackTrace}
-  }
-
-  class EchoRspHandler extends Actor {
-
-    def handleResponse(rsp: Array[Byte]): Boolean = {
-      println(new String(rsp))
-      true
-    }
-
-    def act = loop {
-      react {
-        case ProcessData(reactor, channel, key, data) =>
-          val finished = handleResponse(data)
-          // The handler has seen enough?, if true, close the connection
-          if (finished) {
-            channel.close
-            key.cancel
-          }
-      }
-    }
-  }
-}
-
-
 /**
  * @parem hostAddress the host to connect to
  * @param port the port to connect to
@@ -87,4 +50,40 @@ class NioClient(hostAddress: InetAddress, port: Int) {
     socketChannel
   }
 
+}
+
+object NioClient {
+  // ----- simple test
+  def main(args: Array[String]) {
+    try {
+      val client = new NioClient(InetAddress.getByName("localhost"), 9090)
+      client.selectReactor.start
+      
+      val handler = new EchoRespHandler
+      handler.start
+
+      val channel = client.initiateConnection
+      client.selectReactor ! SendData(channel, ByteBuffer.wrap("Hello World".getBytes), Some(handler))
+    } catch {case ex: Exception => ex.printStackTrace}
+  }
+
+  class EchoRespHandler extends Actor {
+
+    def handleResponse(resp: Array[Byte]): Boolean = {
+      println(new String(resp))
+      true
+    }
+
+    def act = loop {
+      react {
+        case ProcessData(reactor, channel, key, data) =>
+          val finished = handleResponse(data)
+          // The handler has seen enough?, if true, close the connection
+          if (finished) {
+            channel.close
+            key.cancel
+          }
+      }
+    }
+  }
 }

@@ -9,43 +9,6 @@ import java.util.TimerTask
 import java.util.logging.{Logger, Level}
 import scala.collection.mutable
 
-object DirWatcher {
-  // ----- simple test
-  def main(args: Array[String]) {
-    //Test watching the single directory
-    val task = new DirWatcher("/tmp/test01", "txt" ) {
-      override protected def onChange(event: FileEvent) {
-        println("task:----- " + event)
-      }
-      override protected def lastModified(file: File): Long = {
-        val f = new java.io.BufferedReader(new java.io.FileReader(file))
-        val timestamp = f.readLine.toLong
-        f.close
-        timestamp
-      }
-
-    }
-    val timer = new Timer
-    timer.schedule(task , new Date, 1000)
-
-    //Test watching the two directories simutaneously
-    val task2 = new DirWatcher(List("/tmp/test02", "/tmp/test03"), ".txt") {
-      override protected def onChange(event: FileEvent) {
-        println("task2:----- " + event)
-      }
-
-      override protected def lastModified(file: File): Long = {
-        val f = new java.io.BufferedReader(new java.io.FileReader(file))
-        val timestamp = f.readLine.toLong
-        f.close
-        timestamp
-      }
-    }
-    val timer2 = new Timer
-    timer2.schedule(task2, new Date, 1000)
-    
-  }
-}
 
 /**
  * The DirWatcher watches two directories simutaneously.
@@ -278,5 +241,45 @@ class DefaultWatcherFilter(filter: String) extends FileFilter {
 
   def accept(file: File): Boolean = {
     filter == "" || file.getName.endsWith(filter)
+  }
+}
+
+
+
+object DirWatcher {
+  // ----- simple test
+  def main(args: Array[String]) {
+    //Test watching the single directory
+    val task = new DirWatcher("/tmp/test01", "txt" ) {
+      override protected def onChange(event: FileEvent) {
+        println("task:----- " + event)
+      }
+      override protected def lastModified(file: File): Long = {
+        val f = new java.io.BufferedReader(new java.io.FileReader(file))
+        val timestamp = f.readLine.toLong
+        f.close
+        timestamp
+      }
+
+    }
+    val timer = new Timer
+    timer.schedule(task , new Date, 1000)
+
+    //Test watching the two directories simutaneously
+    val task2 = new DirWatcher(List("/tmp/test02", "/tmp/test03"), ".txt") {
+      override protected def onChange(event: FileEvent) {
+        println("task2:----- " + event)
+      }
+
+      override protected def lastModified(file: File): Long = {
+        val f = new java.io.BufferedReader(new java.io.FileReader(file))
+        val timestamp = f.readLine.toLong
+        f.close
+        timestamp
+      }
+    }
+    val timer2 = new Timer
+    timer2.schedule(task2, new Date, 1000)
+    
   }
 }

@@ -16,33 +16,10 @@ final case class ReadKey   (key: SelectionKey) extends KeyEvent(key)
 final case class WriteKey  (key: SelectionKey) extends KeyEvent(key)
 final case class ConnectKey(key: SelectionKey) extends KeyEvent(key)
 
-object NioServer {
-  val handler = new EchoWorker
-
-  def main(args: Array[String]) {
-    try {
-      handler.start
-      new NioServer(null, 9090) start
-    } catch {case ex: IOException => ex.printStackTrace}
-  }
-
-  class EchoWorker extends Actor {
-    def act = loop {
-      react {
-        case ProcessData(reactor, channel, key, data) =>
-          // Return to sender
-          reactor ! SendData(channel, ByteBuffer.wrap(data), Some(this))
-      }
-    }
-  }
-
-}
-
 /**
  * @parem hostAddress the host to connect to
  * @param port the port to connect to
  */
-import NioServer._
 class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
 
   // Create a new non-blocking server socket channel
@@ -73,7 +50,7 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
       clientChannel.configureBlocking(false)
       println("new connection accepted")
 
-      selectReactor ! SetResponseHandler(clientChannel, Some(handler))
+      selectReactor ! SetResponseHandler(clientChannel, Some(NioServer.handler))
       // Register the new SocketChannel with our Selector, indicating
       // we'd like to be notified when there's data waiting to be read
       //
@@ -82,4 +59,29 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
       selectorActor.requestChange(InterestInOps(clientChannel, SelectionKey.OP_READ))
     }
   }
+}
+
+
+object NioServer {
+  // --- simple test
+  // hold a refer to handler to avoid GCed during main(..) execution.
+  private val handler = new EchoWorker
+
+  def main(args: Array[String]) {
+    try {
+      handler.start
+      new NioServer(null, 9090) start
+    } catch {case ex: IOException => ex.printStackTrace}
+  }
+
+  class EchoWorker extends Actor {
+    def act = loop {
+      react {
+        case ProcessData(reactor, channel, key, data) =>
+          // Return to sender
+          reactor ! SendData(channel, ByteBuffer.wrap(data), Some(this))
+      }
+    }
+  }
+
 }
