@@ -54,7 +54,7 @@ trait ResizableArray[A] extends IndexedSeq[A]
       case Some(x) => 
         java.lang.reflect.Array.newInstance(x, size).asInstanceOf[Array[A]]
       case None => 
-        // If the A is specified under compile time, that's ok, a Array[A] will be 
+        // If the A is specified under compile time, that's ok, an Array[A] will be 
         // created (if A is primitive type, will also create a primitive typed array @see scala.reflect.Manifest)
         // If A is specified under runtime, will create a Array[AnyRef]
         new Array[A](size) 

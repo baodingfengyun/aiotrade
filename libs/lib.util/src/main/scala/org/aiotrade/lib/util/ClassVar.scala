@@ -33,6 +33,7 @@ package org.aiotrade.lib.util
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import scala.reflect.ClassTag
 
 /**
  *
@@ -41,7 +42,7 @@ import java.lang.reflect.Modifier
  * 
  * @author Caoyuan Deng
  */
-final class ClassVar[C, V](val name: String, val getter: Method, val setter: Method) {
+final class ClassVar[C, V: ClassTag](val name: String, val getter: Method, val setter: Method) {
   if (getter != null) getter.setAccessible(true)
   if (setter != null) setter.setAccessible(true)
 
@@ -53,21 +54,30 @@ final class ClassVar[C, V](val name: String, val getter: Method, val setter: Met
     }
   }
 
+  /**
+   * @Note set(to: C, value: Any) instead of set(to: C, value: V) here to prevent 
+   * the AnyVal type case to be broadcasted to usages.
+   */
   def set(to: C, value: V) {
     try {
-      setter.invoke(to, value.asInstanceOf[AnyRef]) // @todo, V is Any
+      if (value != null) {
+        setter.invoke(to, value.asInstanceOf[AnyRef])
+      } else {
+        val propValue = reflect.classTag[V].newArray(1).apply(0)
+        setter.invoke(to, propValue.asInstanceOf[AnyRef])
+      }
     } catch {
       case e: Exception => throw new RuntimeException(e)
     }
   }
-
+  
   def copy(from: C, to: C) {
     set(to, get(from))
   }
 }
 
 object ClassVar {
-  def apply[C, V](name: String, getter: Method, setter: Method) = new ClassVar[C, V](name, getter, setter)
+  def apply[C, V: ClassTag](name: String, getter: Method, setter: Method) = new ClassVar[C, V](name, getter, setter)
   
   def unapply(x: ClassVar[_, _]) = Some((x.name, x.getter, x.setter))
   
