@@ -18,7 +18,7 @@ object Reactions {
   import scala.ref._
 
   final class Impl extends Reactions {
-    val log = Logger.getLogger(getClass.getName)
+    private val log = Logger.getLogger(getClass.getName)
     private val parts: Buffer[Reaction] = new ListBuffer[Reaction]
     def isDefinedAt(e: Any) = parts.exists(_ isDefinedAt e)
     def += (r: Reaction): this.type = { parts += r; this }
