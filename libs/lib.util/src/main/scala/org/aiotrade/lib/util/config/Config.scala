@@ -1,14 +1,13 @@
 package org.aiotrade.lib.util.config
 
+import com.typesafe.config.ConfigFactory
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.util.Locale
 import java.util.Properties
 import java.util.ResourceBundle
-import net.lag.configgy.Configgy
-import net.lag.configgy.ParseException
-import net.lag.logging.Logger
+import java.util.logging.Logger
 
 final case class ConfigurationException(message: String) extends RuntimeException(message)
 
@@ -16,7 +15,7 @@ final case class ConfigurationException(message: String) extends RuntimeExceptio
  * Loads up the configuration (from the app.conf file).
  */
 object Config {
-  private val log = Logger.get(this.getClass.getName)
+  private val log = Logger.getLogger(this.getClass.getName)
 
   val mode = System.getProperty("run.mode", "development")
   val version = "0.10"
@@ -26,57 +25,53 @@ object Config {
     f.exists && f.isDirectory
   }
 
-  private var _config: net.lag.configgy.Config = _
+  private var _config: com.typesafe.config.Config = _
 
-  def apply(fileName: String = null): net.lag.configgy.Config = {
+  def apply(fileName: String = null): com.typesafe.config.Config = {
     if (_config == null) {
       val classLoader = Thread.currentThread.getContextClassLoader
 
       _config = if (fileName != null) {
         try {
           val nbUserPath = System.getProperty("netbeans.user")
-          Configgy.configure(fileName)
-          log.info("Config loaded directly from [%s].", fileName)
+          log.info("Config loaded directly from [%s].".format(fileName))
           log.info("netbeans.user=" + nbUserPath)
+          ConfigFactory.parseFile(new File(fileName))
         } catch {
-          case e: ParseException => throw new ConfigurationException(
+          case ex: Throwable => throw new ConfigurationException(
               "The '" + fileName + " config file can not be found" +
-              "\n\tdue to: " + e.toString)
+              "\n\tdue to: " + ex.toString)
         }
-        Configgy.config
-      } else if (System.getProperty("run.config", "") != "") {
-        val configFile = System.getProperty("run.config", "")
+      } else if (System.getProperty("config.resource", "") != "") {
+        val configFile = System.getProperty("config.resource", "")
         try {
-          Configgy.configure(configFile)
-          log.info("Config loaded from -D" + "run.config=%s", configFile)
+          log.info("Config loaded from -D" + "config.resource=%s".format(configFile))
+          ConfigFactory.parseFile(new File(configFile))
         } catch {
-          case e: ParseException => throw new ConfigurationException(
+          case ex: Throwable => throw new ConfigurationException(
               "Config could not be loaded from -D" + "run.config=" + configFile +
-              "\n\tdue to: " + e.toString)
+              "\n\tdue to: " + ex.toString)
         }
-        Configgy.config
       } else if (configDir.isDefined) {
         try {
           val configFile = configDir.get + "/" + mode + ".conf"
-          Configgy.configure(configFile)
-          log.info("configDir is defined as [%s], config loaded from [%s].", configDir.get, configFile)
+          log.info("configDir is defined as [%s], config loaded from [%s].".format(configDir.get, configFile))
+          ConfigFactory.parseFile(new File(configFile))
         } catch {
-          case e: ParseException => throw new ConfigurationException(
+          case ex: Throwable => throw new ConfigurationException(
               "configDir is defined as [" + configDir.get + "] " +
               "\n\tbut the '" + mode + ".conf' config file can not be found at [" + configDir.get + "/" + mode + ".conf]," +
-              "\n\tdue to: " + e.toString)
+              "\n\tdue to: " + ex.toString)
         }
-        Configgy.config
       } else if (classLoader.getResource(mode + ".conf") != null) {
         try {
-          Configgy.configureFromResource(mode + ".conf", classLoader)
-          log.info("Config loaded from the application classpath [%s].", mode + ".conf")
+          log.info("Config loaded from the application classpath [%s].".format(mode + ".conf"))
+          ConfigFactory.parseResources(classLoader, mode + ".conf")
         } catch {
-          case e: ParseException => throw new ConfigurationException(
+          case ex: Throwable => throw new ConfigurationException(
               "Can't load '" + mode + ".conf' config file from application classpath," +
-              "\n\tdue to: " + e.toString)
+              "\n\tdue to: " + ex.toString)
         }
-        Configgy.config
       } else {
         log.warning(
           "\nCan't load '" + mode + ".conf'." +
@@ -86,14 +81,9 @@ object Config {
           "\n\t3. Put the '" + mode + ".conf' file on the classpath." +
           "\nI have no way of finding the '" + mode + ".conf' configuration file." +
           "\nUsing default values everywhere.")
-        net.lag.configgy.Config.fromString("<" + mode + "></" + mode + ">") // default empty config
+        ConfigFactory.parseString("<" + mode + "></" + mode + ">") // default empty config
       }
     }
-
-    val configVersion = _config.getString(mode + ".version", version)
-    if (version != configVersion)
-      throw new ConfigurationException(
-        mode + " version [" + version + "] is different than the provided config ('" + mode + ".conf') version [" + configVersion + "]")
 
     _config
   }
@@ -149,20 +139,7 @@ object Config {
 
   // ### Classloading
 
-  def classLoader: ClassLoader =
-    if (_config != null ) {
-      _config.getString(mode + ".classLoader") match {
-        //case Some(cld: ClassLoader) => cld
-        case _ => Thread.currentThread.getContextClassLoader
-      }
-    } else Thread.currentThread.getContextClassLoader
-  def loadClass[C](name: String): Class[C] =
-    Class.forName(name, true, classLoader).asInstanceOf[Class[C]]
-  def newObject[C](name: String, default: => C): C =
-    if (_config != null) {
-      _config.getString(name) match {
-        case Some(s: String) => loadClass[C](s).newInstance
-        case _ => default
-      }
-    } else default
+  def classLoader: ClassLoader = Thread.currentThread.getContextClassLoader
+
+  def loadClass[C](name: String): Class[C] = Class.forName(name, true, classLoader).asInstanceOf[Class[C]]
 }

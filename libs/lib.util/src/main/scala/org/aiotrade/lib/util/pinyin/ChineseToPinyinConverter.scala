@@ -3,16 +3,12 @@ package org.aiotrade.lib.util.pinyin
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.Properties
-import java.util.logging.Level
-import java.util.logging.Logger
 
 /**
  * Manage all external resources required in PinyinHelper class.
  * 
  */
 object ChineseToPinyinConverter {
-  private val log = Logger.getLogger(this.getClass.getName)
-
   private val NONE_STR = "(none0)"
   private val LBRACKET = '('
   private val RBRACKET = ')'
@@ -23,7 +19,9 @@ object ChineseToPinyinConverter {
   /**
    * A properties table contains <Unicode, HanyuPinyin> pairs
    */
-  private val unicodeToHanyuPinyins: Map[String, Array[String]] = try {
+	@throws(classOf[FileNotFoundException])
+	@throws(classOf[IOException])
+  private val unicodeToHanyuPinyins: Map[String, Array[String]] = {
     var map = Map[String, Array[String]]()
 
     val resourceName = "org/aiotrade/lib/util/pinyin/unicode_to_hanyu_pinyin.txt"
@@ -44,10 +42,6 @@ object ChineseToPinyinConverter {
     }
 
     map
-
-  } catch {
-    case ex: FileNotFoundException => log.log(Level.SEVERE, ex.getMessage, ex); Map[String, Array[String]]()
-    case ex: IOException => log.log(Level.SEVERE, ex.getMessage, ex); Map[String, Array[String]]()
   }
 
   /**

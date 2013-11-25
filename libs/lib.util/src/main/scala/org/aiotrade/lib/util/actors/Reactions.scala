@@ -1,14 +1,11 @@
 package org.aiotrade.lib.util.actors
 
-import java.util.logging.Logger
-import java.util.logging.Level
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.ListBuffer
 
 object Reactions {
   import scala.ref._
 
-  private val log = Logger.getLogger(getClass.getName)
   
   final class Impl extends Reactions {
     private val parts: Buffer[Reaction] = new ListBuffer[Reaction]
@@ -16,11 +13,7 @@ object Reactions {
     def += (r: Reaction): this.type = { parts += r; this }
     def -= (r: Reaction): this.type = { parts -= r; this }
     def apply(e: Any) {
-      try {
-        for (p <- parts if p isDefinedAt e) p(e)
-      } catch {
-        case ex: Throwable => log.log(Level.SEVERE, ex.getMessage, ex)
-      }
+			for (p <- parts if p isDefinedAt e) p(e)
     }
   }
 

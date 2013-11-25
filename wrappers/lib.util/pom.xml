@@ -43,11 +43,11 @@
                 </exclusion>
                 <exclusion>
                     <groupId>com.typesafe.akka</groupId>
-                    <artifactId>akka-actor_${akka.scala.version}</artifactId>
+                    <artifactId>akka-actor_${scala.version.major}</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.typesafe.akka</groupId>
-                    <artifactId>akka-remote_${akka.scala.version}</artifactId>
+                    <artifactId>akka-remote_${scala.version.major}</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.scala-lang</groupId>

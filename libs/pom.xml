@@ -33,20 +33,11 @@
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-actors</artifactId>
-        </dependency>
 
         <!-- testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-tools.testing</groupId>
-            <artifactId>specs_2.8.1</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -100,8 +91,7 @@
         <module>lib.sevenzip</module>
         <module>lib.trading</module>
         <module>lib.neuralnetwork</module>
-		<module>lib.svm</module>
-        <module>../../configgy</module>
+		    <module>lib.svm</module>
         <module>../../circumflex/circumflex-orm</module>
     </modules>
     

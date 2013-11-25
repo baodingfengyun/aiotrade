@@ -34,7 +34,6 @@ import java.awt.Component
 import java.awt.KeyboardFocusManager
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
-import java.util.logging.Logger
 
 
 /**
@@ -42,14 +41,13 @@ import java.util.logging.Logger
  * @author Caoyuan Deng
  */
 object focusOwnerChecker {
-  private val log = Logger.getLogger(this.getClass.getName)
 
   KeyboardFocusManager.getCurrentKeyboardFocusManager.addPropertyChangeListener(new PropertyChangeListener {
       def propertyChange(e: PropertyChangeEvent) {
         e.getPropertyName match {
           case "focusOwner" =>
             e.getNewValue match {
-              case c: Component => log.info("focus owner is: " + c)
+              case c: Component => println("focus owner is: " + c)
               case _ =>
             }
           case _ =>

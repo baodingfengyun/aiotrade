@@ -38,11 +38,7 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_${akka.scala.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-actors</artifactId>
+            <artifactId>akka-actor_${scala.version.major}</artifactId>
         </dependency>
     </dependencies>
 

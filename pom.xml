@@ -31,8 +31,8 @@
         <mysql.version>5.1.9</mysql.version>
         <netbeans.version>RELEASE73</netbeans.version>
         <scala.version>2.10.3</scala.version>
+				<scala.version.major>2.10</scala.version.major>
         <akka.version>2.2.3</akka.version>
-        <akka.scala.version>2.10</akka.scala.version>
     </properties>
     
     <profiles>
@@ -169,18 +169,13 @@
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-actor_${akka.scala.version}</artifactId>
+                <artifactId>akka-actor_${scala.version.major}</artifactId>
                 <version>${akka.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.typesafe.akka</groupId>
-                <artifactId>akka-remote_${akka.scala.version}</artifactId>
+                <artifactId>akka-remote_${scala.version.major}</artifactId>
                 <version>${akka.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-lang</groupId>
-                <artifactId>scala-actors</artifactId>
-                <version>${scala.version}</version>
             </dependency>
             
             <dependency>
@@ -209,12 +204,6 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.7</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.scala-tools.testing</groupId>
-                <artifactId>specs_2.8.1</artifactId>
-                <version>1.6.6</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
