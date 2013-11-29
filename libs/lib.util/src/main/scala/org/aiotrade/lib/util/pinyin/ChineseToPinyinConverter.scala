@@ -19,8 +19,8 @@ object ChineseToPinyinConverter {
   /**
    * A properties table contains <Unicode, HanyuPinyin> pairs
    */
-	@throws(classOf[FileNotFoundException])
-	@throws(classOf[IOException])
+  @throws(classOf[FileNotFoundException])
+  @throws(classOf[IOException])
   private val unicodeToHanyuPinyins: Map[String, Array[String]] = {
     var map = Map[String, Array[String]]()
 

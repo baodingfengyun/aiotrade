@@ -6,10 +6,10 @@ import java.awt.Graphics
 import javax.swing.Icon
 
 class NextIcon(private var _width: Int, private var _height: Int, private var _isDoubleArrow: Boolean = false) extends Icon {
-	
+  
   protected val xPoints = new Array[Int](3)
   protected val yPoints = new Array[Int](3)
-	
+  
   def setDimension(width: Int, height: Int) {
     this._width = width
     this._height = height
@@ -55,13 +55,13 @@ class NextIcon(private var _width: Int, private var _height: Int, private var _i
 
       xPoints(0) = x + _width
       yPoints(0) = y + (_height / 2)
-			
+      
       xPoints(1) = x
       yPoints(1) = y - 1
-			
+      
       xPoints(2) = x
       yPoints(2) = y + _height
-			
+      
       g.setColor(Color.BLACK)
       g.fillPolygon(xPoints, yPoints, 3)
 

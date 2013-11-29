@@ -13,7 +13,7 @@ object Reactions {
     def += (r: Reaction): this.type = { parts += r; this }
     def -= (r: Reaction): this.type = { parts -= r; this }
     def apply(e: Any) {
-			for (p <- parts if p isDefinedAt e) p(e)
+      for (p <- parts if p isDefinedAt e) p(e)
     }
   }
 

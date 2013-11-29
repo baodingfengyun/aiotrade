@@ -455,7 +455,7 @@ final class ServiceLoader[S](svc: Class[S], cl: ClassLoader) extends java.lang.I
                "Provider " + cn + " could not be instantiated: " + x,
                x)
       }
-      throw new Error		// This cannot happen
+      throw new Error    // This cannot happen
     }
 
     override def remove: Unit = {
