@@ -1,10 +1,10 @@
 package org.aiotrade.lib.io
 
+import akka.actor.Actor
 import java.nio.channels.CancelledKeyException
 import java.nio.channels.SelectableChannel
 import java.nio.channels.spi.SelectorProvider
 import java.util.concurrent.LinkedBlockingQueue
-import scala.actors.Actor
 import scala.collection.JavaConversions._
 
 

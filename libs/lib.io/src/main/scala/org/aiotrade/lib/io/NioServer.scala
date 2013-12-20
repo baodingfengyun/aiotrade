@@ -1,5 +1,6 @@
 package org.aiotrade.lib.io
 
+import akka.actor.Actor
 import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -7,13 +8,11 @@ import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.spi.SelectorProvider
-import scala.actors.Actor
-
 
 sealed abstract class KeyEvent(key: SelectionKey)
-final case class AcceptKey (key: SelectionKey) extends KeyEvent(key)
-final case class ReadKey   (key: SelectionKey) extends KeyEvent(key)
-final case class WriteKey  (key: SelectionKey) extends KeyEvent(key)
+final case class AcceptKey(key: SelectionKey) extends KeyEvent(key)
+final case class ReadKey(key: SelectionKey) extends KeyEvent(key)
+final case class WriteKey(key: SelectionKey) extends KeyEvent(key)
 final case class ConnectKey(key: SelectionKey) extends KeyEvent(key)
 
 /**
@@ -36,13 +35,11 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
   //serverChannel.register(acceptSelector, SelectionKey.OP_ACCEPT)
 
   val selector = SelectorProvider.provider.openSelector
-  
+
   val selectorActor = new SelectDispatcher(selector)
   val selectReactor = new SelectReactor(selectorActor)
-  selectReactor.start
-  
+
   selectorActor.addListener(selectReactor)
-  selectorActor.start
 
   def act = loop {
     val clientChannel = serverChannel.accept
@@ -61,7 +58,6 @@ class NioServer(hostAddress: InetAddress, port: Int) extends Actor {
   }
 }
 
-
 object NioServer {
   // --- simple test
   // hold a refer to handler to avoid GCed during main(..) execution.
@@ -71,16 +67,15 @@ object NioServer {
     try {
       handler.start
       new NioServer(null, 9090) start
-    } catch {case ex: IOException => ex.printStackTrace}
+    } catch { case ex: IOException => ex.printStackTrace }
   }
 
   class EchoWorker extends Actor {
-    def act = loop {
-      react {
-        case ProcessData(reactor, channel, key, data) =>
-          // Return to sender
-          reactor ! SendData(channel, ByteBuffer.wrap(data), Some(this))
-      }
+    def receive = {
+      case ProcessData(reactor, channel, key, data) =>
+        // Return to sender
+        reactor ! SendData(channel, ByteBuffer.wrap(data), Some(this))
+
     }
   }
 

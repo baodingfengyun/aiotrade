@@ -1,17 +1,17 @@
 package org.aiotrade.lib.io
 
-
+import akka.actor.Actor
+import akka.actor.ActorRef
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
-import scala.actors.Actor
 import scala.collection.immutable.Queue
 import scala.collection.mutable
 
-final case class ProcessData(reactor: Actor, socket: SocketChannel, key: SelectionKey, data: Array[Byte])
-final case class SendData(channel: SocketChannel, data: ByteBuffer, rspHandler: Option[Actor])
-final case class SetResponseHandler(channel: SocketChannel, rspHandler: Option[Actor])
+final case class ProcessData(reactor: ActorRef, socket: SocketChannel, key: SelectionKey, data: Array[Byte])
+final case class SendData(channel: SocketChannel, data: ByteBuffer, respHandler: Option[ActorRef])
+final case class SetResponseHandler(channel: SocketChannel, respHandler: Option[ActorRef])
 
 class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
   // The buffer into which we'll read data when it's available
@@ -20,35 +20,33 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
   private val pendingData = mutable.Map[SocketChannel, Queue[ByteBuffer]]()
 
   // Maps a SocketChannel to a Handler
-  private val rspHandlers = mutable.Map[SocketChannel, Actor]()
+  private val respHandlers = mutable.Map[SocketChannel, ActorRef]()
 
-  def act = loop {
-    react {
-      case SetResponseHandler(channel, rspHandler) =>
-        // Register the response handler
-        rspHandler foreach {x => rspHandlers += (channel -> x)}
+  def receive = {
+    case SetResponseHandler(channel, respHandler) =>
+      // Register the response handler
+      respHandler foreach { x => respHandlers += (channel -> x) }
 
-      case SendData(channel, data, rspHandler) =>
-        // Register the response handler
-        rspHandler foreach {x => rspHandlers += (channel -> x)}
+    case SendData(channel, data, respHandler) =>
+      // Register the response handler
+      respHandler foreach { x => respHandlers += (channel -> x) }
 
-        // And queue the data we want written
-        val queue = pendingData.get(channel) match {
-          case None => Queue(data)
-          case Some(x) => x enqueue data
-        }
-        pendingData += (channel -> queue)
+      // And queue the data we want written
+      val queue = pendingData.get(channel) match {
+        case None    => Queue(data)
+        case Some(x) => x enqueue data
+      }
+      pendingData += (channel -> queue)
 
-        // Fianally, indicate we want the interest ops set changed
-        dispatcher.requestChange(InterestInOps(channel, SelectionKey.OP_WRITE))
+      // Fianally, indicate we want the interest ops set changed
+      dispatcher.requestChange(InterestInOps(channel, SelectionKey.OP_WRITE))
 
-      case ConnectKey(key) => // not used yet
-        // Register an interest in writing on this channel
-        key.interestOps(SelectionKey.OP_WRITE)
+    case ConnectKey(key) => // not used yet
+      // Register an interest in writing on this channel
+      key.interestOps(SelectionKey.OP_WRITE)
 
-      case ReadKey(key) => read(key)
-      case WriteKey(key) => write(key)
-    }
+    case ReadKey(key)  => read(key)
+    case WriteKey(key) => write(key)
   }
 
   @throws(classOf[IOException])
@@ -62,7 +60,8 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
     var numRead = -1
     try {
       numRead = socketChannel.read(readBuffer)
-    } catch {case ex: IOException =>
+    } catch {
+      case ex: IOException =>
         // The remote forcibly closed the connection, cancel
         // the selection key and close the channel.
         key.cancel
@@ -80,7 +79,7 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
 
     if (numRead > 0) {
       // Look up the handler for this channel
-      rspHandlers.get(socketChannel) foreach {handler =>
+      respHandlers.get(socketChannel) foreach { handler =>
         // Make a correctly sized copy of the data before handing it to the client
         val data = new Array[Byte](numRead)
         System.arraycopy(readBuffer.array, 0, data, 0, numRead)
@@ -94,7 +93,7 @@ class SelectReactor(dispatcher: SelectDispatcher) extends Actor {
   private def write(key: SelectionKey) {
     val socketChannel = key.channel.asInstanceOf[SocketChannel]
 
-    var queue = pendingData.get(socketChannel).getOrElse(return)
+    var queue = pendingData.get(socketChannel).getOrElse(return )
 
     // Write until there's not more data ...
     var done = false
