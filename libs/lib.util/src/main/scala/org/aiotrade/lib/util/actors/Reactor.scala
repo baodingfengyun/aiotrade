@@ -16,23 +16,23 @@ trait Reactor {
    * All reactions of this reactor.
    */
   val reactions: Reactions = new Reactions.Impl += {
-    case x => //println("it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reaction for:\n" + x)
+    case x => //log.info("it seems messages that have no corresponding reactions will remain in mailbox?, anyway, just add this wild reaction for:\n" + x)
   }
 
   /**
    * Override for custom actor system and actor name, props etc.
    */
-  lazy val underlying = Reactor.system.actorOf(Props(classOf[Reactor.UnderlyingActor], reactions))
+  val underlyingActor = Reactor.system.actorOf(Props(new Reactor.UnderlyingActor(reactions)))
 
   /**
    * Stop via message driven, so the reactor will react messages before finally exit.
    */
   def stop {
-    underlying ! PoisonPill
+    underlyingActor ! PoisonPill
   }
 
   def !(msg: Any) = {
-    underlying ! msg
+    underlyingActor ! msg
   }
   
   /**
@@ -47,7 +47,7 @@ trait Reactor {
 }
 
 object Reactor {
-  lazy val system = ActorSystem()
+  val system = ActorSystem("Default")
   
   final class UnderlyingActor(reactions: Reactions) extends Actor {
     def receive = {

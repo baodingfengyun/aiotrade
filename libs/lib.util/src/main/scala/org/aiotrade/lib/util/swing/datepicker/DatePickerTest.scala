@@ -8,7 +8,7 @@ import javax.swing.JFrame
 import javax.swing.JPanel
 
 object DatePickerTest {
-  
+	
   def main(args: Array[String]) {
     testDatePanel
   }

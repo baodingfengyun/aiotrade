@@ -1,10 +1,10 @@
 package org.aiotrade.lib.io
 
-import akka.actor.Actor
 import java.io.IOException
 import java.nio.channels.SelectionKey
 import java.nio.channels.Selector
 import java.nio.channels.SocketChannel
+import scala.actors.Actor
 
 final case class InterestInOps(channel: SocketChannel, ops: Int)
 

@@ -25,14 +25,20 @@
     <dependencies>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_${scala.version.major}</artifactId>
+            <artifactId>akka-actor_${akka.scala.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-remote_${scala.version.major}</artifactId>
+            <artifactId>akka-remote_${akka.scala.version}</artifactId>
             <scope>runtime</scope>
         </dependency>
-   </dependencies>
+
+        <dependency>
+            <groupId>net.lag</groupId>
+            <artifactId>configgy</artifactId>
+            <version>${configgy.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>

@@ -29,25 +29,25 @@ class PreviousIcon(private var _width: Int, private var _height: Int, private va
       
       xPoints(0) = x
       yPoints(0) = y + (_height / 2)
-      
+			
       xPoints(1) = x + (_width / 2)
       yPoints(1) = y - 1
-      
+			
       xPoints(2) = x + (_width / 2)
       yPoints(2) = y + _height
-      
+			
       g.setColor(Color.BLACK)
       g.fillPolygon(xPoints, yPoints, 3)
 
       xPoints(0) = x + (_width / 2)
       yPoints(0) = y + (_height / 2)
-      
+			
       xPoints(1) = x + _width
       yPoints(1) = y - 1
-      
+			
       xPoints(2) = x + _width
       yPoints(2) = y + _height
-      
+			
       g.setColor(Color.BLACK)
       g.fillPolygon(xPoints, yPoints, 3)
       
@@ -55,13 +55,13 @@ class PreviousIcon(private var _width: Int, private var _height: Int, private va
 
       xPoints(0) = x
       yPoints(0) = y + (_height / 2)
-      
+			
       xPoints(1) = x + _width
       yPoints(1) = y - 1
-      
+			
       xPoints(2) = x + _width
       yPoints(2) = y + _height
-      
+			
       g.setColor(Color.BLACK)
       g.fillPolygon(xPoints, yPoints, 3)
       
