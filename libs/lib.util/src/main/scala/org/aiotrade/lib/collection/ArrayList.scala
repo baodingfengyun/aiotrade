@@ -133,13 +133,13 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @param elem  the element to append.
    */
   
-  def +:(elem: A): this.type = {
-    ensureSize(size0 + 1)
-    copy(0, 1, size0)
-    array(0) = elem
-    size0 += 1
-    this
-  }
+//  def +:(elem: A): this.type = {
+//    ensureSize(size0 + 1)
+//    copy(0, 1, size0)
+//    array(0) = elem
+//    size0 += 1
+//    this
+//  }
    
   /** Prepends a single element to this buffer and return
    *  the identity of the buffer. It takes time linear in 
@@ -149,7 +149,11 @@ class ArrayList[A](override protected val initialSize: Int, protected val elemen
    *  @return      the updated buffer. 
    */
   def +=:(elem: A): this.type = {
-    this.+:(elem)
+    ensureSize(size0 + 1)
+    copy(0, 1, size0)
+    array(0) = elem
+    size0 += 1
+    this
   }
   
   /** Prepends a number of elements provided by an iterable object

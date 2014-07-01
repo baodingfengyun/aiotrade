@@ -366,24 +366,25 @@ abstract class AMQPDispatcher(factory: ConnectionFactory, val exchange: String) 
       // If needs ack, do it right now to avoid the queue on server is blocked.
       // @Note: when autoAck is set false, messages will be blocked until an ack to broker,
       // so should ack it. (Although prefetch may deliver more than one message to consumer)
-      handleAck(isAutoAck, channel, envelope)
-
-      log.fine("Got amqp message: " + (body.length / 1024.0) + "k" )
-
-      val unzippedBody = props.getContentEncoding match {
-        case GZIP => Serializer.ungzip(body)
-        case LZMA => Serializer.unlzma(body)
-        case _ => body
-      }
-
-      val contentType = props.getContentType match {
-        case null | "" =>  DEFAULT_CONTENT_TYPE
-        case x => ContentType(x)
-      }
-
-      val headers = Option(props.getHeaders) getOrElse java.util.Collections.emptyMap[String, AnyRef]
 
       try {
+        handleAck(isAutoAck, channel, envelope)
+
+        log.fine("Got amqp message: " + (body.length / 1024.0) + "k" )
+
+        val unzippedBody = props.getContentEncoding match {
+          case GZIP => Serializer.ungzip(body)
+          case LZMA => Serializer.unlzma(body)
+          case _ => body
+        }
+
+        val contentType = props.getContentType match {
+          case null | "" =>  DEFAULT_CONTENT_TYPE
+          case x => ContentType(x)
+        }
+
+        val headers = Option(props.getHeaders) getOrElse java.util.Collections.emptyMap[String, AnyRef]
+
         import ContentType._
         val content = contentType.mimeType match {
           case JSON.mimeType => headers.get(TAG) match {
