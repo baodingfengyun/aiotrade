@@ -5,7 +5,7 @@ import org.aiotrade.lib.math.timeseries.TFreq
 import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.securities.model.Exchange
 import org.aiotrade.lib.util.actors.Publisher
-import org.aiotrade.lib.util.reactors.Reactions
+import org.aiotrade.lib.util.actors.Reactions
 import org.openide.util.HelpCtx
 import org.openide.util.NbBundle
 import org.openide.util.actions.CallableSystemAction

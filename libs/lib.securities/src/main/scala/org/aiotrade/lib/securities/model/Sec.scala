@@ -57,7 +57,7 @@ import org.aiotrade.lib.securities.dataserver.TickerServer
 import org.aiotrade.lib.securities.dataserver.RichInfo
 import org.aiotrade.lib.securities.dataserver.RichInfoContract
 import org.aiotrade.lib.securities.dataserver.RichInfoDataServer
-import org.aiotrade.lib.util.reactors.Reactions
+import org.aiotrade.lib.util.actors.Reactions
 import java.util.logging.Logger
 import scala.collection.mutable
 import org.aiotrade.lib.info.model.GeneralInfo

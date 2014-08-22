@@ -37,7 +37,7 @@ import org.aiotrade.lib.math.timeseries.TSerEvent
 import org.aiotrade.lib.math.timeseries.TVal
 import org.aiotrade.lib.securities.model.MoneyFlow
 import org.aiotrade.lib.securities.model.Sec
-import org.aiotrade.lib.util.reactors.Reactions
+import org.aiotrade.lib.util.actors.Reactions
 
 /**
  *
