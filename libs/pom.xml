@@ -95,6 +95,7 @@
         <module>lib.dataserver.ib</module>
         <module>lib.dataserver.yahoo</module>
         <module>lib.dbfdriver</module>
+        <module>lib.fastdriver</module>
         <module>lib.amqp</module>
         <module>lib.avro</module>
         <module>helper.test</module>
